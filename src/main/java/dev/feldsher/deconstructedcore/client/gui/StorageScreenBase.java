@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.client.gui;
 
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
+import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
@@ -22,6 +23,8 @@ import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows, or as the screen lets it be:
@@ -265,6 +268,21 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop, 0, 0, 26, 4);
 		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop + 4, 0, 4, 25, heightWithoutBottom - 4);
 		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop + heightWithoutBottom, 0, 198, 25, UPGRADE_BOTTOM_HEIGHT);
+	}
+
+	/** What the screen draws outside of its main area, which item list mods mustn't cover: upgrades, tabs, sort buttons. */
+	public List<Rect2i> getExtraAreas() {
+		List<Rect2i> areas = new ArrayList<>();
+		if (numberOfUpgradeSlots > 0) {
+			areas.add(new Rect2i(guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop, UPGRADE_INVENTORY_OFFSET, getUpgradeHeight()));
+		}
+		if (settingsTabControl != null) {
+			areas.addAll(settingsTabControl.getTabRectangles());
+		}
+		if (sortButton != null && sortByButton != null) {
+			areas.add(new Rect2i(sortButton.getX(), sortButton.getY(), sortByButton.getX() + sortByButton.getWidth() - sortButton.getX(), sortButton.getHeight()));
+		}
+		return areas;
 	}
 
 	private boolean isOverUpgradeColumn(int mouseX, int mouseY) {

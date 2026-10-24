@@ -177,6 +177,10 @@ dependencies {
     }
 }
 
+// The same cache serves Minecraft's jar, which RFG rebuilds when a dependency brings an access transformer (as HEI
+// does): reobfJar would then read the old one. Jar URLs aren't cached at all in the daemon, so no jar is read stale.
+URLConnection.setDefaultUseCaches('jar', false)
+
 // reobfJar reads the class hierarchy from its reference classpath through a URLClassLoader it never closes. The JVM
 // caches the jars that loader opened, so within one Gradle daemon a later build would read another mod of ours from
 // its stale jar, and leave overrides of vanilla methods inherited through it unmapped. Our mods go in as their class

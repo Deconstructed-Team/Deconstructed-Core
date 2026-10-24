@@ -1,4 +1,6 @@
 apply from: rootProject.file('gradle/scripts/mod.gradle')
 
 dependencies {
+    // HEI (JEI's continuation for 1.12): only to build the plugin against, the game doesn't need it
+    compileOnly rfg.deobf('maven.modrinth:had-enough-items:4.36.1')
 }

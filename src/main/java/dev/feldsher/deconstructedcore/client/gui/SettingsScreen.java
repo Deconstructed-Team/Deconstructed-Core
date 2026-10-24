@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.client.gui;
 
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
+import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
 import dev.feldsher.deconstructedcore.common.gui.SettingsContainerMenu;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
 import dev.feldsher.deconstructedcore.settings.StorageSettingsTabControlBase;
@@ -16,6 +17,8 @@ import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A storage's settings screen: its slots, to pick for the open settings tab, and the tabs on the right. Rows that don't
@@ -190,6 +193,11 @@ public abstract class SettingsScreen extends GuiContainer {
 			firstVisibleRow = Math.max(0, Math.min(getMaxFirstVisibleRow(), firstVisibleRow - Integer.signum(wheel)));
 			updateStorageSlotsPositions();
 		}
+	}
+
+	/** The tabs, which item list mods mustn't cover. */
+	public List<Rect2i> getExtraAreas() {
+		return settingsTabControl == null ? Collections.emptyList() : settingsTabControl.getTabRectangles();
 	}
 
 	@Override
