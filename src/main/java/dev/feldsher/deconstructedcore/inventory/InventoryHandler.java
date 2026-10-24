@@ -1,12 +1,16 @@
 package dev.feldsher.deconstructedcore.inventory;
 
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
+import dev.feldsher.deconstructedcore.upgrades.IInsertResponseUpgrade;
+import dev.feldsher.deconstructedcore.upgrades.IOverflowResponseUpgrade;
+import dev.feldsher.deconstructedcore.upgrades.ISlotLimitUpgrade;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
@@ -20,8 +24,7 @@ import java.util.function.IntConsumer;
  * A storage's inventory. Its contents are kept in the storage's contents NBT under {@link #INVENTORY_TAG},
  * and saved through the save handler whenever a slot changes.
  * <p>
- * The inventory partitioner, the slot tracker, the memory filter and the upgrades' insert/overflow hooks
- * come with the stages that port them.
+ * The inventory partitioner, the slot tracker and the memory filter come with the stages that port them.
  */
 public abstract class InventoryHandler extends ItemStackHandler {
 	public static final String INVENTORY_TAG = "inventory";
@@ -136,7 +139,80 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	@Override
 	public int getSlotLimit(int slot) {
-		return baseSlotLimit;
+		int slotLimit = baseSlotLimit;
+		for (ISlotLimitUpgrade slotLimitUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(ISlotLimitUpgrade.class)) {
+			slotLimit = Math.max(slotLimit, slotLimitUpgrade.getSlotLimit());
+		}
+		return slotLimit;
+	}
+
+	/** Into this slot, the upgrades' insert responses around it; what doesn't fit next to the same item goes to the overflow upgrades. */
+	@Nonnull
+	@Override
+	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+		ItemStack remaining = insertItemInternal(slot, stack, simulate);
+		if (!remaining.isEmpty() && ItemHandlerHelper.canItemStacksStack(getStackInSlot(slot), remaining)) {
+			remaining = triggerOverflowUpgrades(remaining);
+		}
+		return remaining;
+	}
+
+	/**
+	 * Into the whole inventory, as 1.21's slot tracker does: next to the same item first, then into empty slots;
+	 * what the slots with that item can't take goes to the overflow upgrades.
+	 */
+	public ItemStack insertItem(ItemStack stack, boolean simulate) {
+		if (stack.isEmpty()) {
+			return stack;
+		}
+		boolean hasFullStack = false;
+		ItemStack remaining = stack;
+		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
+			ItemStack slotStack = getStackInSlot(slot);
+			if (!slotStack.isEmpty() && ItemHandlerHelper.canItemStacksStack(slotStack, remaining)) {
+				if (slotStack.getCount() >= getStackLimit(slot, slotStack)) {
+					hasFullStack = true;
+				} else {
+					remaining = insertItemInternal(slot, remaining, simulate);
+				}
+			}
+		}
+		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
+			if (getStackInSlot(slot).isEmpty()) {
+				remaining = insertItemInternal(slot, remaining, simulate);
+			}
+		}
+		if (!remaining.isEmpty() && (hasFullStack || remaining.getCount() < stack.getCount())) {
+			remaining = triggerOverflowUpgrades(remaining);
+		}
+		return remaining;
+	}
+
+	private ItemStack insertItemInternal(int slot, ItemStack stack, boolean simulate) {
+		ItemStack remaining = stack;
+		for (IInsertResponseUpgrade upgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class)) {
+			remaining = upgrade.onBeforeInsert(this, slot, remaining, simulate);
+			if (remaining.isEmpty()) {
+				return ItemStack.EMPTY;
+			}
+		}
+
+		ItemStack ret = super.insertItem(slot, remaining, simulate);
+		if (ret != remaining && !simulate) {
+			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class).forEach(u -> u.onAfterInsert(this, slot));
+		}
+		return ret;
+	}
+
+	private ItemStack triggerOverflowUpgrades(ItemStack stack) {
+		ItemStack ret = stack;
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
+			ret = overflowUpgrade.onOverflow(ret);
+			if (ret.isEmpty()) {
+				break;
+			}
+		}
+		return ret;
 	}
 
 	public int getBaseStackLimit(ItemStack stack) {

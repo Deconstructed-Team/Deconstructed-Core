@@ -177,10 +177,19 @@ dependencies {
     }
 }
 
-// reobfJar reads the class hierarchy from its reference classpath, where another mod of ours is its jar:
-// without waiting for that jar, it may run before it's built and leave overrides of vanilla methods unmapped
-tasks.named('reobfJar').configure {
-    dependsOn(configurations.runtimeClasspath)
+// reobfJar reads the class hierarchy from its reference classpath through a URLClassLoader it never closes. The JVM
+// caches the jars that loader opened, so within one Gradle daemon a later build would read another mod of ours from
+// its stale jar, and leave overrides of vanilla methods inherited through it unmapped. Our mods go in as their class
+// directories instead, which aren't cached.
+afterEvaluate {
+    tasks.named('reobfJar').configure {
+        def ourLibs = rootProject.subprojects.collect { it.layout.buildDirectory.dir('libs').get().asFile.absolutePath }
+        def originalFrom = new ArrayList(referenceClasspath.from)
+        referenceClasspath.setFrom(
+                files(originalFrom).filter { file -> !ourLibs.any { file.absolutePath.startsWith(it) } },
+                sourceSets.main.compileClasspath.filter { it.isDirectory() })
+        dependsOn(sourceSets.main.compileClasspath)
+    }
 }
 
 // Need reobfJar to use uber jars, so dependencies that are shaded in are present

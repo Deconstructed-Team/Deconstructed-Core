@@ -1,0 +1,192 @@
+item.deconstructedcore.storage.tooltip.right_click_to_add_to_storage=Clique Direito para Adicionar
+item.deconstructedcore.storage.tooltip.stack_multiplier=Multiplicador de Pilha: %s
+item.deconstructedcore.storage.tooltip.energy=%s FE
+item.deconstructedcore.storage.tooltip.fluid=%s mB %s
+item.deconstructedcore.storage.tooltip.fluid_empty=Tanque Vazio
+item.deconstructedcore.storage.tooltip.upgrades=Acessórios
+item.deconstructedcore.storage.tooltip.inventory=Inventário
+item.deconstructedcore.storage.tooltip.empty=Sem Acessórios ou Conteúdo no Inventário para mostrar
+item.deconstructedcore.storage.tooltip.press_for_contents=Pressione <%s> para Ver o Conteúdo
+item.deconstructedcore.storage.tooltip.shift=Shift Esquerdo
+gui.deconstructedcore.settings.no_sort=Sem Classificação
+gui.deconstructedcore.settings.no_sort.tooltip=Exceção de classificação de espaços
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Permite selecionar espaços que serão ignorados pela classificação
+Abra a guia para modificar as configurações dos espaços
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Permite selecionar espaços que serão ignorados pela classificação
+Use os botões abaixo para Selecionar tudo ou Desmarcar tudo
+Clique ou arraste com o botão direito para selecionar os espaços
+Clique ou arraste com o botão direito para desmarcar os espaços
+gui.deconstructedcore.settings.memory=Memorizar
+gui.deconstructedcore.settings.memory.tooltip=Configurações dos Espaços Memorizados
+gui.deconstructedcore.settings.memory.tooltip_detail=Permite selecionar espaços que memorizam seus conteúdos e depois armazenam apenas pilhas do item correspondente
+Abra a guia para modificar as configurações dos espaços
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Permite selecionar espaços que memorizam seus conteúdos e depois armazenam apenas pilhas do item correspondente
+Use os botões abaixo para Selecionar tudo ou Desmarcar tudo
+Clique ou arraste com o botão esquerdo para selecionar os espaços
+Clique ou arraste com o botão direito para desmarcar os espaços
+gui.deconstructedcore.settings.item_display=Exibir Item
+gui.deconstructedcore.settings.item_display.tooltip=Configurações de Exibição de Item
+gui.deconstructedcore.settings.item_display.tooltip_detail=Permite selecionar um espaço para ser usado pra definir o item exibido no topo da mochila
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Permite selecionar um espaço para ser usado pra definir o item exibido no topo da mochila
+Clique com o botão esquerdo para selecionar o espaço
+Clique com o botão direito para selecionar o espaço
+gui.deconstructedcore.upgrades.pickup=Coletor
+gui.deconstructedcore.upgrades.advanced_pickup=Coletor Avançado
+gui.deconstructedcore.upgrades.filter=Filtro
+gui.deconstructedcore.upgrades.advanced_filter=Filtro Avançado
+gui.deconstructedcore.upgrades.magnet=Imã
+gui.deconstructedcore.upgrades.advanced_magnet=Imã Avançado
+gui.deconstructedcore.upgrades.feeding=Alimentador
+gui.deconstructedcore.upgrades.advanced_feeding=Alimentador Avan.
+gui.deconstructedcore.upgrades.compacting=Compactador
+gui.deconstructedcore.upgrades.void=Portal do Vazio
+gui.deconstructedcore.upgrades.advanced_void=P. do Vazio Avan.
+gui.deconstructedcore.upgrades.advanced_compacting=Compactador Avan.
+gui.deconstructedcore.upgrades.smelting=Fornalha
+gui.deconstructedcore.upgrades.auto_smelting=Fornalha Auto.
+gui.deconstructedcore.upgrades.smoking=Defumador
+gui.deconstructedcore.upgrades.auto_smoking=Defumador Auto.
+gui.deconstructedcore.upgrades.blasting=Auto-forno
+gui.deconstructedcore.upgrades.auto_blasting=Auto-forno Auto.
+gui.deconstructedcore.upgrades.crafting=Contruir
+gui.deconstructedcore.upgrades.stonecutter=Cortador de Pedras
+gui.deconstructedcore.upgrades.jukebox=Toca-Discos
+gui.deconstructedcore.upgrades.tank=Tanq.
+gui.deconstructedcore.upgrades.pump=Bomba
+gui.deconstructedcore.upgrades.advanced_pump=Bomba Avançada
+gui.deconstructedcore.upgrades.xp_pump=Bomba de Exp.
+gui.deconstructedcore.upgrades.battery=Bate.
+gui.deconstructedcore.upgrades.pickup.tooltip=Configurações do Coletor
+gui.deconstructedcore.upgrades.advanced_pickup.tooltip=Configurações do Coletor Avançado
+gui.deconstructedcore.upgrades.filter.tooltip=Configurações do Filtro de Itens
+gui.deconstructedcore.upgrades.advanced_filter.tooltip=Configurações do Filtro de Itens Avançado
+gui.deconstructedcore.upgrades.magnet.tooltip=Configurações do Imã
+gui.deconstructedcore.upgrades.advanced_magnet.tooltip=Configurações do Imã Avançado
+gui.deconstructedcore.upgrades.feeding.tooltip=Configuraçoes do Alimentador
+gui.deconstructedcore.upgrades.advanced_feeding.tooltip=Configuraçoes do Alimentador Avançado
+gui.deconstructedcore.upgrades.compacting.tooltip=Configurações do Compactador de Itens
+gui.deconstructedcore.upgrades.advanced_compacting.tooltip=Configurações do Compactador de Itens Avançado
+gui.deconstructedcore.upgrades.void.tooltip=Configurações do Portal do Vazio
+gui.deconstructedcore.upgrades.advanced_void.tooltip=Configurações do Portal do Vazio Avançado
+gui.deconstructedcore.upgrades.smelting.tooltip=Fornalha Portátil
+gui.deconstructedcore.upgrades.auto_smelting.tooltip=Fornalha Portátil Automática
+gui.deconstructedcore.upgrades.smoking.tooltip=Defumador Portátil
+gui.deconstructedcore.upgrades.auto_smoking.tooltip=Defumador Portátil Automático
+gui.deconstructedcore.upgrades.blasting.tooltip=Auto-forno Portátil
+gui.deconstructedcore.upgrades.auto_blasting.tooltip=Auto-forno Portátil Automático
+gui.deconstructedcore.upgrades.crafting.tooltip=Bancada de Trabalho Portátil
+gui.deconstructedcore.upgrades.stonecutter.tooltip=Cortador de Pedras
+gui.deconstructedcore.upgrades.jukebox.tooltip=Toca-discos
+gui.deconstructedcore.upgrades.tank.tooltip=Tanque
+gui.deconstructedcore.upgrades.pump.tooltip=Bomba
+gui.deconstructedcore.upgrades.advanced_pump.tooltip=Bomba Avançada
+gui.deconstructedcore.upgrades.xp_pump.tooltip=Bomba de Experiência
+gui.deconstructedcore.upgrades.tank.contents_tooltip=%s mB restante de %s mB
+gui.deconstructedcore.upgrades.tank.xp_contents_tooltip=%s exp restante de %s exp
+gui.deconstructedcore.upgrades.battery.tooltip=Bateria
+gui.deconstructedcore.upgrades.battery.contents_tooltip=%s FE restante de %s FE
+gui.deconstructedcore.upgrades.buttons.allow=Permitir
+gui.deconstructedcore.upgrades.buttons.block=Bloquear
+gui.deconstructedcore.upgrades.buttons.match_durability=Igualar Durabilidade
+gui.deconstructedcore.upgrades.buttons.ignore_durability=Ignorar Durabilidade
+gui.deconstructedcore.upgrades.buttons.match_nbt=Igualar NBT
+gui.deconstructedcore.upgrades.buttons.ignore_nbt=Ignorar NBT
+gui.deconstructedcore.upgrades.buttons.match_mod=Igualar Mod
+gui.deconstructedcore.upgrades.buttons.match_item=Igualar Item
+gui.deconstructedcore.upgrades.buttons.match_tags=Igualar Tags
+gui.deconstructedcore.upgrades.tag_list.title=Tags
+gui.deconstructedcore.upgrades.tag_list.empty=Sem tags selecionadas
+gui.deconstructedcore.upgrades.tag_list.tag_overflow=+ %s more
+gui.deconstructedcore.upgrades.buttons.add_tag=Adicionar Tag
+gui.deconstructedcore.upgrades.buttons.add_tag.no_item=<- Arraste um item para o espaço ao lado para adicionar tags
+gui.deconstructedcore.upgrades.buttons.add_tag.no_additional_tags=Todas as tags de item já foram adicionadas
+gui.deconstructedcore.upgrades.buttons.add_tag.controls=Role para Selecionar, Clique para Adicionar
+gui.deconstructedcore.upgrades.buttons.remove_tag=Remover Tag
+gui.deconstructedcore.upgrades.buttons.remove_tag.empty=Sem tags para remover
+gui.deconstructedcore.upgrades.buttons.remove_tag.controls=Role para Selecionar, Clique para Remover
+gui.deconstructedcore.upgrades.buttons.match_any_tag=Igualar Qualquer Tag
+gui.deconstructedcore.upgrades.buttons.match_all_tags=Igualar Todas as Tag
+gui.deconstructedcore.upgrades.buttons.direction_both=Entrada & Saída
+gui.deconstructedcore.upgrades.buttons.direction_input=Entrada
+gui.deconstructedcore.upgrades.buttons.direction_output=Saída
+gui.deconstructedcore.upgrades.buttons.compact_only_uncraftable=Compactar apenas Infabricáveis
+gui.deconstructedcore.upgrades.buttons.compact_anything=Compactar tudo
+gui.deconstructedcore.upgrades.buttons.works_in_gui=Funciona na interface também
+gui.deconstructedcore.upgrades.buttons.only_automatic=Funciona apenas com outros acessórios
+gui.deconstructedcore.upgrades.buttons.play=Reproduzir
+gui.deconstructedcore.upgrades.buttons.stop=Parar
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Alimenta o jogador assim que ele estiver com um pouquinho de fome e
+desperdiça alguns pontos de fome da comida
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Alimenta o jogador assim que ele estiver com fome o suficiente
+para desperdiçar no máximo metade dos pontos de fome da comida
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Alimenta o jogador assim que ele estiver com fome o suficiente
+para não desperdiçar nenhum ponto de fome da comida
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Alimenta o jogador imediatamente quando se ferir
+Ignora a configuração de fome quando o jogador não está com a vida máxima
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Ignora a vida do jogador e só se alimenta com base na configuração de fome
+gui.deconstructedcore.upgrades.buttons.pickup_items=Pegar Itens
+gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Não Pegar Itens
+gui.deconstructedcore.upgrades.buttons.pickup_xp=Pegar Experiência
+gui.deconstructedcore.upgrades.buttons.pickup_xp.detail=Requer o acessório Tanque
+gui.deconstructedcore.upgrades.buttons.do_not_pickup_xp=Não Pegar Experiência
+gui.deconstructedcore.upgrades.buttons.pump_input=Entrada
+gui.deconstructedcore.upgrades.buttons.pump_output=Saída
+gui.deconstructedcore.upgrades.buttons.void_overflow=Esvaziar
+gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Permite que apenas as pilhas incompletas sejam completadas
+e esvazia o sobressalente
+gui.deconstructedcore.upgrades.buttons.void_any=Esvaziar Tudo
+gui.deconstructedcore.upgrades.buttons.interact_with_world=Interagir com o Mundo
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=Não Interagir com o Mundo
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interagir com o Armazenamento
+ de Fluídos nas mãos
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Não Interagir com o Armazenamento
+de Fluídos nas mãos
+gui.deconstructedcore.upgrades.buttons.xp_pump_input=Bombear Experiência do Jogador
+gui.deconstructedcore.upgrades.buttons.xp_pump_output=Bombear Experiência para o Jogador
+gui.deconstructedcore.upgrades.buttons.xp_pump_off=Bomba Desligada
+gui.deconstructedcore.upgrades.buttons.store_all_experience=Guardar toda Experiência
+gui.deconstructedcore.upgrades.buttons.take_all_experience=Absorver toda Experiência
+gui.deconstructedcore.upgrades.buttons.store_levels=Guardar %s Níveis
+gui.deconstructedcore.upgrades.buttons.store_levels.controls=Role para alterar o # de níveis
+gui.deconstructedcore.upgrades.buttons.take_levels=Absorver %s Níveis
+gui.deconstructedcore.upgrades.buttons.take_levels.controls=Role para alterar o # de níveis
+gui.deconstructedcore.upgrades.buttons.mend_items=Consertar Itens com Remendo
+gui.deconstructedcore.upgrades.buttons.do_not_mend_items=Não Consertar Itens com Remendo
+gui.deconstructedcore.upgrades.controls.xp_level_select=%s níveis
+gui.deconstructedcore.upgrades.controls.xp_level_select.tooltip=Nível em que a bomba para
+gui.deconstructedcore.upgrades.controls.xp_level_select.tooltip.controls=Role para alterar
+gui.deconstructedcore.upgrades.slots.tank_output.tooltip=Saída
+gui.deconstructedcore.upgrades.slots.tank_input.tooltip=Entrada
+gui.deconstructedcore.upgrades.slots.battery_output.tooltip=Saída
+gui.deconstructedcore.upgrades.slots.battery_input.tooltip=Entrada
+gui.deconstructedcore.buttons.sort_by_name=Por Nome
+gui.deconstructedcore.buttons.sort_by_count=Por Quantidade
+gui.deconstructedcore.buttons.sort_by_tags=Por Tags
+gui.deconstructedcore.buttons.sort_action=Organizar Mochila
+gui.deconstructedcore.settings.buttons.select_all_slots=Selecionar tudo
+gui.deconstructedcore.settings.buttons.unselect_all_slots=Desmarcar tudo
+gui.deconstructedcore.settings.buttons.rotate=Girar
+gui.deconstructedcore.settings.buttons.rotate_detail=Clique com o botão esquerdo para girar no sentido horário
+Clique com o botão esquerdo para girar no sentido anti-horário
+gui.deconstructedcore.settings.buttons.toggle_color=Trocar Cor
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Próximo = Clique Esquerdo
+Anterior = Clique Direito
+gui.deconstructedcore.settings.buttons.context_player=Jogador
+gui.deconstructedcore.settings.buttons.context_player.tooltip=Configuração de todas as Mochilas
+gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Aplica estas configurações a todas as mochilas do jogador presentes no mundo
+gui.deconstructedcore.settings.buttons.shift_click_open_tab.on=Mover para aba
+gui.deconstructedcore.settings.buttons.shift_click_open_tab.off=Mover para inventário
+gui.deconstructedcore.settings.buttons.shift_click_open_tab.on.tooltip=Clicar com o mouse + shift em um item no inventário ou mochila, faz com que ele vá para a aba de acessório aberto e só depois vá para o inventário ou mochila.
+gui.deconstructedcore.settings.buttons.shift_click_open_tab.off.tooltip=Clicar com o mouse + shift  em um item no inventário ou mochila, faz com que ele vá para uma pilha no inventário ou mochila e só depois vá para a aba de acessório aberta.
+gui.deconstructedcore.settings.buttons.keep_tab_open.on=Manter aba aberta: Ligado
+gui.deconstructedcore.settings.buttons.keep_tab_open.off=Manter aba aberta: Desligado
+gui.deconstructedcore.settings.buttons.keep_tab_open.on.tooltip=Ao fechar a mochila, a última aba de acessórios ficará salva para ser aberta junto com a mochila na próxima vez.
+gui.deconstructedcore.settings.buttons.keep_tab_open.off.tooltip=Ao fechar a mochila, todas as abas de acessórios são fechadas também.
+gui.deconstructedcore.error.remove.stack_low_multiplier=Existe pelo menos uma pilha ou acessório que precisa de um multiplicador maior que %s
+gui.deconstructedcore.error.add.needs_occupied_inventory_slots=Existe pelo menos um item nos últimos %s espaços necessários para o %s
+gui.deconstructedcore.error.add.two_tank_upgrades_present=Já existem dois acessórios de Tanque equipados
+gui.deconstructedcore.error.add.tank_capacity_high=Esta mochila não permite equipar o acessório de Tanque. Melhore a mochila ou adicione um multiplicador de pilhas para obter pelo menos %sx de capacidade máxima
+gui.deconstructedcore.error.add.battery_energy_high=Esta mochila não permite equipar o acessório de Basteria Portátil. Melhore a mochila ou adicione um multiplicador de pilhas para obter pelo menos %sx de energia máxima
+gui.deconstructedcore.error.add.battery_exists=Já existe um acessório de Bateria Portátil equipado
+fluid.deconstructedcore.xp_still=Experiência
+gui.deconstructedcore.tooltip.stack_count=Contagem: %s

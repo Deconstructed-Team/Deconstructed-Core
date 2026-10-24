@@ -1,0 +1,5 @@
+{
+  "recipes": {
+    "upgrade_next_tier": "dev.feldsher.deconstructedcore.crafting.UpgradeNextTierRecipe$Factory"
+  }
+}

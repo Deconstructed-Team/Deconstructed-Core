@@ -16,7 +16,8 @@ import java.io.IOException;
  * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows, or as the screen lets it be:
  * then the rows scroll, as in 1.21's InventoryScrollPanel.
  * <p>
- * Upgrade slots and tabs, settings, sort buttons and the search box come with the stages that port them.
+ * The upgrade slots sit in a column on the left.
+ * Upgrade tabs and switches, settings, sort buttons and the search box come with the stages that port them.
  */
 public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> extends GuiContainer {
 	public static final int DISABLED_SLOT_X_POS = -2000;
@@ -24,6 +25,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	static final int SLOTS_X_OFFSET = 7;
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
 	private static final int SCROLL_BAR_WIDTH = 6;
+	private static final int UPGRADE_TOP_HEIGHT = 7;
+	private static final int UPGRADE_SLOT_HEIGHT = 16;
+	private static final int UPGRADE_BOTTOM_HEIGHT = 6;
+	public static final int UPGRADE_INVENTORY_OFFSET = 21;
 
 	protected final S menu;
 	private final String title;
@@ -32,6 +37,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	protected int inventoryLabelX = 8;
 	protected int inventoryLabelY;
 
+	private final int numberOfUpgradeSlots;
 	private int numberOfVisibleRows;
 	private int firstVisibleRow = 0;
 	private boolean draggingScrollBar = false;
@@ -41,6 +47,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		this.menu = menu;
 		this.title = title;
 		visibleSlotsCount = menu.getNumberOfStorageInventorySlots();
+		numberOfUpgradeSlots = menu.getNumberOfUpgradeSlots();
 		updateDimensionsAndSlotPositions(new ScaledResolution(Minecraft.getMinecraft()).getScaledHeight());
 	}
 
@@ -63,6 +70,24 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		inventoryLabelY = ySize - 94;
 		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
 		updatePlayerSlotsPositions();
+		updateUpgradeSlotsPositions();
+	}
+
+	protected void updateUpgradeSlotsPositions() {
+		int yPosition = 6;
+		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
+			Slot slot = getMenu().getSlot(getMenu().getFirstUpgradeSlot() + slotIndex);
+			slot.yPos = yPosition;
+			yPosition += UPGRADE_SLOT_HEIGHT;
+		}
+	}
+
+	protected int getUpgradeHeightWithoutBottom() {
+		return UPGRADE_BOTTOM_HEIGHT + numberOfUpgradeSlots * UPGRADE_SLOT_HEIGHT;
+	}
+
+	protected int getUpgradeHeight() {
+		return getUpgradeHeightWithoutBottom() + UPGRADE_TOP_HEIGHT;
 	}
 
 	private boolean isScrolling() {
@@ -124,6 +149,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		drawDefaultBackground();
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		renderHoveredToolTip(mouseX, mouseY);
+		renderUpgradeSlotChangeError(mouseX, mouseY);
+	}
+
+	private void renderUpgradeSlotChangeError(int mouseX, int mouseY) {
+		getMenu().getErrorUpgradeSlotChangeResult().flatMap(result -> result.getErrorMessage()).ifPresent(message ->
+				drawHoveringText(java.util.Collections.singletonList(net.minecraft.util.text.TextFormatting.RED + message.getFormattedText()), mouseX, mouseY));
 	}
 
 	@Override
@@ -135,6 +166,23 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (isScrolling()) {
 			drawScrollBar();
 		}
+		drawUpgradeBackground();
+	}
+
+	private void drawUpgradeBackground() {
+		if (numberOfUpgradeSlots == 0) {
+			return;
+		}
+
+		int heightWithoutBottom = getUpgradeHeightWithoutBottom();
+		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop, 0, 0, 26, 4);
+		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop + 4, 0, 4, 25, heightWithoutBottom - 4);
+		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop + heightWithoutBottom, 0, 198, 25, UPGRADE_BOTTOM_HEIGHT);
+	}
+
+	private boolean isOverUpgradeColumn(int mouseX, int mouseY) {
+		return numberOfUpgradeSlots > 0 && mouseX >= guiLeft - UPGRADE_INVENTORY_OFFSET && mouseX < guiLeft
+				&& mouseY >= guiTop && mouseY < guiTop + getUpgradeHeight();
 	}
 
 	protected void drawSlotBg(int x, int y, int visibleSlotsCount) {
@@ -238,7 +286,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop) {
-		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && !isOverScrollBar(mouseX, mouseY);
+		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && !isOverScrollBar(mouseX, mouseY) && !isOverUpgradeColumn(mouseX, mouseY);
 	}
 
 	@Override
