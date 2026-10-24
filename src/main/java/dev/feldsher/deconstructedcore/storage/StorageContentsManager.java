@@ -12,12 +12,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import javax.annotation.Nullable;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * The contents of one kind of storage, by UUID; the storage's stack or block carries only the UUID.
@@ -150,9 +152,7 @@ public final class StorageContentsManager {
 		Path target = getFile(uuid).toPath();
 		Path tmp = target.resolveSibling(target.getFileName() + ".tmp");
 		try {
-			try (OutputStream stream = new FileOutputStream(tmp.toFile())) {
-				CompressedStreamTools.writeCompressed(contents.getNbt(), stream);
-			}
+			writeSynced(contents.getNbt(), tmp.toFile());
 			try {
 				Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 			} catch (AtomicMoveNotSupportedException e) {
@@ -161,7 +161,33 @@ public final class StorageContentsManager {
 			return true;
 		} catch (IOException e) {
 			DeconstructedCore.LOGGER.error("Failed to save storage contents {}", target, e);
+			try {
+				Files.deleteIfExists(tmp);
+			} catch (IOException deleteException) {
+				DeconstructedCore.LOGGER.error("Failed to delete {}", tmp, deleteException);
+			}
 			return false;
+		}
+	}
+
+	/**
+	 * As CompressedStreamTools.writeCompressed, but on the disk before it returns: renamed over the old file unsynced,
+	 * the new one could point at blocks a power cut never wrote. writeCompressed closes the stream, so the gzip is
+	 * written here, and synced before the close.
+	 */
+	private static void writeSynced(NBTTagCompound nbt, File file) throws IOException {
+		try (FileOutputStream out = new FileOutputStream(file)) {
+			GZIPOutputStream zip = new GZIPOutputStream(out);
+			DataOutputStream data = new DataOutputStream(new BufferedOutputStream(zip));
+			try {
+				CompressedStreamTools.write(nbt, data);
+				data.flush();
+				zip.finish();
+				out.getFD().sync();
+			} finally {
+				// releases the deflater's native memory
+				data.close();
+			}
 		}
 	}
 
