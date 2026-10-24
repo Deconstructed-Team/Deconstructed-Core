@@ -1,0 +1,148 @@
+package dev.feldsher.deconstructedcore.common.gui;
+
+import dev.feldsher.deconstructedcore.api.IStorageWrapper;
+import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
+import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
+import dev.feldsher.deconstructedcore.settings.SettingsContainerBase;
+import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
+import dev.feldsher.deconstructedcore.settings.main.MainSettingsContainer;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.ClickType;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.items.SlotItemHandler;
+
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+
+/**
+ * A storage's settings: its inventory, to look at and pick slots in, and a container per settings category. Clicks on
+ * the slots go to the open settings tab, not to the slots; there are no player slots.
+ * <p>
+ * Settings templates come with the step that ports them.
+ */
+public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends LargeStackSyncContainer implements ISyncedContainer {
+	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
+
+	static {
+		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
+	}
+
+	protected final EntityPlayer player;
+	protected final S storageWrapper;
+	private final List<Slot> storageInventorySlots = new ArrayList<>();
+	private final Map<String, SettingsContainerBase<?>> settingsContainers = new LinkedHashMap<>();
+
+	protected SettingsContainerMenu(EntityPlayer player, S storageWrapper) {
+		this.player = player;
+		this.storageWrapper = storageWrapper;
+		if (player.world.isRemote) {
+			// The server sent the contents just before opening: the client builds from them, not from what it had
+			storageWrapper.onContentsNbtUpdated();
+		}
+		addStorageInventorySlots();
+		addSettingsContainers();
+	}
+
+	public static <C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> void addFactory(String categoryName, ISettingsContainerFactory<C, T> factory) {
+		SETTINGS_CONTAINER_FACTORIES.put(categoryName, factory);
+	}
+
+	private void addStorageInventorySlots() {
+		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
+		for (int slotIndex = 0; slotIndex < inventoryHandler.getSlots(); slotIndex++) {
+			storageInventorySlots.add(addSlotToContainer(new ViewOnlyStorageInventorySlot(inventoryHandler, slotIndex)));
+		}
+	}
+
+	private void addSettingsContainers() {
+		storageWrapper.getSettingsHandler().getSettingsCategories().forEach((name, category) -> {
+			ISettingsContainerFactory<?, ?> factory = SETTINGS_CONTAINER_FACTORIES.get(name);
+			if (factory != null) {
+				settingsContainers.put(name, instantiateContainer(factory, name, category));
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	private <C extends ISettingsCategory<?>> SettingsContainerBase<?> instantiateContainer(ISettingsContainerFactory<?, ?> factory, String name, ISettingsCategory<?> category) {
+		return ((ISettingsContainerFactory<C, ?>) factory).create(this, name, (C) category);
+	}
+
+	public S getStorageWrapper() {
+		return storageWrapper;
+	}
+
+	public EntityPlayer getPlayer() {
+		return player;
+	}
+
+	public int getNumberOfStorageInventorySlots() {
+		return storageWrapper.getInventoryHandler().getSlots();
+	}
+
+	public int getNumberOfRows() {
+		return storageWrapper.getNumberOfSlotRows();
+	}
+
+	public int getColumnsTaken() {
+		return storageWrapper.getColumnsTaken();
+	}
+
+	public List<Slot> getStorageInventorySlots() {
+		return storageInventorySlots;
+	}
+
+	public void forEachSettingsContainer(BiConsumer<String, ? super SettingsContainerBase<?>> consumer) {
+		settingsContainers.forEach(consumer);
+	}
+
+	@Override
+	public void handlePacket(NBTTagCompound data) {
+		String categoryName = data.getString("categoryName");
+		if (settingsContainers.containsKey(categoryName)) {
+			settingsContainers.get(categoryName).handlePacket(data);
+		}
+	}
+
+	@Override
+	public ItemStack slotClick(int slotId, int dragType, ClickType clickType, EntityPlayer player) {
+		return ItemStack.EMPTY;
+	}
+
+	@Override
+	public ItemStack transferStackInSlot(EntityPlayer player, int index) {
+		return ItemStack.EMPTY;
+	}
+
+	@Override
+	public boolean canInteractWith(EntityPlayer player) {
+		return true;
+	}
+
+	public interface ISettingsContainerFactory<C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> {
+		T create(SettingsContainerMenu<?> settingsContainer, String categoryName, C category);
+	}
+
+	private static class ViewOnlyStorageInventorySlot extends SlotItemHandler {
+		ViewOnlyStorageInventorySlot(InventoryHandler inventoryHandler, int slotIndex) {
+			super(inventoryHandler, slotIndex, 0, 0);
+		}
+
+		@Override
+		public boolean canTakeStack(EntityPlayer player) {
+			return false;
+		}
+
+		@Override
+		public boolean isItemValid(@Nonnull ItemStack stack) {
+			return false;
+		}
+	}
+}

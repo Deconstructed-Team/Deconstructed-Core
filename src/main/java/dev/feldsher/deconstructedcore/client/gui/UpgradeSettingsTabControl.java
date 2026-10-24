@@ -7,12 +7,12 @@ import net.minecraft.inventory.Slot;
 import java.util.Map;
 
 /**
- * The tabs on the right of a storage's screen, one per upgrade with settings.
- * The storage's own settings tab comes with the settings stage.
+ * The tabs on the right of a storage's screen: the storage's settings, then one per upgrade with settings.
  */
 public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenBase<?>, UpgradeSettingsTab<?>> {
-	public UpgradeSettingsTabControl(Position position, StorageScreenBase<?> screen) {
+	public UpgradeSettingsTabControl(Position position, StorageScreenBase<?> screen, String storageSettingsTabTooltip) {
 		super(position);
+		addChild(new StorageSettingsTab(new Position(x, getTopY()), screen, storageSettingsTabTooltip));
 		for (Map.Entry<Integer, UpgradeContainerBase<?, ?>> entry : screen.getMenu().getUpgradeContainers().entrySet()) {
 			addSettingsTab(() -> screen.getMenu().setOpenTabId(entry.getKey()), () -> screen.getMenu().removeOpenTabId(),
 					UpgradeGuiManager.getTab(entry.getValue(), new Position(x, getTopY()), screen))

@@ -4,28 +4,22 @@ import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.network.SyncContainerClientDataMessage;
-import dev.feldsher.deconstructedcore.network.SyncContainerStacksMessage;
-import dev.feldsher.deconstructedcore.network.SyncSlotStackMessage;
+import dev.feldsher.deconstructedcore.settings.SettingsManager;
+import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeItem;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,7 +32,7 @@ import java.util.Optional;
  * <p>
  * Settings, no-sort and memory slots, sorting and the search box come with the stages that port them.
  */
-public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends Container implements ISyncedContainer {
+public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends LargeStackSyncContainer implements ISyncedContainer {
 	private static final String OPEN_TAB_ID_TAG = "openTabId";
 	private static final String REMOVE_OPEN_TAB_ID_TAG = "removeOpenTabId";
 	private static final String SORT_BY_TAG = "sortBy";
@@ -54,12 +48,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private final boolean shouldLockStorageItemSlot;
 	private int storageItemSlotNumber = -1;
 	private int numberOfUpgradeSlots = 0;
+	private boolean reopening = false;
 	private final Map<Integer, UpgradeContainerBase<?, ?>> upgradeContainers = new LinkedHashMap<>();
 
 	@Nullable
 	private UpgradeSlotChangeResult errorUpgradeSlotChangeResult = null;
 	private long errorResultExpirationTime = 0;
-	private boolean needsFullSync = false;
 
 	protected StorageContainerMenuBase(EntityPlayer player, S storageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		this.player = player;
@@ -166,6 +160,41 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		storageWrapper.sort();
 	}
 
+	/** Opens the storage's settings screen in place of this one: the client asks, the server opens it. */
+	public void openSettings() {
+		if (player.world.isRemote) {
+			sendToServer(ACTION_TAG, tag -> tag.setString(ACTION_TAG, "openSettings"));
+			return;
+		}
+		openSettingsScreen();
+	}
+
+	protected abstract void openSettingsScreen();
+
+	private MainSettingsCategory<?> getGlobalSettingsCategory() {
+		return storageWrapper.getSettingsHandler().getGlobalSettingsCategory();
+	}
+
+	private boolean shouldShiftClickIntoOpenTabFirst() {
+		MainSettingsCategory<?> category = getGlobalSettingsCategory();
+		return SettingsManager.getSettingValue(player, category.getPlayerSettingsTagName(), category, SettingsManager.SHIFT_CLICK_INTO_OPEN_TAB_FIRST);
+	}
+
+	/**
+	 * With keep tab open off, the open tab is forgotten when the screen closes; not when it's reopened to show changed
+	 * upgrades, which is no close to the player.
+	 */
+	protected void removeOpenTabIfKeepOff() {
+		MainSettingsCategory<?> category = getGlobalSettingsCategory();
+		if (Boolean.FALSE.equals(SettingsManager.getSettingValue(player, category.getPlayerSettingsTagName(), category, SettingsManager.KEEP_TAB_OPEN))) {
+			storageWrapper.removeOpenTabId();
+		}
+	}
+
+	public void setReopening() {
+		reopening = true;
+	}
+
 	public SortBy getSortBy() {
 		return storageWrapper.getSortBy();
 	}
@@ -205,6 +234,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			setSortBy(SortBy.fromName(data.getString(SORT_BY_TAG)));
 		} else if ("sort".equals(data.getString(ACTION_TAG))) {
 			sort();
+		} else if ("openSettings".equals(data.getString(ACTION_TAG))) {
+			openSettings();
 		}
 	}
 
@@ -381,80 +412,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return Math.min(slot.getItemStackLimit(stack), stack.getMaxStackSize());
 	}
 
-	@Override
-	public void addListener(IContainerListener listener) {
-		if (!(listener instanceof EntityPlayerMP)) {
-			super.addListener(listener);
-			return;
-		}
-		if (listeners.contains(listener)) {
-			throw new IllegalArgumentException("Listener already listening");
-		}
-		listeners.add(listener);
-		sendAllStacks((EntityPlayerMP) listener);
-		detectAndSendChanges();
-	}
-
-	/** Vanilla's, but players get the slots in this container's own packet. */
-	@Override
-	public void detectAndSendChanges() {
-		if (needsFullSync) {
-			needsFullSync = false;
-			for (IContainerListener listener : listeners) {
-				if (listener instanceof EntityPlayerMP) {
-					sendAllStacks((EntityPlayerMP) listener);
-				}
-			}
-		}
-
-		for (int i = 0; i < inventorySlots.size(); ++i) {
-			ItemStack stack = inventorySlots.get(i).getStack();
-			ItemStack lastStack = inventoryItemStacks.get(i);
-			if (!ItemStack.areItemStacksEqual(lastStack, stack)) {
-				boolean clientStackChanged = !ItemStack.areItemStacksEqualUsingNBTShareTag(lastStack, stack);
-				lastStack = stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
-				inventoryItemStacks.set(i, lastStack);
-				if (clientStackChanged) {
-					sendSlotStack(i, lastStack);
-				}
-			}
-		}
-	}
-
-	private void sendSlotStack(int slotNumber, ItemStack stack) {
-		for (IContainerListener listener : listeners) {
-			if (listener instanceof EntityPlayerMP) {
-				EntityPlayerMP playerListener = (EntityPlayerMP) listener;
-				// as vanilla: the client already did what the click it just sent did
-				if (!playerListener.isChangingQuantityOnly) {
-					PacketHandler.INSTANCE.sendTo(new SyncSlotStackMessage(windowId, slotNumber, stack), playerListener);
-				}
-			} else {
-				listener.sendSlotContents(this, slotNumber, stack);
-			}
-		}
-	}
-
-	private void sendAllStacks(EntityPlayerMP playerListener) {
-		List<ItemStack> stacks = new ArrayList<>(inventorySlots.size());
-		for (Slot slot : inventorySlots) {
-			stacks.add(slot.getStack().copy());
-		}
-		PacketHandler.INSTANCE.sendTo(new SyncContainerStacksMessage(windowId, stacks), playerListener);
-		playerListener.connection.sendPacket(new SPacketSetSlot(-1, -1, playerListener.inventory.getItemStack()));
-	}
-
-	/**
-	 * Set to false when a click the client sent didn't do the same on the server. The server then sends all the slots in
-	 * vanilla's packet, which wraps oversized counts: they're sent again, right, on the next change detection.
-	 */
-	@Override
-	public void setCanCraft(EntityPlayer player, boolean canCraft) {
-		super.setCanCraft(player, canCraft);
-		if (!canCraft && !player.world.isRemote) {
-			needsFullSync = true;
-		}
-	}
 
 	@Override
 	public boolean canMergeSlot(ItemStack stack, Slot slot) {
@@ -516,7 +473,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private void updateSlotChangeError(UpgradeSlotChangeResult result) {
 		if (!player.world.isRemote && !result.successful()) {
 			// The client checks less and may have done the click: what it sent back looks the same, so vanilla won't resync
-			needsFullSync = true;
+			requestFullSync();
 		}
 		if (player.world.isRemote && !result.successful()) {
 			errorUpgradeSlotChangeResult = result;
@@ -556,11 +513,34 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		if (isUpgradeSlot(index)) {
 			return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true) || mergeItemStack(slotStack, 0, storageSlots, false);
 		} else if (isStorageInventorySlot(index)) {
-			return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true);
+			if (shouldShiftClickIntoOpenTabFirst()) {
+				return mergeToOpenUpgradeTab(slotStack) || mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true);
+			}
+			return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true) || mergeToOpenUpgradeTab(slotStack);
 		} else if (isUpgradeSettingsSlot(index)) {
-			return false;
+			return mergeItemStack(slotStack, 0, storageSlots, false) || mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true);
 		}
-		return mergeToUpgradeSlots(slotStack) || mergeItemStack(slotStack, 0, storageSlots, false);
+		if (shouldShiftClickIntoOpenTabFirst()) {
+			return mergeToOpenUpgradeTab(slotStack) || mergeToUpgradeSlots(slotStack) || mergeItemStack(slotStack, 0, storageSlots, false);
+		}
+		return mergeToUpgradeSlots(slotStack) || mergeItemStack(slotStack, 0, storageSlots, false) || mergeToOpenUpgradeTab(slotStack);
+	}
+
+	/** Into the open upgrade tab's slots that hold items; filter slots only take ghost copies, by clicks. */
+	private boolean mergeToOpenUpgradeTab(ItemStack slotStack) {
+		for (UpgradeContainerBase<?, ?> container : upgradeContainers.values()) {
+			if (!container.isOpen()) {
+				continue;
+			}
+			boolean merged = false;
+			for (Slot slot : container.getSlots()) {
+				if (!(slot instanceof IFilterSlot) && !slotStack.isEmpty()) {
+					merged |= mergeItemStack(slotStack, slot.slotNumber, slot.slotNumber + 1, false);
+				}
+			}
+			return merged;
+		}
+		return false;
 	}
 
 	/** One upgrade into the first empty upgrade slot that takes it: vanilla's merge would stack upgrades in a slot. */
@@ -581,6 +561,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public void onContainerClosed(EntityPlayer playerIn) {
 		super.onContainerClosed(playerIn);
+		if (!reopening && !playerIn.world.isRemote) {
+			removeOpenTabIfKeepOff();
+		}
 		storageWrapper.getInventoryHandler().saveInventory();
 	}
 

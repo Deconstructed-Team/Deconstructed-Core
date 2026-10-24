@@ -74,13 +74,15 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public void initGui() {
 		super.initGui();
-		settingsTabControl = new UpgradeSettingsTabControl(new Position(guiLeft + xSize, guiTop + 4), this);
+		settingsTabControl = new UpgradeSettingsTabControl(new Position(guiLeft + xSize, guiTop + 4), this, getStorageSettingsTabTooltip());
 		if (shouldShowSortButtons()) {
 			addSortButtons();
 		}
 	}
 
 	@Nullable
+	protected abstract String getStorageSettingsTabTooltip();
+
 	protected boolean shouldShowSortButtons() {
 		return true;
 	}

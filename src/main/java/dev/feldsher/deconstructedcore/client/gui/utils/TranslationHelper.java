@@ -64,6 +64,14 @@ public class TranslationHelper {
 		return guiSettingsPrefix + categoryName;
 	}
 
+	public String translSettingsTooltip(String categoryName) {
+		return translSettings(categoryName) + TOOLTIP_SUFFIX;
+	}
+
+	public String translSettingsButton(String buttonName) {
+		return guiSettingsPrefix + BUTTONS_SUFFIX + buttonName;
+	}
+
 	public String translButton(String buttonName) {
 		return buttonsPrefix + buttonName;
 	}

@@ -3,6 +3,7 @@ package dev.feldsher.deconstructedcore.api;
 import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
+import dev.feldsher.deconstructedcore.settings.SettingsHandler;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import net.minecraft.item.ItemStack;
@@ -33,6 +34,8 @@ public interface IStorageWrapper {
 	}
 
 	UpgradeHandler getUpgradeHandler();
+
+	SettingsHandler getSettingsHandler();
 
 	/** The inventory as machines see it: through the filter upgrades that filter input and output. */
 	default IItemHandlerModifiable getInventoryForInputOutput() {
