@@ -84,6 +84,11 @@ public interface IStorageWrapper {
 		//noop
 	}
 
+	/** What stack upgrades multiply; above 1 for storages that hold more than a stack per slot without upgrades. */
+	default int getBaseStackSizeMultiplier() {
+		return 1;
+	}
+
 	String getStorageType();
 
 	String getDisplayName();

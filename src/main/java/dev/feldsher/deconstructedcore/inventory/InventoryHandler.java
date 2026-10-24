@@ -4,6 +4,7 @@ import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.IInsertResponseUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.IOverflowResponseUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.ISlotLimitUpgrade;
+import dev.feldsher.deconstructedcore.upgrades.stack.StackUpgradeConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -36,9 +37,12 @@ public abstract class InventoryHandler extends ItemStackHandler {
 	private final Map<Integer, NBTBase> stackNbts = new LinkedHashMap<>();
 
 	private int baseSlotLimit;
+	private final StackUpgradeConfig stackUpgradeConfig;
 
-	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, NBTTagCompound contentsNbt, Runnable saveHandler, int baseSlotLimit) {
+	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, NBTTagCompound contentsNbt, Runnable saveHandler, int baseSlotLimit,
+			StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
+		this.stackUpgradeConfig = stackUpgradeConfig;
 		this.storageWrapper = storageWrapper;
 		this.contentsNbt = contentsNbt;
 		this.saveHandler = saveHandler;
@@ -62,8 +66,9 @@ public abstract class InventoryHandler extends ItemStackHandler {
 		}
 	}
 
+	/** Public: slots tell the handler when vanilla changed a stack in place, which the handler can't see. */
 	@Override
-	protected void onContentsChanged(int slot) {
+	public void onContentsChanged(int slot) {
 		super.onContentsChanged(slot);
 		if (persistent && updateSlotNbt(slot)) {
 			saveInventory();
@@ -216,15 +221,19 @@ public abstract class InventoryHandler extends ItemStackHandler {
 	}
 
 	public int getBaseStackLimit(ItemStack stack) {
+		if (!stackUpgradeConfig.canStackItem(stack.getItem())) {
+			return stack.getMaxStackSize();
+		}
 		int maxStackSize = stack.isEmpty() ? getBaseSlotLimit() : stack.getMaxStackSize();
 		if (baseSlotLimit < 64) {
 			return (int) Math.max(1, (double) maxStackSize * baseSlotLimit / 64);
 		}
-		return maxStackSize * (baseSlotLimit / 64) + (baseSlotLimit % 64) * maxStackSize / 64;
+		long limit = (long) maxStackSize * (baseSlotLimit / 64) + (long) (baseSlotLimit % 64) * maxStackSize / 64;
+		return (int) Math.min(Integer.MAX_VALUE, limit);
 	}
 
 	@Override
-	protected int getStackLimit(int slot, @Nonnull ItemStack stack) {
+	public int getStackLimit(int slot, @Nonnull ItemStack stack) {
 		return getBaseStackLimit(stack);
 	}
 

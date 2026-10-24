@@ -13,5 +13,7 @@ public class PacketHandler {
 	public static void init() {
 		int id = 0;
 		INSTANCE.registerMessage(SyncContainerClientDataMessage.Handler.class, SyncContainerClientDataMessage.class, id++, Side.SERVER);
+		INSTANCE.registerMessage(SyncSlotStackMessage.Handler.class, SyncSlotStackMessage.class, id++, Side.CLIENT);
+		INSTANCE.registerMessage(SyncContainerStacksMessage.Handler.class, SyncContainerStacksMessage.class, id++, Side.CLIENT);
 	}
 }

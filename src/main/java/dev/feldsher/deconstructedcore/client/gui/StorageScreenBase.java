@@ -4,11 +4,15 @@ import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
+import dev.feldsher.deconstructedcore.common.gui.StorageInventorySlot;
+import dev.feldsher.deconstructedcore.util.CountAbbreviator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nullable;
@@ -178,7 +182,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
-		super.drawScreen(mouseX, mouseY, partialTicks);
+		StorageInventorySlot.setHideLargeCounts(true);
+		try {
+			super.drawScreen(mouseX, mouseY, partialTicks);
+		} finally {
+			StorageInventorySlot.setHideLargeCounts(false);
+		}
 		renderHoveredToolTip(mouseX, mouseY);
 		if (settingsTabControl != null) {
 			settingsTabControl.renderTooltip(this, mouseX, mouseY);
@@ -353,6 +362,37 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		fontRenderer.drawString(title, 8, 6, 0x404040);
 		fontRenderer.drawString(I18n.format("container.inventory"), inventoryLabelX, inventoryLabelY, 0x404040);
+		renderLargeStackCounts();
+	}
+
+	/** The counts the slots hid while vanilla drew them: abbreviated, and scaled down to fit the slot. */
+	private void renderLargeStackCounts() {
+		StorageInventorySlot.setHideLargeCounts(false);
+		GlStateManager.disableLighting();
+		GlStateManager.disableDepth();
+		GlStateManager.disableBlend();
+		for (int slotIndex = 0; slotIndex < getMenu().getNumberOfStorageInventorySlots(); slotIndex++) {
+			Slot slot = getMenu().getSlot(slotIndex);
+			ItemStack stack = slot.getStack();
+			if (slot.xPos != DISABLED_SLOT_X_POS && stack.getCount() > StorageInventorySlot.SPECIAL_COUNT_RENDER_THRESHOLD) {
+				renderStackCount(CountAbbreviator.abbreviate(stack.getCount()), slot.xPos, slot.yPos);
+			}
+		}
+		GlStateManager.enableLighting();
+		GlStateManager.enableDepth();
+		StorageInventorySlot.setHideLargeCounts(true);
+	}
+
+	private void renderStackCount(String count, int x, int y) {
+		GlStateManager.pushMatrix();
+		GlStateManager.translate(0, 0, 200);
+		int width = fontRenderer.getStringWidth(count);
+		float scale = Math.min(1f, 16f / width);
+		if (scale < 1f) {
+			GlStateManager.scale(scale, scale, 1);
+		}
+		fontRenderer.drawStringWithShadow(count, (x + 19 - 2 - width * scale) / scale, (y + 6 + 3 + (1 / (scale * scale) - 1)) / scale, 0xFFFFFF);
+		GlStateManager.popMatrix();
 	}
 
 	@Override

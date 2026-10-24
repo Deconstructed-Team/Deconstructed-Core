@@ -3,20 +3,28 @@ package dev.feldsher.deconstructedcore.common.gui;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.network.SyncContainerClientDataMessage;
+import dev.feldsher.deconstructedcore.network.SyncContainerStacksMessage;
+import dev.feldsher.deconstructedcore.network.SyncSlotStackMessage;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeItem;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.SPacketSetSlot;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,8 +32,10 @@ import java.util.Optional;
  * A storage's container: its inventory slots, then the player's 27 + 9, then the upgrade slots, then the slots of
  * the upgrades' settings tabs. Positions are set by the screen, which knows how wide the storage is drawn.
  * <p>
- * Settings, no-sort and memory slots, sorting, the search box and oversized stack sync come with the stages that
- * port them.
+ * Storage slots may hold more than a stack, which vanilla neither syncs (its packets carry counts in a byte) nor
+ * clicks right: the container sends its slots in its own packets, and handles clicks on storage slots itself.
+ * <p>
+ * Settings, no-sort and memory slots, sorting and the search box come with the stages that port them.
  */
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends Container implements ISyncedContainer {
 	private static final String OPEN_TAB_ID_TAG = "openTabId";
@@ -45,6 +55,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Nullable
 	private UpgradeSlotChangeResult errorUpgradeSlotChangeResult = null;
 	private long errorResultExpirationTime = 0;
+	private boolean needsFullSync = false;
 
 	protected StorageContainerMenuBase(EntityPlayer player, S storageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		this.player = player;
@@ -187,7 +198,235 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 			return ItemStack.EMPTY;
 		}
-		return super.slotClick(slotId, dragType, clickType, player);
+		ItemStack result;
+		if (isStorageInventorySlot(slotId) && clickType == ClickType.PICKUP && (dragType == 0 || dragType == 1)) {
+			resetDrag();
+			result = pickupWithStorageSlot(inventorySlots.get(slotId), dragType, player);
+		} else if (isStorageInventorySlot(slotId) && clickType == ClickType.SWAP && dragType >= 0 && dragType < 9) {
+			resetDrag();
+			swapWithStorageSlot(inventorySlots.get(slotId), dragType, player);
+			result = ItemStack.EMPTY;
+		} else {
+			result = super.slotClick(slotId, dragType, clickType, player);
+		}
+		// The client sends what its click returned for the server to compare, in vanilla's packet with a byte count:
+		// both sides cap it the same so that the comparison holds for oversized stacks
+		if (result.getCount() > 64) {
+			result = result.copy();
+			result.setCount(64);
+		}
+		return result;
+	}
+
+	/** Vanilla's left and right click, but taking at most a stack out of a slot and putting in up to the slot's limit. */
+	private ItemStack pickupWithStorageSlot(Slot slot, int dragType, EntityPlayer player) {
+		InventoryPlayer inventory = player.inventory;
+		ItemStack slotStack = slot.getStack();
+		ItemStack cursorStack = inventory.getItemStack();
+		ItemStack ret = slotStack.isEmpty() ? ItemStack.EMPTY : slotStack.copy();
+
+		if (slotStack.isEmpty()) {
+			if (!cursorStack.isEmpty() && slot.isItemValid(cursorStack)) {
+				int count = Math.min(dragType == 0 ? cursorStack.getCount() : 1, slot.getItemStackLimit(cursorStack));
+				slot.putStack(cursorStack.splitStack(count));
+			}
+		} else if (slot.canTakeStack(player)) {
+			if (cursorStack.isEmpty()) {
+				int count = Math.min(slotStack.getCount(), slotStack.getMaxStackSize());
+				if (dragType == 1) {
+					count = count / 2 + count % 2;
+				}
+				inventory.setItemStack(slot.decrStackSize(count));
+				slot.onTake(player, inventory.getItemStack());
+			} else if (slot.isItemValid(cursorStack)) {
+				if (ItemHandlerHelper.canItemStacksStack(slotStack, cursorStack)) {
+					int count = Math.min(dragType == 0 ? cursorStack.getCount() : 1, slot.getItemStackLimit(cursorStack) - slotStack.getCount());
+					if (count > 0) {
+						cursorStack.shrink(count);
+						slotStack.grow(count);
+					}
+				} else if (cursorStack.getCount() <= slot.getItemStackLimit(cursorStack) && slotStack.getCount() <= slotStack.getMaxStackSize()) {
+					slot.putStack(cursorStack);
+					inventory.setItemStack(slotStack);
+				}
+			} else if (ItemHandlerHelper.canItemStacksStack(slotStack, cursorStack)) {
+				int count = Math.min(slotStack.getCount(), cursorStack.getMaxStackSize() - cursorStack.getCount());
+				if (count > 0) {
+					ItemStack taken = slot.decrStackSize(count);
+					cursorStack.grow(taken.getCount());
+					slot.onTake(player, taken);
+				}
+			}
+		}
+		slot.onSlotChanged();
+		return ret;
+	}
+
+	/** Vanilla's hotbar key swap, but taking at most a stack out of a slot, and leaving a slot holding more than a stack. */
+	private void swapWithStorageSlot(Slot slot, int hotbarSlot, EntityPlayer player) {
+		InventoryPlayer inventory = player.inventory;
+		ItemStack hotbarStack = inventory.getStackInSlot(hotbarSlot);
+		ItemStack slotStack = slot.getStack();
+		if (hotbarStack.isEmpty() && slotStack.isEmpty()) {
+			return;
+		}
+
+		if (hotbarStack.isEmpty()) {
+			if (slot.canTakeStack(player)) {
+				if (slotStack.getCount() <= slotStack.getMaxStackSize()) {
+					inventory.setInventorySlotContents(hotbarSlot, slotStack);
+					slot.putStack(ItemStack.EMPTY);
+					slot.onTake(player, slotStack);
+				} else {
+					inventory.setInventorySlotContents(hotbarSlot, slot.decrStackSize(slotStack.getMaxStackSize()));
+					slot.onSlotChanged();
+				}
+			}
+		} else if (slotStack.isEmpty()) {
+			if (slot.isItemValid(hotbarStack)) {
+				int limit = slot.getItemStackLimit(hotbarStack);
+				if (hotbarStack.getCount() > limit) {
+					slot.putStack(hotbarStack.splitStack(limit));
+				} else {
+					slot.putStack(hotbarStack);
+					inventory.setInventorySlotContents(hotbarSlot, ItemStack.EMPTY);
+				}
+			}
+		} else if (slotStack.getCount() <= slotStack.getMaxStackSize() && slot.canTakeStack(player) && slot.isItemValid(hotbarStack)) {
+			int limit = slot.getItemStackLimit(hotbarStack);
+			if (hotbarStack.getCount() > limit) {
+				slot.putStack(hotbarStack.splitStack(limit));
+				slot.onTake(player, slotStack);
+				if (!inventory.addItemStackToInventory(slotStack)) {
+					player.dropItem(slotStack, true);
+				}
+			} else {
+				slot.putStack(hotbarStack);
+				inventory.setInventorySlotContents(hotbarSlot, slotStack);
+				slot.onTake(player, slotStack);
+			}
+		}
+	}
+
+	/**
+	 * Vanilla's merge, but up to the storage slots' limits, and never more than an item's stack size into other slots,
+	 * as a storage slot's stack may be bigger than that.
+	 */
+	@Override
+	protected boolean mergeItemStack(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
+		boolean merged = false;
+		boolean intoStorage = isStorageInventorySlot(startIndex);
+		int first = reverseDirection ? endIndex - 1 : startIndex;
+		int step = reverseDirection ? -1 : 1;
+
+		if (stack.isStackable() || intoStorage) {
+			for (int i = first; i >= startIndex && i < endIndex && !stack.isEmpty(); i += step) {
+				Slot slot = inventorySlots.get(i);
+				ItemStack slotStack = slot.getStack();
+				if (!slotStack.isEmpty() && ItemHandlerHelper.canItemStacksStack(slotStack, stack) && (!intoStorage || slot.isItemValid(stack))) {
+					int maxSize = getMergeLimit(slot, stack);
+					if (slotStack.getCount() < maxSize) {
+						int count = Math.min(maxSize - slotStack.getCount(), stack.getCount());
+						stack.shrink(count);
+						slotStack.grow(count);
+						slot.onSlotChanged();
+						merged = true;
+					}
+				}
+			}
+		}
+
+		for (int i = first; i >= startIndex && i < endIndex && !stack.isEmpty(); i += step) {
+			Slot slot = inventorySlots.get(i);
+			if (!slot.getHasStack() && slot.isItemValid(stack)) {
+				slot.putStack(stack.splitStack(Math.min(getMergeLimit(slot, stack), stack.getCount())));
+				slot.onSlotChanged();
+				merged = true;
+			}
+		}
+		return merged;
+	}
+
+	private static int getMergeLimit(Slot slot, ItemStack stack) {
+		if (slot instanceof StorageInventorySlot) {
+			return slot.getItemStackLimit(stack);
+		}
+		return Math.min(slot.getItemStackLimit(stack), stack.getMaxStackSize());
+	}
+
+	@Override
+	public void addListener(IContainerListener listener) {
+		if (!(listener instanceof EntityPlayerMP)) {
+			super.addListener(listener);
+			return;
+		}
+		if (listeners.contains(listener)) {
+			throw new IllegalArgumentException("Listener already listening");
+		}
+		listeners.add(listener);
+		sendAllStacks((EntityPlayerMP) listener);
+		detectAndSendChanges();
+	}
+
+	/** Vanilla's, but players get the slots in this container's own packet. */
+	@Override
+	public void detectAndSendChanges() {
+		if (needsFullSync) {
+			needsFullSync = false;
+			for (IContainerListener listener : listeners) {
+				if (listener instanceof EntityPlayerMP) {
+					sendAllStacks((EntityPlayerMP) listener);
+				}
+			}
+		}
+
+		for (int i = 0; i < inventorySlots.size(); ++i) {
+			ItemStack stack = inventorySlots.get(i).getStack();
+			ItemStack lastStack = inventoryItemStacks.get(i);
+			if (!ItemStack.areItemStacksEqual(lastStack, stack)) {
+				boolean clientStackChanged = !ItemStack.areItemStacksEqualUsingNBTShareTag(lastStack, stack);
+				lastStack = stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
+				inventoryItemStacks.set(i, lastStack);
+				if (clientStackChanged) {
+					sendSlotStack(i, lastStack);
+				}
+			}
+		}
+	}
+
+	private void sendSlotStack(int slotNumber, ItemStack stack) {
+		for (IContainerListener listener : listeners) {
+			if (listener instanceof EntityPlayerMP) {
+				EntityPlayerMP playerListener = (EntityPlayerMP) listener;
+				// as vanilla: the client already did what the click it just sent did
+				if (!playerListener.isChangingQuantityOnly) {
+					PacketHandler.INSTANCE.sendTo(new SyncSlotStackMessage(windowId, slotNumber, stack), playerListener);
+				}
+			} else {
+				listener.sendSlotContents(this, slotNumber, stack);
+			}
+		}
+	}
+
+	private void sendAllStacks(EntityPlayerMP playerListener) {
+		List<ItemStack> stacks = new ArrayList<>(inventorySlots.size());
+		for (Slot slot : inventorySlots) {
+			stacks.add(slot.getStack().copy());
+		}
+		PacketHandler.INSTANCE.sendTo(new SyncContainerStacksMessage(windowId, stacks), playerListener);
+		playerListener.connection.sendPacket(new SPacketSetSlot(-1, -1, playerListener.inventory.getItemStack()));
+	}
+
+	/**
+	 * Set to false when a click the client sent didn't do the same on the server. The server then sends all the slots in
+	 * vanilla's packet, which wraps oversized counts: they're sent again, right, on the next change detection.
+	 */
+	@Override
+	public void setCanCraft(EntityPlayer player, boolean canCraft) {
+		super.setCanCraft(player, canCraft);
+		if (!canCraft && !player.world.isRemote) {
+			needsFullSync = true;
+		}
 	}
 
 	@Override
@@ -248,6 +487,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private void updateSlotChangeError(UpgradeSlotChangeResult result) {
+		if (!player.world.isRemote && !result.successful()) {
+			// The client checks less and may have done the click: what it sent back looks the same, so vanilla won't resync
+			needsFullSync = true;
+		}
 		if (player.world.isRemote && !result.successful()) {
 			errorUpgradeSlotChangeResult = result;
 			errorResultExpirationTime = player.world.getTotalWorldTime() + ERROR_RESULT_TICKS;
