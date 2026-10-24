@@ -2,12 +2,15 @@ package dev.feldsher.deconstructedcore.common.gui;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
+import dev.feldsher.deconstructedcore.compat.invtweaks.InvTweaksSections;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.network.SyncContainerClientDataMessage;
 import dev.feldsher.deconstructedcore.settings.SettingsManager;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeItem;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
+import invtweaks.api.container.ChestContainer;
+import invtweaks.api.container.ContainerSectionCallback;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
@@ -31,7 +34,11 @@ import java.util.Optional;
  * clicks right: the container sends its slots in its own packets, and handles clicks on storage slots itself.
  * <p>
  * Settings, no-sort and memory slots, sorting and the search box come with the stages that port them.
+ * <p>
+ * Inventory Tweaks treats it as a chest without its buttons, whose sections are only the player's inventory: it sorts
+ * that and moves items in it, and leaves storage slots to the storage's own sort.
  */
+@ChestContainer(showButtons = false)
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends LargeStackSyncContainer implements ISyncedContainer {
 	private static final String OPEN_TAB_ID_TAG = "openTabId";
 	private static final String REMOVE_OPEN_TAB_ID_TAG = "removeOpenTabId";
@@ -70,6 +77,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		addPlayerInventorySlots(player.inventory);
 		addUpgradeSlots();
 		addUpgradeSettingsContainers();
+	}
+
+	/** For Inventory Tweaks, which alone calls it: the raw map keeps its classes out of this one's signatures. */
+	@ContainerSectionCallback
+	@SuppressWarnings({"unused", "rawtypes"})
+	public Map getInvTweaksSections() {
+		return InvTweaksSections.playerInventoryOnly(this);
 	}
 
 	public S getStorageWrapper() {
