@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.settings;
 
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
+import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsCategory;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.util.ArrayList;
@@ -12,8 +13,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * A storage's settings, by category, kept in its contents NBT. The no-sort, memory and item display categories come
- * with the steps that port them.
+ * A storage's settings, by category, kept in its contents NBT. The memory and item display categories come with the
+ * steps that port them.
  */
 public abstract class SettingsHandler {
 	protected NBTTagCompound contentsNbt;
@@ -32,6 +33,7 @@ public abstract class SettingsHandler {
 
 	protected void addSettingsCategories(NBTTagCompound settingsNbt) {
 		addSettingsCategory(settingsNbt, getGlobalSettingsCategoryName(), markContentsDirty, this::instantiateGlobalSettingsCategory);
+		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
 	}
 
 	public abstract String getGlobalSettingsCategoryName();
@@ -85,6 +87,15 @@ public abstract class SettingsHandler {
 
 	public NBTTagCompound getNbt() {
 		return getSettingsNbtFromContentsNbt(contentsNbt);
+	}
+
+	/** The settings as the server sent them to the client: into the categories, and into the client's contents. */
+	public void reloadSettings(NBTTagCompound settingsNbt) {
+		getSettingsCategories().forEach((categoryName, category) -> {
+			NBTTagCompound categoryNbt = settingsNbt.getCompoundTag(categoryName);
+			category.reloadFrom(categoryNbt);
+			saveCategoryNbt(settingsNbt, categoryName, categoryNbt);
+		});
 	}
 
 	public void reloadFrom(NBTTagCompound contentsNbt) {

@@ -2,11 +2,16 @@ package dev.feldsher.deconstructedcore.common.gui;
 
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
+import dev.feldsher.deconstructedcore.network.PacketHandler;
+import dev.feldsher.deconstructedcore.network.SyncSettingsMessage;
 import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
 import dev.feldsher.deconstructedcore.settings.SettingsContainerBase;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsContainer;
+import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsCategory;
+import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsContainer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -14,6 +19,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,12 +38,15 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 
 	static {
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
+		addFactory(NoSortSettingsCategory.NAME, NoSortSettingsContainer::new);
 	}
 
 	protected final EntityPlayer player;
 	protected final S storageWrapper;
 	private final List<Slot> storageInventorySlots = new ArrayList<>();
 	private final Map<String, SettingsContainerBase<?>> settingsContainers = new LinkedHashMap<>();
+	@Nullable
+	private NBTTagCompound lastSettingsNbt = null;
 
 	protected SettingsContainerMenu(EntityPlayer player, S storageWrapper) {
 		this.player = player;
@@ -101,6 +110,20 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 
 	public void forEachSettingsContainer(BiConsumer<String, ? super SettingsContainerBase<?>> consumer) {
 		settingsContainers.forEach(consumer);
+	}
+
+	/** The settings the client asked to change come back to it changed, as the server has them. */
+	@Override
+	public void detectAndSendChanges() {
+		super.detectAndSendChanges();
+		if (!(player instanceof EntityPlayerMP)) {
+			return;
+		}
+		NBTTagCompound settingsNbt = storageWrapper.getSettingsHandler().getNbt();
+		if (!settingsNbt.equals(lastSettingsNbt)) {
+			lastSettingsNbt = settingsNbt.copy();
+			PacketHandler.INSTANCE.sendTo(new SyncSettingsMessage(windowId, lastSettingsNbt), (EntityPlayerMP) player);
+		}
 	}
 
 	@Override

@@ -1,8 +1,10 @@
 package dev.feldsher.deconstructedcore.client;
 
+import dev.feldsher.deconstructedcore.common.gui.SettingsContainerMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 import java.util.List;
 
@@ -14,6 +16,13 @@ public final class ClientContainerSync {
 		EntityPlayer player = Minecraft.getMinecraft().player;
 		if (player != null && player.openContainer.windowId == windowId && slotNumber >= 0 && slotNumber < player.openContainer.inventorySlots.size()) {
 			player.openContainer.putStackInSlot(slotNumber, stack);
+		}
+	}
+
+	public static void setSettings(int windowId, NBTTagCompound settings) {
+		EntityPlayer player = Minecraft.getMinecraft().player;
+		if (player != null && player.openContainer.windowId == windowId && player.openContainer instanceof SettingsContainerMenu) {
+			((SettingsContainerMenu<?>) player.openContainer).getStorageWrapper().getSettingsHandler().reloadSettings(settings);
 		}
 	}
 

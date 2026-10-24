@@ -8,6 +8,7 @@ import dev.feldsher.deconstructedcore.client.gui.controls.Button;
 import dev.feldsher.deconstructedcore.client.gui.controls.ButtonDefinitions;
 import dev.feldsher.deconstructedcore.client.gui.controls.ToggleButton;
 import dev.feldsher.deconstructedcore.common.gui.SortBy;
+import dev.feldsher.deconstructedcore.settings.ISlotColorCategory;
 import dev.feldsher.deconstructedcore.common.gui.StorageInventorySlot;
 import dev.feldsher.deconstructedcore.util.CountAbbreviator;
 import net.minecraft.client.Minecraft;
@@ -406,6 +407,25 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		fontRenderer.drawString(title, 8, 6, 0x404040);
 		fontRenderer.drawString(I18n.format("container.inventory"), inventoryLabelX, inventoryLabelY, 0x404040);
 		renderLargeStackCounts();
+		renderSlotColors();
+	}
+
+	/** The colors settings categories mark slots with, such as the no-sort slots', translucent over the slots. */
+	private void renderSlotColors() {
+		java.util.List<ISlotColorCategory> categories = getMenu().getStorageWrapper().getSettingsHandler().getCategoriesThatImplement(ISlotColorCategory.class);
+		GlStateManager.disableLighting();
+		GlStateManager.disableDepth();
+		for (int slotIndex = 0; slotIndex < getMenu().getNumberOfStorageInventorySlots(); slotIndex++) {
+			Slot slot = getMenu().getSlot(slotIndex);
+			if (slot.xPos == DISABLED_SLOT_X_POS) {
+				continue;
+			}
+			for (ISlotColorCategory category : categories) {
+				int index = slotIndex;
+				category.getSlotColor(index).ifPresent(color -> drawRect(slot.xPos, slot.yPos, slot.xPos + 16, slot.yPos + 16, (color & 0x00_FFFFFF) | 0x50_000000));
+			}
+		}
+		GlStateManager.enableDepth();
 	}
 
 	/** The counts the slots hid while vanilla drew them: abbreviated, and scaled down to fit the slot. */

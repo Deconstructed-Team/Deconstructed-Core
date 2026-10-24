@@ -16,5 +16,6 @@ public class PacketHandler {
 		INSTANCE.registerMessage(SyncSlotStackMessage.Handler.class, SyncSlotStackMessage.class, id++, Side.CLIENT);
 		INSTANCE.registerMessage(SyncContainerStacksMessage.Handler.class, SyncContainerStacksMessage.class, id++, Side.CLIENT);
 		INSTANCE.registerMessage(SyncPlayerSettingsMessage.Handler.class, SyncPlayerSettingsMessage.class, id++, Side.CLIENT);
+		INSTANCE.registerMessage(SyncSettingsMessage.Handler.class, SyncSettingsMessage.class, id++, Side.CLIENT);
 	}
 }
