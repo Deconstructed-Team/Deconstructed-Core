@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.common.gui;
 
+import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.network.SyncContainerClientDataMessage;
@@ -42,6 +43,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private static final String REMOVE_OPEN_TAB_ID_TAG = "removeOpenTabId";
 
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
+	public static final String EMPTY_UPGRADE_SLOT_BACKGROUND = DeconstructedCore.MOD_ID + ":item/empty_upgrade_slot";
 	private static final int ERROR_RESULT_TICKS = 60;
 
 	protected final EntityPlayer player;
@@ -571,6 +573,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			super(upgradeHandler, slotIndex, -15, 0);
 			this.slotIndex = slotIndex;
 			wasEmpty = upgradeHandler.getStackInSlot(slotIndex).isEmpty();
+			setBackgroundName(EMPTY_UPGRADE_SLOT_BACKGROUND);
 		}
 
 		@Override
