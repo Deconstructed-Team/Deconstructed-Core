@@ -73,6 +73,16 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		return ItemStack.EMPTY;
 	}
 
+	public int getSlotItemRotation(int slotNumber) {
+		for (SettingsTab<?> settingsTab : settingsTabs) {
+			int rotation = settingsTab.getItemRotation(slotNumber);
+			if (rotation != 0) {
+				return rotation;
+			}
+		}
+		return 0;
+	}
+
 	public void renderSlotExtra(Slot slot) {
 		settingsTabs.forEach(tab -> tab.renderExtra(slot));
 	}

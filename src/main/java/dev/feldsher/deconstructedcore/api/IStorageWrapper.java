@@ -3,6 +3,7 @@ package dev.feldsher.deconstructedcore.api;
 import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
+import dev.feldsher.deconstructedcore.renderdata.RenderInfo;
 import dev.feldsher.deconstructedcore.settings.SettingsHandler;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
@@ -36,6 +37,19 @@ public interface IStorageWrapper {
 	UpgradeHandler getUpgradeHandler();
 
 	SettingsHandler getSettingsHandler();
+
+	/** What clients draw the storage with, as its stack carries it. */
+	default RenderInfo getRenderInfo() {
+		return RenderInfo.EMPTY;
+	}
+
+	/**
+	 * On the server: brings what the stack carries for clients to draw up to date with the contents and settings,
+	 * when they changed it. Each stack with these contents is refreshed by its own wrapper.
+	 */
+	default void refreshRenderInfo() {
+		//noop by default
+	}
 
 	/** The inventory as machines see it: through the filter upgrades that filter input and output. */
 	default IItemHandlerModifiable getInventoryForInputOutput() {

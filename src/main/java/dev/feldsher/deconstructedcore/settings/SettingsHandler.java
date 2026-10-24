@@ -16,8 +16,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * A storage's settings, by category, kept in its contents NBT. The item display category comes with the step that
- * ports it.
+ * A storage's settings, by category, kept in its contents NBT. The item display category is the storage's to add, with
+ * as many items as it shows.
  */
 public abstract class SettingsHandler {
 	protected NBTTagCompound contentsNbt;

@@ -87,6 +87,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return InvTweaksSections.playerInventoryOnly(this);
 	}
 
+	/** The open storage shows a change of the items it shows at once, not at its next refresh. */
+	@Override
+	public void detectAndSendChanges() {
+		if (!player.world.isRemote) {
+			storageWrapper.refreshRenderInfo();
+		}
+		super.detectAndSendChanges();
+	}
+
 	public S getStorageWrapper() {
 		return storageWrapper;
 	}

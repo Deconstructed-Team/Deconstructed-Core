@@ -36,6 +36,12 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 		//noop by default
 	}
 
+	/** How far, in degrees, the slot's item is drawn turned, as the storage shows it. */
+	@SuppressWarnings("unused") // parameter used in override
+	public int getItemRotation(int slotNumber) {
+		return 0;
+	}
+
 	/** What an empty slot shows instead of nothing, as a memorized item. */
 	@SuppressWarnings("unused") // parameter used in override
 	public ItemStack getItemDisplayOverride(int slotNumber) {

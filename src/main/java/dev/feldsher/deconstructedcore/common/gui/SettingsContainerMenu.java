@@ -8,6 +8,8 @@ import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
 import dev.feldsher.deconstructedcore.settings.SettingsContainerBase;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsContainer;
+import dev.feldsher.deconstructedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
+import dev.feldsher.deconstructedcore.settings.itemdisplay.ItemDisplaySettingsContainer;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsContainer;
 import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsCategory;
@@ -28,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.IntPredicate;
 
 /**
  * A storage's settings: its inventory, to look at and pick slots in, and a container per settings category. Clicks on
@@ -42,6 +45,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
 		addFactory(NoSortSettingsCategory.NAME, NoSortSettingsContainer::new);
 		addFactory(MemorySettingsCategory.NAME, MemorySettingsContainer::new);
+		addFactory(ItemDisplaySettingsCategory.NAME, ItemDisplaySettingsContainer::new);
 	}
 
 	protected final EntityPlayer player;
@@ -122,6 +126,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 		if (!(player instanceof EntityPlayerMP)) {
 			return;
 		}
+		storageWrapper.refreshRenderInfo();
 		NBTTagCompound settingsNbt = storageWrapper.getSettingsHandler().getNbt();
 		if (!settingsNbt.equals(lastSettingsNbt)) {
 			lastSettingsNbt = settingsNbt.copy();
@@ -156,9 +161,28 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 		T create(SettingsContainerMenu<?> settingsContainer, String categoryName, C category);
 	}
 
+	/**
+	 * Slots whose stacks vanilla doesn't draw, while the settings screen draws them itself, turned: set only around
+	 * the screen's drawing, on the client.
+	 */
+	public static void setStacksHiddenFromDrawing(@Nullable IntPredicate hiddenSlots) {
+		ViewOnlyStorageInventorySlot.hiddenSlots = hiddenSlots;
+	}
+
 	private static class ViewOnlyStorageInventorySlot extends SlotItemHandler {
+		@Nullable
+		private static IntPredicate hiddenSlots = null;
+
 		ViewOnlyStorageInventorySlot(InventoryHandler inventoryHandler, int slotIndex) {
 			super(inventoryHandler, slotIndex, 0, 0);
+		}
+
+		@Override
+		public ItemStack getStack() {
+			if (hiddenSlots != null && hiddenSlots.test(slotNumber)) {
+				return ItemStack.EMPTY;
+			}
+			return super.getStack();
 		}
 
 		@Override

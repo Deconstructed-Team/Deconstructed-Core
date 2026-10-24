@@ -113,7 +113,13 @@ public abstract class SettingsScreen extends GuiContainer {
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
-		super.drawScreen(mouseX, mouseY, partialTicks);
+		StorageSettingsTabControlBase tabControl = settingsTabControl;
+		SettingsContainerMenu.setStacksHiddenFromDrawing(tabControl == null ? null : slotNumber -> tabControl.getSlotItemRotation(slotNumber) != 0);
+		try {
+			super.drawScreen(mouseX, mouseY, partialTicks);
+		} finally {
+			SettingsContainerMenu.setStacksHiddenFromDrawing(null);
+		}
 		if (settingsTabControl != null) {
 			settingsTabControl.renderTooltip(this, mouseX, mouseY);
 		}
@@ -144,7 +150,10 @@ public abstract class SettingsScreen extends GuiContainer {
 			if (slot.xPos == StorageScreenBase.DISABLED_SLOT_X_POS) {
 				continue;
 			}
-			if (!slot.getHasStack()) {
+			int rotation = settingsTabControl.getSlotItemRotation(slot.slotNumber);
+			if (rotation != 0) {
+				renderRotatedItem(slot.slotNumber, slot.xPos, slot.yPos, rotation);
+			} else if (!slot.getHasStack()) {
 				ItemStack displayOverride = settingsTabControl.getSlotStackDisplayOverride(slot.slotNumber);
 				if (!displayOverride.isEmpty()) {
 					RenderHelper.enableGUIStandardItemLighting();
@@ -158,6 +167,24 @@ public abstract class SettingsScreen extends GuiContainer {
 			settingsTabControl.renderSlotExtra(slot);
 			GlStateManager.enableDepth();
 		}
+	}
+
+	/** The item turned around the slot's middle, with its count unturned. */
+	private void renderRotatedItem(int slotNumber, int x, int y, int rotation) {
+		ItemStack stack = menu.getStorageWrapper().getInventoryHandler().getStackInSlot(slotNumber);
+		if (stack.isEmpty() && settingsTabControl != null) {
+			stack = settingsTabControl.getSlotStackDisplayOverride(slotNumber);
+		}
+		GlStateManager.pushMatrix();
+		GlStateManager.translate(x + 8, y + 8, 0);
+		GlStateManager.rotate(rotation, 0, 0, 1);
+		GlStateManager.translate(-x - 8, -y - 8, 0);
+		RenderHelper.enableGUIStandardItemLighting();
+		itemRender.renderItemAndEffectIntoGUI(mc.player, stack, x, y);
+		RenderHelper.disableStandardItemLighting();
+		GlStateManager.popMatrix();
+		itemRender.renderItemOverlayIntoGUI(fontRenderer, stack, x, y, null);
+		GlStateManager.disableLighting();
 	}
 
 	/** A slot click goes to the open tab, not to the server. */
