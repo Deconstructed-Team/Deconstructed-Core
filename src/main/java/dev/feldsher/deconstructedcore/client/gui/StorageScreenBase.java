@@ -4,21 +4,26 @@ import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Slot;
+import org.lwjgl.input.Mouse;
+
+import java.io.IOException;
 
 /**
- * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows.
+ * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows, or as the screen lets it be:
+ * then the rows scroll, as in 1.21's InventoryScrollPanel.
  * <p>
- * Upgrade slots and tabs, settings, sort buttons, the search box and the scroll panel for storages taller than the
- * screen come with the stages that port them.
+ * Upgrade slots and tabs, settings, sort buttons and the search box come with the stages that port them.
  */
 public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> extends GuiContainer {
 	public static final int DISABLED_SLOT_X_POS = -2000;
 	static final int SLOTS_Y_OFFSET = 17;
 	static final int SLOTS_X_OFFSET = 7;
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
+	private static final int SCROLL_BAR_WIDTH = 6;
 
 	protected final S menu;
 	private final String title;
@@ -27,28 +32,45 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	protected int inventoryLabelX = 8;
 	protected int inventoryLabelY;
 
+	private int numberOfVisibleRows;
+	private int firstVisibleRow = 0;
+	private boolean draggingScrollBar = false;
+
 	protected StorageScreenBase(S menu, String title) {
 		super(menu);
 		this.menu = menu;
 		this.title = title;
 		visibleSlotsCount = menu.getNumberOfStorageInventorySlots();
-		updateDimensionsAndSlotPositions();
+		updateDimensionsAndSlotPositions(new ScaledResolution(Minecraft.getMinecraft()).getScaledHeight());
 	}
 
 	public S getMenu() {
 		return menu;
 	}
 
-	private void updateDimensionsAndSlotPositions() {
-		int displayableNumberOfRows = getMenu().getNumberOfRows();
+	private void updateDimensionsAndSlotPositions(int height) {
+		numberOfVisibleRows = Math.max(1, Math.min((height - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows()));
 		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		xSize = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
+		if (isScrolling()) {
+			storageBackgroundProperties = storageBackgroundProperties == StorageBackgroundProperties.REGULAR_9_SLOT ? StorageBackgroundProperties.WIDER_9_SLOT : StorageBackgroundProperties.WIDER_12_SLOT;
+			xSize += SCROLL_BAR_WIDTH;
+		}
+		firstVisibleRow = Math.min(firstVisibleRow, getMaxFirstVisibleRow());
 		updateStorageSlotsPositions();
-		ySize = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(displayableNumberOfRows);
+		ySize = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(numberOfVisibleRows);
 		inventoryLabelY = ySize - 94;
 		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
 		updatePlayerSlotsPositions();
+	}
+
+	private boolean isScrolling() {
+		return numberOfVisibleRows < getMenu().getNumberOfRows();
+	}
+
+	private int getMaxFirstVisibleRow() {
+		return Math.max(0, getMenu().getNumberOfRows() - numberOfVisibleRows);
 	}
 
 	protected int getStorageInventoryHeight(int displayableNumberOfRows) {
@@ -59,19 +81,19 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return storageBackgroundProperties.getSlotsOnLine() - getMenu().getColumnsTaken();
 	}
 
+	/** Slots in the visible rows go where they're drawn; those scrolled away go off screen, where they can't be clicked. */
 	protected void updateStorageSlotsPositions() {
-		int yPosition = 18;
-
 		visibleSlotsCount = 0;
 		for (int slotIndex = 0; slotIndex < getMenu().getNumberOfStorageInventorySlots(); slotIndex++) {
 			Slot slot = getMenu().getSlot(slotIndex);
-			int lineIndex = visibleSlotsCount % getSlotsOnLine();
-			slot.xPos = 8 + lineIndex * 18;
-			slot.yPos = yPosition;
-			visibleSlotsCount++;
-			if (visibleSlotsCount % getSlotsOnLine() == 0) {
-				yPosition += 18;
+			int row = slotIndex / getSlotsOnLine() - firstVisibleRow;
+			if (row < 0 || row >= numberOfVisibleRows) {
+				slot.xPos = DISABLED_SLOT_X_POS;
+				continue;
 			}
+			slot.xPos = 8 + (slotIndex % getSlotsOnLine()) * 18;
+			slot.yPos = 18 + row * 18;
+			visibleSlotsCount++;
 		}
 	}
 
@@ -110,6 +132,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int y = (height - ySize) / 2;
 		StorageGuiHelper.renderStorageBackground(x, y, storageBackgroundProperties.getTextureName(), xSize, ySize - HEIGHT_WITHOUT_STORAGE_SLOTS);
 		drawSlotBg(x, y, visibleSlotsCount);
+		if (isScrolling()) {
+			drawScrollBar();
+		}
 	}
 
 	protected void drawSlotBg(int x, int y, int visibleSlotsCount) {
@@ -117,6 +142,103 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int slotRows = visibleSlotsCount / slotsOnLine;
 		int remainingSlots = visibleSlotsCount % slotsOnLine;
 		GuiHelper.renderSlotsBackground(x + SLOTS_X_OFFSET, y + SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
+	}
+
+	private int getScrollBarLeft() {
+		return guiLeft + SLOTS_X_OFFSET + getSlotsOnLine() * 18;
+	}
+
+	private int getScrollAreaTop() {
+		return guiTop + SLOTS_Y_OFFSET;
+	}
+
+	private int getScrollAreaHeight() {
+		return numberOfVisibleRows * 18;
+	}
+
+	private int getScrollBarHeight() {
+		int areaHeight = getScrollAreaHeight();
+		int barHeight = areaHeight * numberOfVisibleRows / getMenu().getNumberOfRows();
+		return Math.max(Math.min(barHeight, areaHeight - 8), Math.min(32, areaHeight));
+	}
+
+	/** The bar as Forge's ScrollPanel draws it: gray on black, lighter at the top and left. */
+	private void drawScrollBar() {
+		int left = getScrollBarLeft();
+		int right = left + SCROLL_BAR_WIDTH;
+		int top = getScrollAreaTop();
+		int areaHeight = getScrollAreaHeight();
+		int barHeight = getScrollBarHeight();
+		int barTop = top + (getMaxFirstVisibleRow() == 0 ? 0 : firstVisibleRow * (areaHeight - barHeight) / getMaxFirstVisibleRow());
+
+		drawRect(left, top, right, top + areaHeight, 0xFF000000);
+		drawRect(left, barTop, right, barTop + barHeight, 0xFF808080);
+		drawRect(left, barTop, right - 1, barTop + barHeight - 1, 0xFFC0C0C0);
+	}
+
+	private boolean isOverScrollBar(int mouseX, int mouseY) {
+		int left = getScrollBarLeft();
+		int top = getScrollAreaTop();
+		return mouseX >= left && mouseX < left + SCROLL_BAR_WIDTH && mouseY >= top && mouseY < top + getScrollAreaHeight();
+	}
+
+	private void scrollTo(int row) {
+		int newRow = Math.max(0, Math.min(row, getMaxFirstVisibleRow()));
+		if (newRow != firstVisibleRow) {
+			firstVisibleRow = newRow;
+			updateStorageSlotsPositions();
+		}
+	}
+
+	private void scrollToMouse(int mouseY) {
+		int travel = getScrollAreaHeight() - getScrollBarHeight();
+		if (travel <= 0) {
+			return;
+		}
+		int barTop = mouseY - getScrollAreaTop() - getScrollBarHeight() / 2;
+		scrollTo(Math.round((float) barTop * getMaxFirstVisibleRow() / travel));
+	}
+
+	@Override
+	public void handleMouseInput() throws IOException {
+		super.handleMouseInput();
+		int wheel = Mouse.getEventDWheel();
+		if (wheel != 0 && isScrolling()) {
+			scrollTo(firstVisibleRow + (wheel > 0 ? -1 : 1));
+		}
+	}
+
+	@Override
+	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		if (isScrolling() && mouseButton == 0 && isOverScrollBar(mouseX, mouseY)) {
+			draggingScrollBar = true;
+			scrollToMouse(mouseY);
+			return;
+		}
+		super.mouseClicked(mouseX, mouseY, mouseButton);
+	}
+
+	@Override
+	protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+		if (draggingScrollBar) {
+			scrollToMouse(mouseY);
+			return;
+		}
+		super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+	}
+
+	@Override
+	protected void mouseReleased(int mouseX, int mouseY, int state) {
+		if (draggingScrollBar) {
+			draggingScrollBar = false;
+			return;
+		}
+		super.mouseReleased(mouseX, mouseY, state);
+	}
+
+	@Override
+	protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop) {
+		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && !isOverScrollBar(mouseX, mouseY);
 	}
 
 	@Override
@@ -127,7 +249,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public void setWorldAndResolution(Minecraft mc, int width, int height) {
-		updateDimensionsAndSlotPositions();
+		updateDimensionsAndSlotPositions(height);
 		super.setWorldAndResolution(mc, width, height);
 	}
 }

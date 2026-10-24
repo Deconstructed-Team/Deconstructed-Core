@@ -177,6 +177,12 @@ dependencies {
     }
 }
 
+// reobfJar reads the class hierarchy from its reference classpath, where another mod of ours is its jar:
+// without waiting for that jar, it may run before it's built and leave overrides of vanilla methods unmapped
+tasks.named('reobfJar').configure {
+    dependsOn(configurations.runtimeClasspath)
+}
+
 // Need reobfJar to use uber jars, so dependencies that are shaded in are present
 // Only redirect reobfJar through shadowJar when there's actually something to shade
 afterEvaluate {
