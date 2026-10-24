@@ -1,9 +1,14 @@
 package dev.feldsher.deconstructedcore.api;
 
+import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
+import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +32,18 @@ public interface IStorageWrapper {
 	}
 
 	UpgradeHandler getUpgradeHandler();
+
+	/** The inventory as machines see it: through the filter upgrades that filter input and output. */
+	default IItemHandlerModifiable getInventoryForInputOutput() {
+		List<FilterLogic> inputFilters = new ArrayList<>();
+		List<FilterLogic> outputFilters = new ArrayList<>();
+		for (IIOFilterUpgrade filterUpgrade : getUpgradeHandler().getWrappersThatImplement(IIOFilterUpgrade.class)) {
+			filterUpgrade.getInputFilter().ifPresent(inputFilters::add);
+			filterUpgrade.getOutputFilter().ifPresent(outputFilters::add);
+		}
+		InventoryHandler inventory = getInventoryForUpgradeProcessing();
+		return inputFilters.isEmpty() && outputFilters.isEmpty() ? inventory : new FilteredItemHandler(inventory, inputFilters, outputFilters);
+	}
 
 	default void setUpgradeCachesInvalidatedHandler(Runnable handler) {
 		//noop

@@ -77,6 +77,12 @@ public class ButtonDefinitions {
 			getButtonStateData(new UV(0, 128), Dimension.RECTANGLE_4_10, new Position(1, 1), colored(TranslationHelper.INSTANCE.translButton("upgrade_switch_disabled"), TextFormatting.RED))
 	), UPGRADE_SWITCH_HOVERED_BACKGROUND);
 
+	public static final ButtonDefinition.Toggle<Boolean> WORK_IN_GUI = createToggleButtonDefinition(
+			getBooleanStateData(
+					getButtonStateData(new UV(0, 48), TranslationHelper.INSTANCE.translUpgradeButton("works_in_gui"), Dimension.SQUARE_16, new Position(1, 1)),
+					getButtonStateData(new UV(16, 48), TranslationHelper.INSTANCE.translUpgradeButton("only_automatic"), Dimension.SQUARE_16, new Position(1, 1))
+			));
+
 	public static final ButtonDefinition.Toggle<Boolean> MATCH_ANY_TAG = createToggleButtonDefinition(
 			getBooleanStateData(
 					getButtonStateData(new UV(0, 80), Dimension.SQUARE_16, new Position(1, 1), translatedLines(TranslationHelper.INSTANCE.translUpgradeButton("match_any_tag"))),
