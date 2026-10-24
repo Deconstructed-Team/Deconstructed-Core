@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.client.gui;
 
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
+import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
 import net.minecraft.client.Minecraft;
@@ -10,14 +11,15 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Slot;
 import org.lwjgl.input.Mouse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
  * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows, or as the screen lets it be:
  * then the rows scroll, as in 1.21's InventoryScrollPanel.
  * <p>
- * The upgrade slots sit in a column on the left.
- * Upgrade tabs and switches, settings, sort buttons and the search box come with the stages that port them.
+ * The upgrade slots sit in a column on the left, the upgrades' settings tabs on the right.
+ * Upgrade switches, settings, sort buttons and the search box come with the stages that port them.
  */
 public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> extends GuiContainer {
 	public static final int DISABLED_SLOT_X_POS = -2000;
@@ -41,6 +43,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private int numberOfVisibleRows;
 	private int firstVisibleRow = 0;
 	private boolean draggingScrollBar = false;
+	@Nullable
+	private UpgradeSettingsTabControl settingsTabControl = null;
 
 	protected StorageScreenBase(S menu, String title) {
 		super(menu);
@@ -53,6 +57,33 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	public S getMenu() {
 		return menu;
+	}
+
+	@Override
+	public void initGui() {
+		super.initGui();
+		settingsTabControl = new UpgradeSettingsTabControl(new Position(guiLeft + xSize, guiTop + 4), this);
+	}
+
+	@Nullable
+	public UpgradeSettingsTabControl getUpgradeSettingsControl() {
+		return settingsTabControl;
+	}
+
+	public int getGuiLeft() {
+		return guiLeft;
+	}
+
+	public int getGuiTop() {
+		return guiTop;
+	}
+
+	@Override
+	public void updateScreen() {
+		super.updateScreen();
+		if (settingsTabControl != null) {
+			settingsTabControl.tick();
+		}
 	}
 
 	private void updateDimensionsAndSlotPositions(int height) {
@@ -149,6 +180,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		drawDefaultBackground();
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		renderHoveredToolTip(mouseX, mouseY);
+		if (settingsTabControl != null) {
+			settingsTabControl.renderTooltip(this, mouseX, mouseY);
+		}
 		renderUpgradeSlotChangeError(mouseX, mouseY);
 	}
 
@@ -167,6 +201,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			drawScrollBar();
 		}
 		drawUpgradeBackground();
+		if (settingsTabControl != null) {
+			settingsTabControl.render(mouseX, mouseY, partialTicks);
+		}
 	}
 
 	private void drawUpgradeBackground() {
@@ -251,13 +288,24 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public void handleMouseInput() throws IOException {
 		super.handleMouseInput();
 		int wheel = Mouse.getEventDWheel();
-		if (wheel != 0 && isScrolling()) {
+		if (wheel == 0) {
+			return;
+		}
+		int mouseX = Mouse.getEventX() * width / mc.displayWidth;
+		int mouseY = height - Mouse.getEventY() * height / mc.displayHeight - 1;
+		if (settingsTabControl != null && settingsTabControl.mouseScrolled(mouseX, mouseY, wheel)) {
+			return;
+		}
+		if (isScrolling()) {
 			scrollTo(firstVisibleRow + (wheel > 0 ? -1 : 1));
 		}
 	}
 
 	@Override
 	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		if (settingsTabControl != null && !isOverTabSlot(mouseX, mouseY) && settingsTabControl.mouseClicked(mouseX, mouseY, mouseButton)) {
+			return;
+		}
 		if (isScrolling() && mouseButton == 0 && isOverScrollBar(mouseX, mouseY)) {
 			draggingScrollBar = true;
 			scrollToMouse(mouseY);
@@ -286,7 +334,19 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop) {
-		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && !isOverScrollBar(mouseX, mouseY) && !isOverUpgradeColumn(mouseX, mouseY);
+		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && !isOverScrollBar(mouseX, mouseY) && !isOverUpgradeColumn(mouseX, mouseY)
+				&& (settingsTabControl == null || !settingsTabControl.isMouseOver(mouseX, mouseY));
+	}
+
+	/** Slots of an open tab are the container's, and take their clicks as any slot does. */
+	private boolean isOverTabSlot(int mouseX, int mouseY) {
+		for (int index = getMenu().getFirstUpgradeSlot() + getMenu().getNumberOfUpgradeSlots(); index < getMenu().inventorySlots.size(); index++) {
+			Slot slot = getMenu().getSlot(index);
+			if (slot.xPos != DISABLED_SLOT_X_POS && isPointInRegion(slot.xPos, slot.yPos, 16, 16, mouseX, mouseY)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

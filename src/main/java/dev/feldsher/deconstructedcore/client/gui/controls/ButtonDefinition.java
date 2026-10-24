@@ -1,0 +1,72 @@
+package dev.feldsher.deconstructedcore.client.gui.controls;
+
+import dev.feldsher.deconstructedcore.client.gui.utils.Dimension;
+import dev.feldsher.deconstructedcore.client.gui.utils.TextureBlitData;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+public class ButtonDefinition {
+	private final Dimension dimension;
+	@Nullable
+	private final TextureBlitData backgroundTexture;
+	@Nullable
+	private final TextureBlitData hoveredBackgroundTexture;
+	@Nullable
+	private final TextureBlitData foregroundTexture;
+	private final List<ITextComponent> tooltip;
+
+	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture, @Nullable TextureBlitData hoveredBackgroundTexture) {
+		this(dimension, backgroundTexture, hoveredBackgroundTexture, null, new TextComponentString(""));
+	}
+
+	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture,
+			@Nullable TextureBlitData hoveredBackgroundTexture, @Nullable TextureBlitData foregroundTexture, ITextComponent... tooltip) {
+		this.dimension = dimension;
+		this.backgroundTexture = backgroundTexture;
+		this.hoveredBackgroundTexture = hoveredBackgroundTexture;
+		this.foregroundTexture = foregroundTexture;
+		this.tooltip = Arrays.asList(tooltip);
+	}
+
+	public Dimension getDimension() {
+		return dimension;
+	}
+
+	@Nullable
+	public TextureBlitData getBackgroundTexture() {
+		return backgroundTexture;
+	}
+
+	@Nullable
+	public TextureBlitData getHoveredBackgroundTexture() {
+		return hoveredBackgroundTexture;
+	}
+
+	@Nullable
+	public TextureBlitData getForegroundTexture() {
+		return foregroundTexture;
+	}
+
+	public List<ITextComponent> getTooltip() {
+		return tooltip;
+	}
+
+	public static class Toggle<T extends Comparable<T>> extends ButtonDefinition {
+		private final Map<T, ToggleButton.StateData> stateData;
+
+		public Toggle(Dimension dimension, TextureBlitData backgroundTexture, Map<T, ToggleButton.StateData> stateData,
+				@Nullable TextureBlitData hoveredBackgroundTexture) {
+			super(dimension, backgroundTexture, hoveredBackgroundTexture);
+			this.stateData = stateData;
+		}
+
+		public Map<T, ToggleButton.StateData> getStateData() {
+			return stateData;
+		}
+	}
+}

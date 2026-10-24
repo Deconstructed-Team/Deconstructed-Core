@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore;
 
+import dev.feldsher.deconstructedcore.network.PacketHandler;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -14,6 +15,7 @@ public class DeconstructedCore {
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		LOGGER.info("{} {} loading", Tags.MOD_NAME, Tags.VERSION);
+		PacketHandler.init();
 	}
 
 	public static ResourceLocation getRL(String regName) {

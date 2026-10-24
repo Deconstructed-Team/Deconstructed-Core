@@ -16,6 +16,7 @@ public class StorageNbt {
 	public static final String ACCENT_COLOR = "accent_color";
 	public static final String STORAGE_UUID = "storage_uuid";
 	public static final String COLUMNS_TAKEN = "columns_taken";
+	public static final String OPEN_TAB_ID = "open_tab_id";
 
 	private StorageNbt() {}
 

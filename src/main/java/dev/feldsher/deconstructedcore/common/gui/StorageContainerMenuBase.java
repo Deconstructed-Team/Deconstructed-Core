@@ -1,27 +1,36 @@
 package dev.feldsher.deconstructedcore.common.gui;
 
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
+import dev.feldsher.deconstructedcore.network.PacketHandler;
+import dev.feldsher.deconstructedcore.network.SyncContainerClientDataMessage;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeItem;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
- * A storage's container: its inventory slots, then the player's 27 + 9, then the upgrade slots.
- * Positions are set by the screen, which knows how wide the storage is drawn.
+ * A storage's container: its inventory slots, then the player's 27 + 9, then the upgrade slots, then the slots of
+ * the upgrades' settings tabs. Positions are set by the screen, which knows how wide the storage is drawn.
  * <p>
- * Upgrade tabs, settings, no-sort and memory slots, sorting, the search box and oversized stack sync come with the
- * stages that port them.
+ * Settings, no-sort and memory slots, sorting, the search box and oversized stack sync come with the stages that
+ * port them.
  */
-public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends Container {
+public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends Container implements ISyncedContainer {
+	private static final String OPEN_TAB_ID_TAG = "openTabId";
+	private static final String REMOVE_OPEN_TAB_ID_TAG = "removeOpenTabId";
+
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
 	private static final int ERROR_RESULT_TICKS = 60;
 
@@ -31,6 +40,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private final boolean shouldLockStorageItemSlot;
 	private int storageItemSlotNumber = -1;
 	private int numberOfUpgradeSlots = 0;
+	private final Map<Integer, UpgradeContainerBase<?, ?>> upgradeContainers = new LinkedHashMap<>();
 
 	@Nullable
 	private UpgradeSlotChangeResult errorUpgradeSlotChangeResult = null;
@@ -42,10 +52,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		this.storageItemSlotIndex = storageItemSlotIndex;
 		this.shouldLockStorageItemSlot = shouldLockStorageItemSlot;
 
+		if (player.world.isRemote) {
+			// The server sent the contents just before opening: the client builds from them, not from what it had
+			storageWrapper.onContentsNbtUpdated();
+		}
 		storageWrapper.onInit();
 		addStorageInventorySlots();
 		addPlayerInventorySlots(player.inventory);
 		addUpgradeSlots();
+		addUpgradeSettingsContainers();
 	}
 
 	public S getStorageWrapper() {
@@ -95,6 +110,94 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
 			addSlotToContainer(new StorageUpgradeSlot(upgradeHandler, slotIndex));
 		}
+	}
+
+	private void addUpgradeSettingsContainers() {
+		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> UpgradeContainerRegistry.instantiateContainer(player, slot, wrapper)
+				.ifPresent(container -> upgradeContainers.put(slot, container)));
+
+		for (UpgradeContainerBase<?, ?> container : upgradeContainers.values()) {
+			container.getSlots().forEach(this::addSlotToContainer);
+			container.onInit();
+		}
+
+		storageWrapper.getOpenTabId().ifPresent(id -> {
+			if (upgradeContainers.containsKey(id)) {
+				upgradeContainers.get(id).setIsOpen(true);
+			}
+		});
+	}
+
+	public Map<Integer, UpgradeContainerBase<?, ?>> getUpgradeContainers() {
+		return upgradeContainers;
+	}
+
+	public boolean isUpgradeSettingsSlot(int index) {
+		return index >= getFirstUpgradeSlot() + numberOfUpgradeSlots && index < inventorySlots.size();
+	}
+
+	public void setOpenTabId(int tabId) {
+		if (player.world.isRemote) {
+			sendToServer(OPEN_TAB_ID_TAG, tag -> tag.setInteger(OPEN_TAB_ID_TAG, tabId));
+		}
+		storageWrapper.setOpenTabId(tabId);
+	}
+
+	public void removeOpenTabId() {
+		if (player.world.isRemote) {
+			sendToServer(REMOVE_OPEN_TAB_ID_TAG, tag -> tag.setBoolean(REMOVE_OPEN_TAB_ID_TAG, true));
+		}
+		storageWrapper.removeOpenTabId();
+	}
+
+	private void sendToServer(String key, java.util.function.Consumer<NBTTagCompound> fill) {
+		NBTTagCompound data = new NBTTagCompound();
+		fill.accept(data);
+		PacketHandler.INSTANCE.sendToServer(new SyncContainerClientDataMessage(data));
+	}
+
+	@Override
+	public void handlePacket(NBTTagCompound data) {
+		if (data.hasKey("containerId")) {
+			int containerId = data.getInteger("containerId");
+			if (upgradeContainers.containsKey(containerId)) {
+				upgradeContainers.get(containerId).handlePacket(data);
+			}
+		} else if (data.hasKey(OPEN_TAB_ID_TAG)) {
+			setOpenTabId(data.getInteger(OPEN_TAB_ID_TAG));
+		} else if (data.hasKey(REMOVE_OPEN_TAB_ID_TAG)) {
+			removeOpenTabId();
+		}
+	}
+
+	/** A click into a filter slot leaves a ghost copy of what's held there, and the held stack where it was. */
+	@Override
+	public ItemStack slotClick(int slotId, int dragType, ClickType clickType, EntityPlayer player) {
+		if (slotId >= 0 && isUpgradeSettingsSlot(slotId) && inventorySlots.get(slotId) instanceof IFilterSlot) {
+			Slot slot = inventorySlots.get(slotId);
+			ItemStack cursorStack = player.inventory.getItemStack();
+			if (clickType == ClickType.PICKUP || clickType == ClickType.QUICK_MOVE) {
+				if (slot.isItemValid(cursorStack) || cursorStack.isEmpty()) {
+					ItemStack ghost = cursorStack.copy();
+					if (ghost.getCount() > 1) {
+						ghost.setCount(1);
+					}
+					slot.putStack(ghost);
+				}
+			}
+			return ItemStack.EMPTY;
+		}
+		return super.slotClick(slotId, dragType, clickType, player);
+	}
+
+	@Override
+	public boolean canMergeSlot(ItemStack stack, Slot slot) {
+		return !(slot instanceof IFilterSlot) && super.canMergeSlot(stack, slot);
+	}
+
+	@Override
+	public boolean canDragIntoSlot(Slot slot) {
+		return !(slot instanceof IFilterSlot) && super.canDragIntoSlot(slot);
 	}
 
 	public int getStorageItemSlotNumber() {
@@ -184,6 +287,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true) || mergeItemStack(slotStack, 0, storageSlots, false);
 		} else if (isStorageInventorySlot(index)) {
 			return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true);
+		} else if (isUpgradeSettingsSlot(index)) {
+			return false;
 		}
 		return mergeToUpgradeSlots(slotStack) || mergeItemStack(slotStack, 0, storageSlots, false);
 	}

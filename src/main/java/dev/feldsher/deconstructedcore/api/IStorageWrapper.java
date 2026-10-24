@@ -34,6 +34,13 @@ public interface IStorageWrapper {
 
 	Optional<UUID> getContentsUuid();
 
+	/** The upgrade whose settings tab was open, so that it opens again. */
+	Optional<Integer> getOpenTabId();
+
+	void setOpenTabId(int openTabId);
+
+	void removeOpenTabId();
+
 	void onContentsNbtUpdated();
 
 	void setPersistent(boolean persistent);

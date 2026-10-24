@@ -1,0 +1,107 @@
+package dev.feldsher.deconstructedcore.client.gui.controls;
+
+import dev.feldsher.deconstructedcore.client.gui.utils.Dimension;
+import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
+import dev.feldsher.deconstructedcore.client.gui.utils.Position;
+import dev.feldsher.deconstructedcore.client.gui.utils.TextureBlitData;
+import dev.feldsher.deconstructedcore.client.gui.utils.TranslationHelper;
+import dev.feldsher.deconstructedcore.client.gui.utils.UV;
+import dev.feldsher.deconstructedcore.upgrades.PrimaryMatch;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper.DEFAULT_BUTTON_BACKGROUND;
+import static dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper.DEFAULT_BUTTON_HOVERED_BACKGROUND;
+import static dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper.ICONS;
+import static dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper.SMALL_BUTTON_BACKGROUND;
+import static dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper.SMALL_BUTTON_HOVERED_BACKGROUND;
+import static dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper.getButtonStateData;
+
+public class ButtonDefinitions {
+	private ButtonDefinitions() {}
+
+	public static Map<Boolean, ToggleButton.StateData> getBooleanStateData(ToggleButton.StateData onStateData, ToggleButton.StateData offStateData) {
+		Map<Boolean, ToggleButton.StateData> stateData = new HashMap<>();
+		stateData.put(true, onStateData);
+		stateData.put(false, offStateData);
+		return stateData;
+	}
+
+	public static <T extends Comparable<T>> ButtonDefinition.Toggle<T> createToggleButtonDefinition(Map<T, ToggleButton.StateData> stateData) {
+		return new ButtonDefinition.Toggle<>(Dimension.SQUARE_18, DEFAULT_BUTTON_BACKGROUND, stateData, DEFAULT_BUTTON_HOVERED_BACKGROUND);
+	}
+
+	public static <T extends Comparable<T>> ButtonDefinition.Toggle<T> createSmallToggleButtonDefinition(Map<T, ToggleButton.StateData> stateData) {
+		return new ButtonDefinition.Toggle<>(Dimension.SQUARE_12, SMALL_BUTTON_BACKGROUND, stateData, SMALL_BUTTON_HOVERED_BACKGROUND);
+	}
+
+	public static final ButtonDefinition.Toggle<Boolean> ALLOW_LIST = createToggleButtonDefinition(
+			getBooleanStateData(
+					getButtonStateData(new UV(0, 0), TranslationHelper.INSTANCE.translUpgradeButton("allow"), Dimension.SQUARE_16, new Position(1, 1)),
+					getButtonStateData(new UV(16, 0), TranslationHelper.INSTANCE.translUpgradeButton("block"), Dimension.SQUARE_16, new Position(1, 1))
+			));
+
+	public static final ButtonDefinition.Toggle<Boolean> MATCH_DURABILITY = createToggleButtonDefinition(
+			getBooleanStateData(
+					getButtonStateData(new UV(0, 16), TranslationHelper.INSTANCE.translUpgradeButton("match_durability"), Dimension.SQUARE_16, new Position(1, 1)),
+					getButtonStateData(new UV(16, 16), TranslationHelper.INSTANCE.translUpgradeButton("ignore_durability"), Dimension.SQUARE_16, new Position(1, 1))
+			));
+
+	public static final ButtonDefinition.Toggle<Boolean> MATCH_NBT = createToggleButtonDefinition(
+			getBooleanStateData(
+					getButtonStateData(new UV(32, 0), TranslationHelper.INSTANCE.translUpgradeButton("match_nbt"), Dimension.SQUARE_16, new Position(1, 1)),
+					getButtonStateData(new UV(48, 0), TranslationHelper.INSTANCE.translUpgradeButton("ignore_nbt"), Dimension.SQUARE_16, new Position(1, 1))
+			));
+
+	public static final ButtonDefinition.Toggle<PrimaryMatch> PRIMARY_MATCH;
+
+	static {
+		Map<PrimaryMatch, ToggleButton.StateData> primaryMatchStates = new HashMap<>();
+		primaryMatchStates.put(PrimaryMatch.ITEM, getButtonStateData(new UV(48, 16), TranslationHelper.INSTANCE.translUpgradeButton("match_item"), Dimension.SQUARE_16, new Position(1, 1)));
+		primaryMatchStates.put(PrimaryMatch.MOD, getButtonStateData(new UV(32, 16), TranslationHelper.INSTANCE.translUpgradeButton("match_mod"), Dimension.SQUARE_16, new Position(1, 1)));
+		primaryMatchStates.put(PrimaryMatch.TAGS, getButtonStateData(new UV(64, 0), TranslationHelper.INSTANCE.translUpgradeButton("match_tags"), Dimension.SQUARE_16, new Position(1, 1)));
+		PRIMARY_MATCH = createToggleButtonDefinition(primaryMatchStates);
+	}
+
+	private static final TextureBlitData UPGRADE_SWITCH_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(65, 0), Dimension.RECTANGLE_6_12);
+	private static final TextureBlitData UPGRADE_SWITCH_HOVERED_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(71, 0), Dimension.RECTANGLE_6_12);
+	public static final ButtonDefinition.Toggle<Boolean> UPGRADE_SWITCH = new ButtonDefinition.Toggle<>(Dimension.RECTANGLE_6_12, UPGRADE_SWITCH_BACKGROUND, getBooleanStateData(
+			getButtonStateData(new UV(4, 128), Dimension.RECTANGLE_4_10, new Position(1, 1), colored(TranslationHelper.INSTANCE.translButton("upgrade_switch_enabled"), TextFormatting.GREEN)),
+			getButtonStateData(new UV(0, 128), Dimension.RECTANGLE_4_10, new Position(1, 1), colored(TranslationHelper.INSTANCE.translButton("upgrade_switch_disabled"), TextFormatting.RED))
+	), UPGRADE_SWITCH_HOVERED_BACKGROUND);
+
+	public static final ButtonDefinition.Toggle<Boolean> MATCH_ANY_TAG = createToggleButtonDefinition(
+			getBooleanStateData(
+					getButtonStateData(new UV(0, 80), Dimension.SQUARE_16, new Position(1, 1), translatedLines(TranslationHelper.INSTANCE.translUpgradeButton("match_any_tag"))),
+					getButtonStateData(new UV(16, 80), Dimension.SQUARE_16, new Position(1, 1), translatedLines(TranslationHelper.INSTANCE.translUpgradeButton("match_all_tags")))
+			));
+
+	private static final TextureBlitData ADD_TAG_FOREGROUND = new TextureBlitData(ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(96, 32), Dimension.SQUARE_16);
+	public static final ButtonDefinition ADD_TAG = new ButtonDefinition(Dimension.SQUARE_18, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, ADD_TAG_FOREGROUND, new TextComponentString(""));
+
+	private static final TextureBlitData REMOVE_TAG_FOREGROUND = new TextureBlitData(ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(112, 32), Dimension.SQUARE_16);
+	public static final ButtonDefinition REMOVE_TAG = new ButtonDefinition(Dimension.SQUARE_18, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, REMOVE_TAG_FOREGROUND, new TextComponentString(""));
+
+	private static ITextComponent colored(String translationKey, TextFormatting color) {
+		ITextComponent component = new TextComponentTranslation(translationKey);
+		component.getStyle().setColor(color);
+		return component;
+	}
+
+	/** A translation split on its line breaks, as tooltips need it. */
+	private static List<ITextComponent> translatedLines(String translationKey) {
+		List<ITextComponent> lines = new ArrayList<>();
+		TranslationHelper.INSTANCE.getTranslatedLines(translationKey).forEach(line -> lines.add(new TextComponentString(line)));
+		if (lines.isEmpty()) {
+			lines.add(new TextComponentTranslation(translationKey));
+		}
+		return lines;
+	}
+}
