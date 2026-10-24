@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.client.gui.controls;
 
 import dev.feldsher.deconstructedcore.client.gui.utils.Dimension;
+import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.client.gui.utils.TextureBlitData;
@@ -76,6 +77,21 @@ public class ButtonDefinitions {
 			getButtonStateData(new UV(4, 128), Dimension.RECTANGLE_4_10, new Position(1, 1), colored(TranslationHelper.INSTANCE.translButton("upgrade_switch_enabled"), TextFormatting.GREEN)),
 			getButtonStateData(new UV(0, 128), Dimension.RECTANGLE_4_10, new Position(1, 1), colored(TranslationHelper.INSTANCE.translButton("upgrade_switch_disabled"), TextFormatting.RED))
 	), UPGRADE_SWITCH_HOVERED_BACKGROUND);
+
+	public static final ButtonDefinition.Toggle<SortBy> SORT_BY;
+
+	static {
+		Map<SortBy, ToggleButton.StateData> sortByStates = new HashMap<>();
+		sortByStates.put(SortBy.NAME, getButtonStateData(new UV(24, 144), TranslationHelper.INSTANCE.translButton("sort_by_name"), Dimension.SQUARE_12));
+		sortByStates.put(SortBy.MOD, getButtonStateData(new UV(0, 156), TranslationHelper.INSTANCE.translButton("sort_by_mod"), Dimension.SQUARE_12));
+		sortByStates.put(SortBy.COUNT, getButtonStateData(new UV(36, 144), TranslationHelper.INSTANCE.translButton("sort_by_count"), Dimension.SQUARE_12));
+		sortByStates.put(SortBy.TAGS, getButtonStateData(new UV(12, 144), TranslationHelper.INSTANCE.translButton("sort_by_tags"), Dimension.SQUARE_12));
+		SORT_BY = createSmallToggleButtonDefinition(sortByStates);
+	}
+
+	private static final TextureBlitData SORT_BUTTON_FOREGROUND = new TextureBlitData(ICONS, Dimension.SQUARE_256, new UV(0, 144), Dimension.SQUARE_12);
+	public static final ButtonDefinition SORT = new ButtonDefinition(Dimension.SQUARE_12, SMALL_BUTTON_BACKGROUND, SMALL_BUTTON_HOVERED_BACKGROUND, SORT_BUTTON_FOREGROUND,
+			new TextComponentTranslation(TranslationHelper.INSTANCE.translButton("sort_action")));
 
 	public static final ButtonDefinition.Toggle<Boolean> WORK_IN_GUI = createToggleButtonDefinition(
 			getBooleanStateData(

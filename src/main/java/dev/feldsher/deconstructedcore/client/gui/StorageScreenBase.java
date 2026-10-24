@@ -4,6 +4,10 @@ import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
+import dev.feldsher.deconstructedcore.client.gui.controls.Button;
+import dev.feldsher.deconstructedcore.client.gui.controls.ButtonDefinitions;
+import dev.feldsher.deconstructedcore.client.gui.controls.ToggleButton;
+import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.common.gui.StorageInventorySlot;
 import dev.feldsher.deconstructedcore.util.CountAbbreviator;
 import net.minecraft.client.Minecraft;
@@ -49,6 +53,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private boolean draggingScrollBar = false;
 	@Nullable
 	private UpgradeSettingsTabControl settingsTabControl = null;
+	@Nullable
+	private Button sortButton = null;
+	@Nullable
+	private ToggleButton<SortBy> sortByButton = null;
 
 	protected StorageScreenBase(S menu, String title) {
 		super(menu);
@@ -67,9 +75,31 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public void initGui() {
 		super.initGui();
 		settingsTabControl = new UpgradeSettingsTabControl(new Position(guiLeft + xSize, guiTop + 4), this);
+		if (shouldShowSortButtons()) {
+			addSortButtons();
+		}
 	}
 
 	@Nullable
+	protected boolean shouldShowSortButtons() {
+		return true;
+	}
+
+	/** On the title line, at its right, as 1.21's default place for them; its other places come with the client config. */
+	private void addSortButtons() {
+		Position pos = new Position(guiLeft + xSize - 31, guiTop + 4);
+		sortButton = new Button(pos, ButtonDefinitions.SORT, button -> {
+			if (button == 0) {
+				getMenu().sort();
+			}
+		});
+		sortByButton = new ToggleButton<>(new Position(pos.x() + 12, pos.y()), ButtonDefinitions.SORT_BY, button -> {
+			if (button == 0) {
+				getMenu().setSortBy(getMenu().getSortBy().next());
+			}
+		}, () -> getMenu().getSortBy());
+	}
+
 	public UpgradeSettingsTabControl getUpgradeSettingsControl() {
 		return settingsTabControl;
 	}
@@ -192,6 +222,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (settingsTabControl != null) {
 			settingsTabControl.renderTooltip(this, mouseX, mouseY);
 		}
+		if (sortButton != null && sortByButton != null) {
+			sortButton.renderTooltip(this, mouseX, mouseY);
+			sortByButton.renderTooltip(this, mouseX, mouseY);
+		}
 		renderUpgradeSlotChangeError(mouseX, mouseY);
 	}
 
@@ -210,6 +244,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			drawScrollBar();
 		}
 		drawUpgradeBackground();
+		if (sortButton != null && sortByButton != null) {
+			sortButton.render(mouseX, mouseY, partialTicks);
+			sortByButton.render(mouseX, mouseY, partialTicks);
+		}
 		if (settingsTabControl != null) {
 			settingsTabControl.render(mouseX, mouseY, partialTicks);
 		}
@@ -312,6 +350,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		if (sortButton != null && sortByButton != null && (sortButton.mouseClicked(mouseX, mouseY, mouseButton) || sortByButton.mouseClicked(mouseX, mouseY, mouseButton))) {
+			return;
+		}
 		if (settingsTabControl != null && !isOverTabSlot(mouseX, mouseY) && settingsTabControl.mouseClicked(mouseX, mouseY, mouseButton)) {
 			return;
 		}

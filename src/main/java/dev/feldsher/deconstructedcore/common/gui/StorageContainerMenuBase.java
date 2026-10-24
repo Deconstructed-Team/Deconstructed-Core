@@ -41,6 +41,8 @@ import java.util.Optional;
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends Container implements ISyncedContainer {
 	private static final String OPEN_TAB_ID_TAG = "openTabId";
 	private static final String REMOVE_OPEN_TAB_ID_TAG = "removeOpenTabId";
+	private static final String SORT_BY_TAG = "sortBy";
+	private static final String ACTION_TAG = "action";
 
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
 	public static final String EMPTY_UPGRADE_SLOT_BACKGROUND = DeconstructedCore.MOD_ID + ":item/empty_upgrade_slot";
@@ -156,6 +158,25 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		storageWrapper.setOpenTabId(tabId);
 	}
 
+	public void sort() {
+		if (player.world.isRemote) {
+			sendToServer(ACTION_TAG, tag -> tag.setString(ACTION_TAG, "sort"));
+			return;
+		}
+		storageWrapper.sort();
+	}
+
+	public SortBy getSortBy() {
+		return storageWrapper.getSortBy();
+	}
+
+	public void setSortBy(SortBy sortBy) {
+		if (player.world.isRemote) {
+			sendToServer(SORT_BY_TAG, tag -> tag.setString(SORT_BY_TAG, sortBy.getSerializedName()));
+		}
+		storageWrapper.setSortBy(sortBy);
+	}
+
 	public void removeOpenTabId() {
 		if (player.world.isRemote) {
 			sendToServer(REMOVE_OPEN_TAB_ID_TAG, tag -> tag.setBoolean(REMOVE_OPEN_TAB_ID_TAG, true));
@@ -180,6 +201,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			setOpenTabId(data.getInteger(OPEN_TAB_ID_TAG));
 		} else if (data.hasKey(REMOVE_OPEN_TAB_ID_TAG)) {
 			removeOpenTabId();
+		} else if (data.hasKey(SORT_BY_TAG)) {
+			setSortBy(SortBy.fromName(data.getString(SORT_BY_TAG)));
+		} else if ("sort".equals(data.getString(ACTION_TAG))) {
+			sort();
 		}
 	}
 

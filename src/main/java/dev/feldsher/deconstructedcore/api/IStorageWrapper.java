@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.api;
 
+import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
@@ -88,6 +89,13 @@ public interface IStorageWrapper {
 	default int getBaseStackSizeMultiplier() {
 		return 1;
 	}
+
+	SortBy getSortBy();
+
+	void setSortBy(SortBy sortBy);
+
+	/** Sorts the inventory by its sort order, around the slots that settings leave out of sorting. */
+	void sort();
 
 	String getStorageType();
 
