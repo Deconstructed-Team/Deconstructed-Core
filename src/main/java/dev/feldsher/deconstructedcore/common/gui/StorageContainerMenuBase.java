@@ -7,6 +7,7 @@ import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.network.SyncContainerClientDataMessage;
 import dev.feldsher.deconstructedcore.settings.SettingsManager;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
+import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeItem;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import invtweaks.api.container.ChestContainer;
@@ -33,7 +34,7 @@ import java.util.Optional;
  * Storage slots may hold more than a stack, which vanilla neither syncs (its packets carry counts in a byte) nor
  * clicks right: the container sends its slots in its own packets, and handles clicks on storage slots itself.
  * <p>
- * Settings, no-sort and memory slots, sorting and the search box come with the stages that port them.
+ * The search box comes with the stage that ports it.
  * <p>
  * Inventory Tweaks treats it as a chest without its buttons, whose sections are only the player's inventory: it sorts
  * that and moves items in it, and leaves storage slots to the storage's own sort.
@@ -408,6 +409,19 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 		}
 
+		if (intoStorage) {
+			// Empty slots that remember the stack take it before those that remember nothing
+			MemorySettingsCategory memory = storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
+			for (int i = first; i >= startIndex && i < endIndex && !stack.isEmpty(); i += step) {
+				Slot slot = inventorySlots.get(i);
+				if (!slot.getHasStack() && memory.isSlotSelected(i) && slot.isItemValid(stack)) {
+					slot.putStack(stack.splitStack(Math.min(getMergeLimit(slot, stack), stack.getCount())));
+					slot.onSlotChanged();
+					merged = true;
+				}
+			}
+		}
+
 		for (int i = first; i >= startIndex && i < endIndex && !stack.isEmpty(); i += step) {
 			Slot slot = inventorySlots.get(i);
 			if (!slot.getHasStack() && slot.isItemValid(stack)) {
@@ -463,6 +477,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public int getColumnsTaken() {
 		return storageWrapper.getColumnsTaken();
+	}
+
+	/** What the storage slot remembers, for its empty slot to show. */
+	public Optional<ItemStack> getMemorizedStackInSlot(int slotIndex) {
+		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterStack(slotIndex, false);
 	}
 
 	public boolean isStorageInventorySlot(int index) {

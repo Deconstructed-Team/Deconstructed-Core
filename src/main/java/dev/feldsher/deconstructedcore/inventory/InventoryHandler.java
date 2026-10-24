@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.inventory;
 
+import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.IInsertResponseUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.IOverflowResponseUpgrade;
@@ -25,7 +26,8 @@ import java.util.function.IntConsumer;
  * A storage's inventory. Its contents are kept in the storage's contents NBT under {@link #INVENTORY_TAG},
  * and saved through the save handler whenever a slot changes.
  * <p>
- * The inventory partitioner, the slot tracker and the memory filter come with the stages that port them.
+ * Memorized slots take only what they remember, and are filled with it before empty slots that remember nothing.
+ * The inventory partitioner and the slot tracker come with the stages that port them.
  */
 public abstract class InventoryHandler extends ItemStackHandler {
 	public static final String INVENTORY_TAG = "inventory";
@@ -163,8 +165,8 @@ public abstract class InventoryHandler extends ItemStackHandler {
 	}
 
 	/**
-	 * Into the whole inventory, as 1.21's slot tracker does: next to the same item first, then into empty slots;
-	 * what the slots with that item can't take goes to the overflow upgrades.
+	 * Into the whole inventory, as 1.21's slot tracker does: next to the same item first, then into empty slots that
+	 * remember it, then into other empty slots; what the slots with that item can't take goes to the overflow upgrades.
 	 */
 	public ItemStack insertItem(ItemStack stack, boolean simulate) {
 		if (stack.isEmpty()) {
@@ -182,8 +184,14 @@ public abstract class InventoryHandler extends ItemStackHandler {
 				}
 			}
 		}
+		MemorySettingsCategory memory = getMemorySettings();
 		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
-			if (getStackInSlot(slot).isEmpty()) {
+			if (getStackInSlot(slot).isEmpty() && memory.isSlotSelected(slot) && memory.matchesFilter(slot, remaining)) {
+				remaining = insertItemInternal(slot, remaining, simulate);
+			}
+		}
+		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
+			if (getStackInSlot(slot).isEmpty() && !memory.isSlotSelected(slot)) {
 				remaining = insertItemInternal(slot, remaining, simulate);
 			}
 		}
@@ -248,7 +256,11 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	@Override
 	public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-		return super.isItemValid(slot, stack) && isAllowed(stack);
+		return super.isItemValid(slot, stack) && isAllowed(stack) && getMemorySettings().matchesFilter(slot, stack);
+	}
+
+	private MemorySettingsCategory getMemorySettings() {
+		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
 	}
 
 	protected abstract boolean isAllowed(ItemStack stack);

@@ -8,6 +8,8 @@ import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
 import dev.feldsher.deconstructedcore.settings.SettingsContainerBase;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsContainer;
+import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
+import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsContainer;
 import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsCategory;
 import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsContainer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -39,6 +41,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 	static {
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
 		addFactory(NoSortSettingsCategory.NAME, NoSortSettingsContainer::new);
+		addFactory(MemorySettingsCategory.NAME, MemorySettingsContainer::new);
 	}
 
 	protected final EntityPlayer player;

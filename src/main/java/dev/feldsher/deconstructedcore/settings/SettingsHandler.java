@@ -1,6 +1,8 @@
 package dev.feldsher.deconstructedcore.settings;
 
 import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
+import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
+import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import dev.feldsher.deconstructedcore.settings.nosort.NoSortSettingsCategory;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -11,21 +13,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
- * A storage's settings, by category, kept in its contents NBT. The memory and item display categories come with the
- * steps that port them.
+ * A storage's settings, by category, kept in its contents NBT. The item display category comes with the step that
+ * ports it.
  */
 public abstract class SettingsHandler {
 	protected NBTTagCompound contentsNbt;
 	protected final Runnable markContentsDirty;
+	protected final Supplier<InventoryHandler> inventoryHandlerSupplier;
 	protected final Map<String, ISettingsCategory<?>> settingsCategories = new LinkedHashMap<>();
 	private final Map<Class<?>, List<?>> interfaceCategories = new HashMap<>();
 	private final Map<Class<? extends ISettingsCategory<?>>, ISettingsCategory<?>> typeCategories = new HashMap<>();
 
-	protected SettingsHandler(NBTTagCompound contentsNbt, Runnable markContentsDirty) {
+	protected SettingsHandler(NBTTagCompound contentsNbt, Runnable markContentsDirty, Supplier<InventoryHandler> inventoryHandlerSupplier) {
 		this.contentsNbt = contentsNbt;
 		this.markContentsDirty = markContentsDirty;
+		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		addSettingsCategories(getSettingsNbtFromContentsNbt(contentsNbt));
 	}
 
@@ -34,6 +39,8 @@ public abstract class SettingsHandler {
 	protected void addSettingsCategories(NBTTagCompound settingsNbt) {
 		addSettingsCategory(settingsNbt, getGlobalSettingsCategoryName(), markContentsDirty, this::instantiateGlobalSettingsCategory);
 		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
+		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty,
+				(categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
 	}
 
 	public abstract String getGlobalSettingsCategoryName();

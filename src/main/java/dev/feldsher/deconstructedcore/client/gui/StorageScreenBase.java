@@ -10,12 +10,14 @@ import dev.feldsher.deconstructedcore.client.gui.controls.ButtonDefinitions;
 import dev.feldsher.deconstructedcore.client.gui.controls.ToggleButton;
 import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.settings.ISlotColorCategory;
+import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsTab;
 import dev.feldsher.deconstructedcore.common.gui.StorageInventorySlot;
 import dev.feldsher.deconstructedcore.util.CountAbbreviator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -256,6 +258,23 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		if (settingsTabControl != null) {
 			settingsTabControl.render(mouseX, mouseY, partialTicks);
+		}
+		renderMemorizedStacks(x, y);
+	}
+
+	/** Empty memorized slots show what they remember, under a translucent cover, where vanilla then draws nothing. */
+	private void renderMemorizedStacks(int x, int y) {
+		for (int slotIndex = 0; slotIndex < getMenu().getNumberOfStorageInventorySlots(); slotIndex++) {
+			Slot slot = getMenu().getSlot(slotIndex);
+			if (slot.xPos == DISABLED_SLOT_X_POS || slot.getHasStack()) {
+				continue;
+			}
+			getMenu().getMemorizedStackInSlot(slotIndex).ifPresent(memorizedStack -> {
+				RenderHelper.enableGUIStandardItemLighting();
+				itemRender.renderItemAndEffectIntoGUI(mc.player, memorizedStack, x + slot.xPos, y + slot.yPos);
+				RenderHelper.disableStandardItemLighting();
+				MemorySettingsTab.drawMemorizedStackOverlay(x + slot.xPos, y + slot.yPos);
+			});
 		}
 	}
 
