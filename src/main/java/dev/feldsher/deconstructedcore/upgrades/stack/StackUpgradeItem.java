@@ -62,12 +62,12 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		return stackSizeMultiplier;
 	}
 
+	/**
+	 * Checked on the client too, unlike 1.21, which lets the client take it out for the server to put back, with no
+	 * error shown: the client has the storage's contents here, so it refuses as the server does, and says why.
+	 */
 	@Override
 	public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide) {
-		if (isClientSide) {
-			return UpgradeSlotChangeResult.success();
-		}
-
 		double multiplierWhenRemoved = getInventorySlotLimit(storageWrapper, stackSizeMultiplier) / 64D;
 		return isMultiplierHighEnough(storageWrapper, multiplierWhenRemoved);
 	}
@@ -88,10 +88,6 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		UpgradeSlotChangeResult result = super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
 		if (!result.successful()) {
 			return result;
-		}
-
-		if (isClientSide) {
-			return UpgradeSlotChangeResult.success();
 		}
 
 		if (!(upgradeStackToPut.getItem() instanceof StackUpgradeItem)) {
