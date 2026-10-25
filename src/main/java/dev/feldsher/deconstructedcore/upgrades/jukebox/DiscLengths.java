@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -13,17 +14,19 @@ import java.util.Map;
 
 /**
  * How long the discs play, which 1.12's records don't say: vanilla's, as 1.21 has them, those other mods register,
- * and those the config gives, Future MC's by default, which win over the rest. For others it's unknown, and the tab
- * shows no progress of them.
+ * and those the config gives, Future MC's by default, which win over the rest. A length is of a disc item, or of one
+ * metadata of it, which goes before the item's own. For others it's unknown, and the tab shows no progress of them.
  * <p>
  * Mods register theirs with {@link #register}, or, without depending on this mod, with an IMC message
- * {@value #IMC_KEY} to {@code deconstructedcore} whose NBT has the disc item's {@code item} name and its {@code seconds}.
+ * {@value #IMC_KEY} to {@code deconstructedcore} whose NBT has the disc item's {@code item} name, its {@code seconds}
+ * and, for one metadata of it, its {@code meta}.
  */
 public final class DiscLengths {
 	public static final String IMC_KEY = "disc_length";
-	private static final Map<ResourceLocation, Integer> LENGTHS_IN_SECONDS = new HashMap<>();
+	public static final int ANY_META = OreDictionary.WILDCARD_VALUE;
+	private static final Map<ResourceLocation, Map<Integer, Integer>> LENGTHS_IN_SECONDS = new HashMap<>();
 	@Nullable
-	private static Map<ResourceLocation, Integer> configLengthsInSeconds = null;
+	private static Map<ResourceLocation, Map<Integer, Integer>> configLengthsInSeconds = null;
 
 	static {
 		register("record_13", 178);
@@ -46,12 +49,21 @@ public final class DiscLengths {
 		register(new ResourceLocation("minecraft", vanillaRecord), seconds);
 	}
 
-	/** How long the disc item plays; a later registration of the same disc replaces the earlier. */
+	/** How long the disc item plays, whatever its metadata; a later registration of the same disc replaces the earlier. */
 	public static void register(ResourceLocation discItem, int lengthInSeconds) {
-		LENGTHS_IN_SECONDS.put(discItem, lengthInSeconds);
+		register(discItem, ANY_META, lengthInSeconds);
 	}
 
-	/** A message of {@link #IMC_KEY}: {@code item} and {@code seconds}. */
+	/** How long the disc item plays with this metadata, or with any for {@link #ANY_META}. */
+	public static void register(ResourceLocation discItem, int meta, int lengthInSeconds) {
+		put(LENGTHS_IN_SECONDS, discItem, meta, lengthInSeconds);
+	}
+
+	private static void put(Map<ResourceLocation, Map<Integer, Integer>> lengths, ResourceLocation discItem, int meta, int lengthInSeconds) {
+		lengths.computeIfAbsent(discItem, k -> new HashMap<>()).put(meta, lengthInSeconds);
+	}
+
+	/** A message of {@link #IMC_KEY}: {@code item}, {@code seconds} and maybe {@code meta}. */
 	public static void registerFromImc(String sender, NBTTagCompound message) {
 		String item = message.getString("item");
 		int seconds = message.getInteger("seconds");
@@ -59,7 +71,7 @@ public final class DiscLengths {
 			DeconstructedCore.LOGGER.warn("{} sent a disc length without an item name or with no positive seconds: {}", sender, message);
 			return;
 		}
-		register(new ResourceLocation(item), seconds);
+		register(new ResourceLocation(item), message.hasKey("meta") ? message.getInteger("meta") : ANY_META, seconds);
 	}
 
 	/** 0 when it isn't known. */
@@ -68,38 +80,56 @@ public final class DiscLengths {
 		if (name == null) {
 			return 0;
 		}
-		Integer seconds = getConfigLengths().get(name);
+		Integer seconds = get(getConfigLengths(), name, disc.getMetadata());
 		if (seconds == null) {
-			seconds = LENGTHS_IN_SECONDS.getOrDefault(name, 0);
+			seconds = get(LENGTHS_IN_SECONDS, name, disc.getMetadata());
 		}
-		return seconds * 20;
+		return seconds == null ? 0 : seconds * 20;
+	}
+
+	@Nullable
+	private static Integer get(Map<ResourceLocation, Map<Integer, Integer>> lengths, ResourceLocation name, int meta) {
+		Map<Integer, Integer> byMeta = lengths.get(name);
+		if (byMeta == null) {
+			return null;
+		}
+		Integer seconds = byMeta.get(meta);
+		return seconds != null ? seconds : byMeta.get(ANY_META);
 	}
 
 	public static void clearConfigCache() {
 		configLengthsInSeconds = null;
 	}
 
-	private static Map<ResourceLocation, Integer> getConfigLengths() {
+	/** Entries of "modid:item|seconds" or "modid:item:meta|seconds". */
+	private static Map<ResourceLocation, Map<Integer, Integer>> getConfigLengths() {
 		if (configLengthsInSeconds == null) {
-			Map<ResourceLocation, Integer> lengths = new HashMap<>();
+			Map<ResourceLocation, Map<Integer, Integer>> lengths = new HashMap<>();
 			for (String entry : Config.discLengths) {
 				String[] parts = entry.split("\\|");
 				ResourceLocation item = null;
+				int meta = ANY_META;
 				int seconds = 0;
 				try {
 					if (parts.length == 2) {
-						item = new ResourceLocation(parts[0].trim());
+						String[] itemParts = parts[0].trim().split(":");
+						if (itemParts.length == 2) {
+							item = new ResourceLocation(itemParts[0], itemParts[1]);
+						} else if (itemParts.length == 3) {
+							item = new ResourceLocation(itemParts[0], itemParts[1]);
+							meta = Integer.parseInt(itemParts[2]);
+						}
 						seconds = Integer.parseInt(parts[1].trim());
 					}
 				} catch (RuntimeException e) {
 					item = null;
 				}
-				if (item == null || seconds <= 0) {
-					DeconstructedCore.LOGGER.warn("Disc length \"{}\" in the config isn't \"ItemRegistryName|Seconds\" with positive seconds", entry);
+				if (item == null || seconds <= 0 || meta < 0) {
+					DeconstructedCore.LOGGER.warn("Disc length \"{}\" in the config isn't \"ItemRegistryName[:Meta]|Seconds\" with positive seconds", entry);
 				} else if (!ForgeRegistries.ITEMS.containsKey(item)) {
 					DeconstructedCore.LOGGER.debug("Disc length \"{}\" in the config is of an item the game doesn't have, skipped", entry);
 				} else {
-					lengths.put(item, seconds);
+					put(lengths, item, meta, seconds);
 				}
 			}
 			configLengthsInSeconds = lengths;

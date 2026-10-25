@@ -10,7 +10,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 @Mod.EventBusSubscriber(modid = DeconstructedCore.MOD_ID)
 public class Config {
 	@net.minecraftforge.common.config.Config.Comment({"How long music discs play, for the advanced jukebox upgrade's progress, as 1.12's discs don't say,",
-			"in format of \"ItemRegistryName|Seconds\". Vanilla's are known already; these are used before what mods register.",
+			"in format of \"ItemRegistryName|Seconds\", or \"ItemRegistryName:Meta|Seconds\" for one metadata of it.",
+			"Vanilla's are known already; these are used before what mods register.",
 			"Discs of mods that aren't installed are skipped."})
 	public static String[] discLengths = {"futuremc:record_pigstep|148", "futuremc:record_otherside|195"};
 
