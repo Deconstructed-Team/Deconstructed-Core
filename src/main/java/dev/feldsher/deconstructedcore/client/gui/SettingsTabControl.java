@@ -7,6 +7,8 @@ import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -52,6 +54,8 @@ public abstract class SettingsTabControl<C extends GuiContainer, T extends Setti
 			}
 		});
 		if (openTab != null) {
+			// The other tabs' icons are items, drawn with depth above the flat tab: without it they'd show through
+			GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
 			openTab.render(mouseX, mouseY, partialTicks);
 		}
 	}
