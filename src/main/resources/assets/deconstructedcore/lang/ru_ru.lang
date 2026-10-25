@@ -215,5 +215,5 @@ gui.deconstructedcore.error.add.only_x_upgrades_allowed=Только %dx %s со
 gui.deconstructedcore.narrate.tab_button=Кнопка для открытия или закрытия вкладки улучшений
 gui.deconstructedcore.narrate.context_button=Приоритет установлен на: %s
 gui.deconstructedcore.narrate.context_button.usage=Нажмите для смены приоритета
-fluid_type.deconstructedcore.experience=Опыт
+fluid.deconstructedcore.experience=Опыт
 gui.deconstructedcore.tooltip.stack_count=Кол-во предметов: %s

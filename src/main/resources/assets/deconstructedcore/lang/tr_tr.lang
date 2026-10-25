@@ -214,5 +214,5 @@ gui.deconstructedcore.error.add.only_x_upgrades_allowed=Sadece %dx %s, %s içind
 gui.deconstructedcore.narrate.tab_button=Yükseltme sekmesi aç/kapat düğmesi
 gui.deconstructedcore.narrate.context_button=İçerik geçişi şöyle ayarlandı: %s
 gui.deconstructedcore.narrate.context_button.usage=İçeriği değiştirmek için tıkla
-fluid_type.deconstructedcore.experience=Tecrübe
+fluid.deconstructedcore.experience=Tecrübe
 gui.deconstructedcore.tooltip.stack_count=Sayı: %s

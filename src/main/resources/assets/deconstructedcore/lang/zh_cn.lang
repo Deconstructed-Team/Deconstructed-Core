@@ -243,5 +243,5 @@ gui.deconstructedcore.error.remove.infinity_upgrade_only_admin=只有管理员�
 gui.deconstructedcore.narrate.tab_button=升级标签页开/关按钮
 gui.deconstructedcore.narrate.context_button=上下文切换设置为：%s
 gui.deconstructedcore.narrate.context_button.usage=单击以切换上下文
-fluid_type.deconstructedcore.experience=经验
+fluid.deconstructedcore.experience=经验
 gui.deconstructedcore.tooltip.stack_count=数量：%s

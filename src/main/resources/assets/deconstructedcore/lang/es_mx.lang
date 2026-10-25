@@ -185,5 +185,5 @@ gui.deconstructedcore.error.add.only_x_upgrades_allowed=Solo %dx %s se puede usa
 gui.deconstructedcore.narrate.tab_button=Botón para abrir/cerrar la pestaña de mejora
 gui.deconstructedcore.narrate.context_button=Contexto establecido en: %s
 gui.deconstructedcore.narrate.context_button.usage=Clic para cambiar contexto
-fluid_type.deconstructedcore.experience=Experiencia
+fluid.deconstructedcore.experience=Experiencia
 gui.deconstructedcore.tooltip.stack_count=Cantidad: %s

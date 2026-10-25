@@ -246,5 +246,5 @@ gui.deconstructedcore.error.remove.infinity_upgrade_only_admin=Only admins can r
 gui.deconstructedcore.narrate.tab_button=Upgrade tab open/close button
 gui.deconstructedcore.narrate.context_button=Context toggle set to: %s
 gui.deconstructedcore.narrate.context_button.usage=Click to toggle context
-fluid_type.deconstructedcore.experience=Experience
+fluid.deconstructedcore.experience=Experience
 gui.deconstructedcore.tooltip.stack_count=Count: %s

@@ -8,7 +8,9 @@ import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.client.gui.utils.TextureBlitData;
 import dev.feldsher.deconstructedcore.client.gui.utils.TranslationHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.UV;
+import dev.feldsher.deconstructedcore.fluid.ExperienceFluids;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
+import dev.feldsher.deconstructedcore.util.XpHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.I18n;
@@ -17,6 +19,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,10 +96,20 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 			if (contents != null) {
 				tooltip.add(contents.getLocalizedName());
 			}
-			tooltip.add(I18n.format(TranslationHelper.INSTANCE.translUpgradeKey("tank.contents_tooltip"),
-					String.format("%,d", contents == null ? 0 : contents.amount), String.format("%,d", container.getTankCapacity())));
+			tooltip.add(getContentsTooltip(contents, container.getTankCapacity()));
 			GuiHelper.renderTooltip(screen, tooltip, mouseX, mouseY);
 		}
+	}
+
+	/** Liquid experience in levels, as many as it holds and would hold full; anything else in mB. */
+	private static String getContentsTooltip(@Nullable FluidStack contents, int capacity) {
+		int mbPerPoint = ExperienceFluids.getMbPerExperience(contents);
+		if (contents != null && mbPerPoint > 0) {
+			double contentsLevels = XpHelper.getLevelsForExperience(contents.amount / mbPerPoint);
+			double tankCapacityLevels = XpHelper.getLevelsForExperience(capacity / mbPerPoint);
+			return I18n.format(TranslationHelper.INSTANCE.translUpgradeKey("tank.xp_contents_tooltip"), String.format("%.1f", contentsLevels), String.format("%.1f", tankCapacityLevels));
+		}
+		return I18n.format(TranslationHelper.INSTANCE.translUpgradeKey("tank.contents_tooltip"), String.format("%,d", contents == null ? 0 : contents.amount), String.format("%,d", capacity));
 	}
 
 	private void renderFluid() {

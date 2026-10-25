@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore;
 
+import dev.feldsher.deconstructedcore.fluid.ExperienceFluids;
 import dev.feldsher.deconstructedcore.upgrades.jukebox.DiscLengths;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -14,6 +15,11 @@ public class Config {
 			"Vanilla's are known already; these are used before what mods register.",
 			"Discs of mods that aren't installed are skipped."})
 	public static String[] discLengths = {"futuremc:record_pigstep|148", "futuremc:record_otherside|195"};
+
+	@net.minecraftforge.common.config.Config.Comment({"Fluids that are liquid experience, for the experience pump and tanks,",
+			"in format of \"FluidName|MbPerExperiencePoint\"; the first the game has is what experience is stored as.",
+			"Fluids of mods that aren't installed are skipped."})
+	public static String[] experienceFluids = {"xpjuice|20"};
 
 	private Config() {}
 

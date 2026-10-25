@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore.client;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
+import dev.feldsher.deconstructedcore.fluid.ExperienceFluids;
 import dev.feldsher.deconstructedcore.upgrades.tank.TankUpgradeContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -19,5 +20,7 @@ public final class ClientEventHandler {
 		event.getMap().registerSprite(new ResourceLocation(StorageContainerMenuBase.EMPTY_UPGRADE_SLOT_BACKGROUND));
 		event.getMap().registerSprite(new ResourceLocation(TankUpgradeContainer.EMPTY_TANK_INPUT_SLOT_BACKGROUND));
 		event.getMap().registerSprite(new ResourceLocation(TankUpgradeContainer.EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
+		event.getMap().registerSprite(ExperienceFluids.XP_STILL_TEXTURE);
+		event.getMap().registerSprite(ExperienceFluids.XP_FLOWING_TEXTURE);
 	}
 }
