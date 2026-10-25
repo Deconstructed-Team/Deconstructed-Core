@@ -15,6 +15,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		}
 
 		ItemStack cursorStack = Minecraft.getMinecraft().player.inventory.getItemStack();
-		if (cursorStack.getCount() > 1 || FluidUtil.getFluidHandler(cursorStack) == null) {
+		if (cursorStack.isEmpty() || FluidUtil.getFluidHandler(ItemHandlerHelper.copyStackWithSize(cursorStack, 1)) == null) {
 			return false;
 		}
 

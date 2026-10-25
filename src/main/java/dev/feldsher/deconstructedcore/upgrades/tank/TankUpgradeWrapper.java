@@ -1,9 +1,11 @@
 package dev.feldsher.deconstructedcore.upgrades.tank;
 
+import dev.feldsher.deconstructedcore.api.IStorageFluidHandler;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.IStackableContentsUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.ITickableUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeWrapperBase;
+import dev.feldsher.deconstructedcore.util.FluidContainerHelper;
 import dev.feldsher.deconstructedcore.util.StorageNbt;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -11,10 +13,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -60,22 +60,18 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		return fluidStack == null || fluidStack.amount <= 0 ? null : fluidStack;
 	}
 
+	/** An input container gives a fluid the tank takes; an output one takes the tank's fluid, or any while it's empty. */
 	private boolean isValidFluidItem(ItemStack stack, boolean isOutput) {
-		IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(stack);
-		return fluidHandler != null && isValidFluidHandler(fluidHandler, isOutput);
+		if (isOutput) {
+			return FluidContainerHelper.canFill(stack, contents);
+		}
+		FluidStack drainable = FluidContainerHelper.getDrainable(stack);
+		return drainable != null && (contents == null || contents.isFluidEqual(drainable));
 	}
 
-	/** An output container has room for the tank's fluid; an input one has a fluid the tank takes. */
-	private boolean isValidFluidHandler(IFluidHandlerItem fluidHandler, boolean isOutput) {
-		for (IFluidTankProperties tank : fluidHandler.getTankProperties()) {
-			FluidStack fluidInTank = tank.getContents();
-			boolean emptyInTank = fluidInTank == null || fluidInTank.amount <= 0;
-			if (isOutput && (emptyInTank || (contents != null && fluidInTank.isFluidEqual(contents)))
-					|| !isOutput && !emptyInTank && (contents == null || contents.isFluidEqual(fluidInTank))) {
-				return true;
-			}
-		}
-		return false;
+	/** This tank alone, as a fluid handler. */
+	public IStorageFluidHandler getFluidHandler() {
+		return new TankFluidHandler(this);
 	}
 
 	@Nullable
@@ -164,53 +160,20 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		}
 
 		boolean didSomething = false;
-		IFluidHandlerItem inputHandler = FluidUtil.getFluidHandler(inventory.getStackInSlot(INPUT_SLOT));
-		if (inputHandler != null) {
-			didSomething = drainHandler(inputHandler, stack -> inventory.setStackInSlot(INPUT_SLOT, stack));
+		FluidActionResult emptied = FluidContainerHelper.emptyContainer(inventory.getStackInSlot(INPUT_SLOT), getFluidHandler(), Fluid.BUCKET_VOLUME, false);
+		if (emptied.isSuccess()) {
+			inventory.setStackInSlot(INPUT_SLOT, emptied.getResult());
+			didSomething = true;
 		}
-		IFluidHandlerItem outputHandler = FluidUtil.getFluidHandler(inventory.getStackInSlot(OUTPUT_SLOT));
-		if (outputHandler != null) {
-			didSomething |= fillHandler(outputHandler, stack -> inventory.setStackInSlot(OUTPUT_SLOT, stack));
+		FluidActionResult filled = FluidContainerHelper.fillContainer(inventory.getStackInSlot(OUTPUT_SLOT), getFluidHandler(), Fluid.BUCKET_VOLUME, false);
+		if (filled.isSuccess()) {
+			inventory.setStackInSlot(OUTPUT_SLOT, filled.getResult());
+			didSomething = true;
 		}
 
 		if (didSomething) {
 			cooldownTime = world.getTotalWorldTime() + upgradeItem.getTankUpgradeConfig().getAutoFillDrainContainerCooldown();
 		}
-	}
-
-	/** Fills the container from the tank, up to a bucket; the container then is what it became. */
-	public boolean fillHandler(IFluidHandlerItem fluidHandler, Consumer<ItemStack> updateContainerStack) {
-		if (contents != null && isValidFluidHandler(fluidHandler, true)) {
-			int filled = fluidHandler.fill(new FluidStack(contents, Math.min(Fluid.BUCKET_VOLUME, contents.amount)), false);
-			if (filled <= 0) { //checking for less than as well because some mods have incorrect fill logic
-				return false;
-			}
-			FluidStack drained = drain(filled, true, false);
-			fluidHandler.fill(drained, true);
-			updateContainerStack.accept(fluidHandler.getContainer());
-			return true;
-		}
-		return false;
-	}
-
-	/** Empties the container into the tank, up to a bucket; the container then is what it became. */
-	public boolean drainHandler(IFluidHandlerItem fluidHandler, Consumer<ItemStack> updateContainerStack) {
-		if (isValidFluidHandler(fluidHandler, false)) {
-			FluidStack extracted = contents == null ?
-					fluidHandler.drain(Fluid.BUCKET_VOLUME, false) :
-					fluidHandler.drain(new FluidStack(contents, Math.min(Fluid.BUCKET_VOLUME, getTankCapacity() - contents.amount)), false);
-			if (extracted == null || extracted.amount <= 0) {
-				return false;
-			}
-			int filled = fill(extracted, true, false);
-			if (filled <= 0) {
-				return false;
-			}
-			fluidHandler.drain(new FluidStack(extracted, filled), true);
-			updateContainerStack.accept(fluidHandler.getContainer());
-			return true;
-		}
-		return false;
 	}
 
 	@Override

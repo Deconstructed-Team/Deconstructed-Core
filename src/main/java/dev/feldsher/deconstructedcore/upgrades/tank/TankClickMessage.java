@@ -1,19 +1,21 @@
 package dev.feldsher.deconstructedcore.upgrades.tank;
 
+import dev.feldsher.deconstructedcore.api.IStorageFluidHandler;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
 import dev.feldsher.deconstructedcore.common.gui.UpgradeContainerBase;
+import dev.feldsher.deconstructedcore.util.FluidContainerHelper;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import java.util.function.Consumer;
-
-/** The tank of the upgrade in the slot was clicked with a fluid container: it fills the container, or empties it. */
+/**
+ * The tank of the upgrade in the slot was clicked with a fluid container: it fills one container of the held stack,
+ * or else empties it.
+ */
 public class TankClickMessage implements IMessage {
 	private int upgradeSlot;
 
@@ -44,21 +46,18 @@ public class TankClickMessage implements IMessage {
 			return;
 		}
 		ItemStack cursorStack = player.inventory.getItemStack();
-		if (cursorStack.getCount() > 1) {
-			return;
-		}
-		IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(cursorStack);
-		if (fluidHandler == null) {
-			return;
-		}
-
 		TankUpgradeWrapper tankWrapper = ((TankUpgradeContainer) upgradeContainer).getUpgradeWrapper();
-		Consumer<ItemStack> setCursorStack = stack -> {
-			player.inventory.setItemStack(stack);
-			player.updateHeldItem();
-		};
-		if (tankWrapper.getContents() == null || !tankWrapper.fillHandler(fluidHandler, setCursorStack)) {
-			tankWrapper.drainHandler(fluidHandler, setCursorStack);
+		IStorageFluidHandler tank = tankWrapper.getFluidHandler();
+		// By hand, as much as the container holds or has room for, not a bucket's worth an operation as automation
+		FluidActionResult result = tankWrapper.getContents() == null ? FluidActionResult.FAILURE : FluidContainerHelper.fillContainer(cursorStack, tank, Integer.MAX_VALUE, true);
+		if (!result.isSuccess()) {
+			result = FluidContainerHelper.emptyContainer(cursorStack, tank, Integer.MAX_VALUE, true);
+		}
+		if (result.isSuccess()) {
+			FluidContainerHelper.settleResult(player, cursorStack, result.getResult(), stack -> {
+				player.inventory.setItemStack(stack);
+				player.updateHeldItem();
+			});
 		}
 	}
 
