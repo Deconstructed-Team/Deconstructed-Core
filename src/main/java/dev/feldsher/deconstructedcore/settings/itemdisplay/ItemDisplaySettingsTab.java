@@ -62,7 +62,12 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	}
 
 	@Override
-	public Optional<Integer> getSlotOverlayColor(int slotNumber) {
+	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(ItemDisplaySettingsCategory.class)
+					.filter(category -> category.getSlots().contains(slotNumber))
+					.map(category -> category.getColor().getColorValue());
+		}
 		return getSettingsContainer().isSlotSelected(slotNumber) ? Optional.of(getSettingsContainer().getColor().getColorValue()) : Optional.empty();
 	}
 
@@ -83,8 +88,8 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 
 	/** The slot the rotate button turns, marked while the tab is open. */
 	@Override
-	public void renderExtra(Slot slot) {
-		if (isOpen && slot.slotNumber == currentSelectedSlot) {
+	public void renderExtra(Slot slot, boolean templateLoadHovered) {
+		if (isOpen && !templateLoadHovered && slot.slotNumber == currentSelectedSlot) {
 			GlStateManager.disableDepth();
 			GlStateManager.colorMask(true, true, true, false);
 			GuiHelper.blit(slot.xPos - 4, slot.yPos - 4, SLOT_SELECTION);
@@ -94,7 +99,13 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	}
 
 	@Override
-	public int getItemRotation(int slotNumber) {
+	public int getItemRotation(int slotNumber, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(ItemDisplaySettingsCategory.class)
+					.filter(category -> category.getSlots().contains(slotNumber))
+					.map(category -> category.getRotation(slotNumber))
+					.orElse(0);
+		}
 		return getSettingsContainer().getRotation(slotNumber);
 	}
 }

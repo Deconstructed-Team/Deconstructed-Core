@@ -26,25 +26,28 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 		return settingsContainer;
 	}
 
-	/** The color the slot is marked with, for this category's setting on it. */
-	public abstract Optional<Integer> getSlotOverlayColor(int slotNumber);
+	/**
+	 * The color the slot is marked with, for this category's setting on it. While the template load button is hovered,
+	 * the tabs show what the selected template would set instead.
+	 */
+	public abstract Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered);
 
 	public abstract void handleSlotClick(Slot slot, int mouseButton);
 
 	@SuppressWarnings("unused") //parameters used in overrides
-	public void renderExtra(Slot slot) {
+	public void renderExtra(Slot slot, boolean templateLoadHovered) {
 		//noop by default
 	}
 
 	/** How far, in degrees, the slot's item is drawn turned, as the storage shows it. */
 	@SuppressWarnings("unused") // parameter used in override
-	public int getItemRotation(int slotNumber) {
+	public int getItemRotation(int slotNumber, boolean templateLoadHovered) {
 		return 0;
 	}
 
 	/** What an empty slot shows instead of nothing, as a memorized item. */
 	@SuppressWarnings("unused") // parameter used in override
-	public ItemStack getItemDisplayOverride(int slotNumber) {
+	public ItemStack getItemDisplayOverride(int slotNumber, boolean templateLoadHovered) {
 		return ItemStack.EMPTY;
 	}
 }

@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Puts what the storage containers' own slot packets carry into the client's open container. */
 public final class ClientContainerSync {
@@ -23,6 +24,18 @@ public final class ClientContainerSync {
 		EntityPlayer player = Minecraft.getMinecraft().player;
 		if (player != null && player.openContainer.windowId == windowId && player.openContainer instanceof SettingsContainerMenu) {
 			((SettingsContainerMenu<?>) player.openContainer).getStorageWrapper().getSettingsHandler().reloadSettings(settings);
+		}
+	}
+
+	/** Into the client's copies, and the open settings screen lists them anew. */
+	public static void setTemplateSettings(Consumer<EntityPlayer> applyTemplates) {
+		EntityPlayer player = Minecraft.getMinecraft().player;
+		if (player == null) {
+			return;
+		}
+		applyTemplates.accept(player);
+		if (player.openContainer instanceof SettingsContainerMenu) {
+			((SettingsContainerMenu<?>) player.openContainer).refreshTemplateSlots();
 		}
 	}
 

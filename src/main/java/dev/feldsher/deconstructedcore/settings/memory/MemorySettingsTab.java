@@ -35,7 +35,7 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 	}
 
 	@Override
-	public Optional<Integer> getSlotOverlayColor(int slotNumber) {
+	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
 		return Optional.empty();
 	}
 
@@ -49,13 +49,17 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 	}
 
 	@Override
-	public ItemStack getItemDisplayOverride(int slotNumber) {
+	public ItemStack getItemDisplayOverride(int slotNumber, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			return getSettingsContainer().getSelectedTemplatesMemorizedStack(slotNumber);
+		}
 		return getSettingsContainer().getMemorizedStack(slotNumber);
 	}
 
 	@Override
-	public void renderExtra(Slot slot) {
-		if (getSettingsContainer().isSlotSelected(slot.slotNumber)) {
+	public void renderExtra(Slot slot, boolean templateLoadHovered) {
+		if (templateLoadHovered ? !getSettingsContainer().getSelectedTemplatesMemorizedStack(slot.slotNumber).isEmpty()
+				: getSettingsContainer().isSlotSelected(slot.slotNumber)) {
 			drawMemorizedStackOverlay(slot.xPos, slot.yPos);
 		}
 	}

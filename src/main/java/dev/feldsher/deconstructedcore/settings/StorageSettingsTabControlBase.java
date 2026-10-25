@@ -47,9 +47,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 	}
 
 	/** In stripes, one per tab that marks the slot, translucent over the slot. Coordinates are the screen's, less its corner. */
-	public void renderSlotOverlays(Slot slot) {
+	public void renderSlotOverlays(Slot slot, boolean templateLoadHovered) {
 		List<Integer> colors = new ArrayList<>();
-		settingsTabs.forEach(tab -> tab.getSlotOverlayColor(slot.slotNumber).ifPresent(colors::add));
+		settingsTabs.forEach(tab -> tab.getSlotOverlayColor(slot.slotNumber, templateLoadHovered).ifPresent(colors::add));
 		if (colors.isEmpty()) {
 			return;
 		}
@@ -63,9 +63,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		}
 	}
 
-	public ItemStack getSlotStackDisplayOverride(int slotNumber) {
+	public ItemStack getSlotStackDisplayOverride(int slotNumber, boolean templateLoadHovered) {
 		for (SettingsTab<?> settingsTab : settingsTabs) {
-			ItemStack stack = settingsTab.getItemDisplayOverride(slotNumber);
+			ItemStack stack = settingsTab.getItemDisplayOverride(slotNumber, templateLoadHovered);
 			if (!stack.isEmpty()) {
 				return stack;
 			}
@@ -73,9 +73,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		return ItemStack.EMPTY;
 	}
 
-	public int getSlotItemRotation(int slotNumber) {
+	public int getSlotItemRotation(int slotNumber, boolean templateLoadHovered) {
 		for (SettingsTab<?> settingsTab : settingsTabs) {
-			int rotation = settingsTab.getItemRotation(slotNumber);
+			int rotation = settingsTab.getItemRotation(slotNumber, templateLoadHovered);
 			if (rotation != 0) {
 				return rotation;
 			}
@@ -83,8 +83,8 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		return 0;
 	}
 
-	public void renderSlotExtra(Slot slot) {
-		settingsTabs.forEach(tab -> tab.renderExtra(slot));
+	public void renderSlotExtra(Slot slot, boolean templateLoadHovered) {
+		settingsTabs.forEach(tab -> tab.renderExtra(slot, templateLoadHovered));
 	}
 
 	public void handleSlotClick(Slot slot, int mouseButton) {

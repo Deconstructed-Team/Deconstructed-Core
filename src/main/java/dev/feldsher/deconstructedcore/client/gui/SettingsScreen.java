@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.client.gui;
 
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
+import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
 import dev.feldsher.deconstructedcore.common.gui.SettingsContainerMenu;
 import dev.feldsher.deconstructedcore.common.gui.StorageBackgroundProperties;
@@ -17,12 +18,12 @@ import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A storage's settings screen: its slots, to pick for the open settings tab, and the tabs on the right. Rows that don't
- * fit scroll with the mouse wheel. Settings templates come with the step that ports them.
+ * A storage's settings screen: its slots, to pick for the open settings tab, the tabs on the right and the settings
+ * template buttons on the left. Rows that don't fit scroll with the mouse wheel.
  */
 public abstract class SettingsScreen extends GuiContainer {
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
@@ -33,6 +34,8 @@ public abstract class SettingsScreen extends GuiContainer {
 	private final String title;
 	@Nullable
 	private StorageSettingsTabControlBase settingsTabControl = null;
+	@Nullable
+	private TemplatePersistanceControl templatePersistanceControl = null;
 	private StorageBackgroundProperties storageBackgroundProperties = StorageBackgroundProperties.REGULAR_9_SLOT;
 	private int numberOfVisibleRows;
 	private int firstVisibleRow = 0;
@@ -68,6 +71,12 @@ public abstract class SettingsScreen extends GuiContainer {
 	public void initGui() {
 		super.initGui();
 		settingsTabControl = initializeTabControl();
+		templatePersistanceControl = new TemplatePersistanceControl(new Position(guiLeft + inventoryLabelX - 29, guiTop + inventoryLabelY + 29),
+				menu.getTemplatePersistanceContainer());
+	}
+
+	private boolean isTemplateLoadHovered() {
+		return templatePersistanceControl != null && templatePersistanceControl.isTemplateLoadHovered();
 	}
 
 	protected abstract StorageSettingsTabControlBase initializeTabControl();
@@ -114,7 +123,8 @@ public abstract class SettingsScreen extends GuiContainer {
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
 		StorageSettingsTabControlBase tabControl = settingsTabControl;
-		SettingsContainerMenu.setStacksHiddenFromDrawing(tabControl == null ? null : slotNumber -> tabControl.getSlotItemRotation(slotNumber) != 0);
+		boolean templateLoadHovered = isTemplateLoadHovered();
+		SettingsContainerMenu.setStacksHiddenFromDrawing(tabControl == null ? null : slotNumber -> tabControl.getSlotItemRotation(slotNumber, templateLoadHovered) != 0);
 		try {
 			super.drawScreen(mouseX, mouseY, partialTicks);
 		} finally {
@@ -122,6 +132,9 @@ public abstract class SettingsScreen extends GuiContainer {
 		}
 		if (settingsTabControl != null) {
 			settingsTabControl.renderTooltip(this, mouseX, mouseY);
+		}
+		if (templatePersistanceControl != null) {
+			templatePersistanceControl.renderTooltip(this, mouseX, mouseY);
 		}
 		renderHoveredToolTip(mouseX, mouseY);
 	}
@@ -136,6 +149,9 @@ public abstract class SettingsScreen extends GuiContainer {
 		if (settingsTabControl != null) {
 			settingsTabControl.render(mouseX, mouseY, partialTicks);
 		}
+		if (templatePersistanceControl != null) {
+			templatePersistanceControl.render(mouseX, mouseY, partialTicks);
+		}
 	}
 
 	/** Over the slots vanilla drew: what empty slots show for their settings, and the tabs' marks. */
@@ -146,15 +162,16 @@ public abstract class SettingsScreen extends GuiContainer {
 		if (settingsTabControl == null) {
 			return;
 		}
+		boolean templateLoadHovered = isTemplateLoadHovered();
 		for (Slot slot : menu.getStorageInventorySlots()) {
 			if (slot.xPos == StorageScreenBase.DISABLED_SLOT_X_POS) {
 				continue;
 			}
-			int rotation = settingsTabControl.getSlotItemRotation(slot.slotNumber);
+			int rotation = settingsTabControl.getSlotItemRotation(slot.slotNumber, templateLoadHovered);
 			if (rotation != 0) {
-				renderRotatedItem(slot.slotNumber, slot.xPos, slot.yPos, rotation);
+				renderRotatedItem(slot.slotNumber, slot.xPos, slot.yPos, rotation, templateLoadHovered);
 			} else if (!slot.getHasStack()) {
-				ItemStack displayOverride = settingsTabControl.getSlotStackDisplayOverride(slot.slotNumber);
+				ItemStack displayOverride = settingsTabControl.getSlotStackDisplayOverride(slot.slotNumber, templateLoadHovered);
 				if (!displayOverride.isEmpty()) {
 					RenderHelper.enableGUIStandardItemLighting();
 					itemRender.renderItemAndEffectIntoGUI(mc.player, displayOverride, slot.xPos, slot.yPos);
@@ -163,17 +180,17 @@ public abstract class SettingsScreen extends GuiContainer {
 			}
 			GlStateManager.disableLighting();
 			GlStateManager.disableDepth();
-			settingsTabControl.renderSlotOverlays(slot);
-			settingsTabControl.renderSlotExtra(slot);
+			settingsTabControl.renderSlotOverlays(slot, templateLoadHovered);
+			settingsTabControl.renderSlotExtra(slot, templateLoadHovered);
 			GlStateManager.enableDepth();
 		}
 	}
 
 	/** The item turned around the slot's middle, with its count unturned. */
-	private void renderRotatedItem(int slotNumber, int x, int y, int rotation) {
+	private void renderRotatedItem(int slotNumber, int x, int y, int rotation, boolean templateLoadHovered) {
 		ItemStack stack = menu.getStorageWrapper().getInventoryHandler().getStackInSlot(slotNumber);
 		if (stack.isEmpty() && settingsTabControl != null) {
-			stack = settingsTabControl.getSlotStackDisplayOverride(slotNumber);
+			stack = settingsTabControl.getSlotStackDisplayOverride(slotNumber, templateLoadHovered);
 		}
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x + 8, y + 8, 0);
@@ -197,6 +214,9 @@ public abstract class SettingsScreen extends GuiContainer {
 
 	@Override
 	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		if (templatePersistanceControl != null && templatePersistanceControl.mouseClicked(mouseX, mouseY, mouseButton)) {
+			return;
+		}
 		if (settingsTabControl != null && settingsTabControl.mouseClicked(mouseX, mouseY, mouseButton)) {
 			return;
 		}
@@ -216,24 +236,43 @@ public abstract class SettingsScreen extends GuiContainer {
 	public void handleMouseInput() throws IOException {
 		super.handleMouseInput();
 		int wheel = Mouse.getEventDWheel();
-		if (wheel != 0 && getMaxFirstVisibleRow() > 0) {
+		if (wheel == 0) {
+			return;
+		}
+		int mouseX = Mouse.getEventX() * width / mc.displayWidth;
+		int mouseY = height - Mouse.getEventY() * height / mc.displayHeight - 1;
+		if (templatePersistanceControl != null && templatePersistanceControl.mouseScrolled(mouseX, mouseY, Integer.signum(wheel))) {
+			return;
+		}
+		if (getMaxFirstVisibleRow() > 0) {
 			firstVisibleRow = Math.max(0, Math.min(getMaxFirstVisibleRow(), firstVisibleRow - Integer.signum(wheel)));
 			updateStorageSlotsPositions();
 		}
 	}
 
-	/** The tabs, which item list mods mustn't cover. */
+	/** The tabs and the template buttons, which item list mods mustn't cover. */
 	public List<Rect2i> getExtraAreas() {
-		return settingsTabControl == null ? Collections.emptyList() : settingsTabControl.getTabRectangles();
+		List<Rect2i> areas = new ArrayList<>();
+		if (settingsTabControl != null) {
+			areas.addAll(settingsTabControl.getTabRectangles());
+		}
+		if (templatePersistanceControl != null) {
+			areas.add(templatePersistanceControl.getRectangle());
+		}
+		return areas;
 	}
 
 	@Override
 	protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop) {
-		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && (settingsTabControl == null || !settingsTabControl.isMouseOver(mouseX, mouseY));
+		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && (settingsTabControl == null || !settingsTabControl.isMouseOver(mouseX, mouseY))
+				&& (templatePersistanceControl == null || !templatePersistanceControl.getRectangle().contains(mouseX, mouseY));
 	}
 
 	@Override
 	protected void keyTyped(char typedChar, int keyCode) throws IOException {
+		if (templatePersistanceControl != null && templatePersistanceControl.keyTyped(typedChar, keyCode)) {
+			return;
+		}
 		if (keyCode == 1 || mc.gameSettings.keyBindInventory.isActiveAndMatches(keyCode)) {
 			sendStorageInventoryScreenOpenMessage();
 			return;

@@ -16,8 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * A storage's settings, by category, kept in its contents NBT. The item display category is the storage's to add, with
- * as many items as it shows.
+ * A storage's settings, by category, kept in its contents NBT.
  */
 public abstract class SettingsHandler {
 	protected NBTTagCompound contentsNbt;
@@ -41,7 +40,11 @@ public abstract class SettingsHandler {
 		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
 		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty,
 				(categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
+		addItemDisplayCategory(settingsNbt);
 	}
+
+	/** With as many items as the storage shows. */
+	protected abstract void addItemDisplayCategory(NBTTagCompound settingsNbt);
 
 	public abstract String getGlobalSettingsCategoryName();
 

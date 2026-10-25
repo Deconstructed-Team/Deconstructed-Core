@@ -72,6 +72,10 @@ public class TranslationHelper {
 		return guiSettingsPrefix + BUTTONS_SUFFIX + buttonName;
 	}
 
+	public String translSettingsMessage(String messageName) {
+		return guiSettingsPrefix + "message." + messageName;
+	}
+
 	public String translButton(String buttonName) {
 		return buttonsPrefix + buttonName;
 	}

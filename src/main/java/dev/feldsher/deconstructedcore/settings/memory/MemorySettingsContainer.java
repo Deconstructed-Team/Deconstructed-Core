@@ -93,4 +93,10 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	public ItemStack getMemorizedStack(int slotNumber) {
 		return getCategory().getSlotFilterStack(slotNumber, false).orElse(ItemStack.EMPTY);
 	}
+
+	public ItemStack getSelectedTemplatesMemorizedStack(int slotNumber) {
+		return getSettingsContainer().getSelectedTemplatesCategory(MemorySettingsCategory.class)
+				.flatMap(category -> category.getSlotFilterStack(slotNumber, false))
+				.orElse(ItemStack.EMPTY);
+	}
 }

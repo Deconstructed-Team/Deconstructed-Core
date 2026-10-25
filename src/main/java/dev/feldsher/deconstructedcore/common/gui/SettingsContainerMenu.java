@@ -20,6 +20,7 @@ import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
@@ -29,14 +30,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.IntPredicate;
 
 /**
  * A storage's settings: its inventory, to look at and pick slots in, and a container per settings category. Clicks on
- * the slots go to the open settings tab, not to the slots; there are no player slots.
- * <p>
- * Settings templates come with the step that ports them.
+ * the slots go to the open settings tab, not to the slots; there are no player slots. Settings templates are saved
+ * and loaded through its {@link TemplatePersistanceContainer}.
  */
 public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends LargeStackSyncContainer implements ISyncedContainer {
 	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
@@ -52,6 +53,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 	protected final S storageWrapper;
 	private final List<Slot> storageInventorySlots = new ArrayList<>();
 	private final Map<String, SettingsContainerBase<?>> settingsContainers = new LinkedHashMap<>();
+	private final TemplatePersistanceContainer templatePersistanceContainer;
 	@Nullable
 	private NBTTagCompound lastSettingsNbt = null;
 
@@ -64,6 +66,10 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 		}
 		addStorageInventorySlots();
 		addSettingsContainers();
+		if (player instanceof EntityPlayerMP) {
+			TemplatePersistanceContainer.sendTemplatesTo((EntityPlayerMP) player);
+		}
+		templatePersistanceContainer = new TemplatePersistanceContainer(this);
 	}
 
 	public static <C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> void addFactory(String categoryName, ISettingsContainerFactory<C, T> factory) {
@@ -136,6 +142,10 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 
 	@Override
 	public void handlePacket(NBTTagCompound data) {
+		if (data.hasKey(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG, Constants.NBT.TAG_COMPOUND)) {
+			templatePersistanceContainer.handlePacket(data.getCompoundTag(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG));
+			return;
+		}
 		String categoryName = data.getString("categoryName");
 		if (settingsContainers.containsKey(categoryName)) {
 			settingsContainers.get(categoryName).handlePacket(data);
@@ -155,6 +165,19 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 	@Override
 	public boolean canInteractWith(EntityPlayer player) {
 		return true;
+	}
+
+	/** The category as the template that's selected to load has it, to show over the slots. */
+	public <T extends ISettingsCategory<?>> Optional<T> getSelectedTemplatesCategory(Class<T> categoryClass) {
+		return templatePersistanceContainer.getSelectedTemplate().map(selectedTemplate -> selectedTemplate.getTypeCategory(categoryClass));
+	}
+
+	public TemplatePersistanceContainer getTemplatePersistanceContainer() {
+		return templatePersistanceContainer;
+	}
+
+	public void refreshTemplateSlots() {
+		templatePersistanceContainer.refreshTemplateSlots();
 	}
 
 	public interface ISettingsContainerFactory<C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> {
