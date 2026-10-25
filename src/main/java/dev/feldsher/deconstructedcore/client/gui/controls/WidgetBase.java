@@ -68,6 +68,11 @@ public abstract class WidgetBase {
 		return false;
 	}
 
+	/** The mouse moved with a button held, wherever it is now; true when this widget took it. */
+	public boolean mouseDragged(double mouseX, double mouseY, int button) {
+		return false;
+	}
+
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		return false;
 	}

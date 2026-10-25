@@ -410,6 +410,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			scrollToMouse(mouseY);
 			return;
 		}
+		if (settingsTabControl != null && settingsTabControl.mouseDragged(mouseX, mouseY, clickedMouseButton)) {
+			return;
+		}
 		super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
 	}
 

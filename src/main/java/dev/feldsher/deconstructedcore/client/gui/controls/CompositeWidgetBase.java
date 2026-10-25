@@ -39,6 +39,16 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
+	public boolean mouseDragged(double mouseX, double mouseY, int button) {
+		for (T child : new ArrayList<>(children)) {
+			if (child.visible && child.mouseDragged(mouseX, mouseY, button)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		for (T child : new ArrayList<>(children)) {
 			if (child.visible && child.isMouseOver(mouseX, mouseY) && child.mouseScrolled(mouseX, mouseY, delta)) {
