@@ -70,7 +70,10 @@ public class InventoryHelper {
 		}
 	}
 
-	/** Into the whole handler: a storage inventory's own way, else slot by slot. */
+	/**
+	 * Into the whole handler: a storage inventory's own way, else onto the stacks of the same item first and only then
+	 * into empty slots, wherever in the handler they are.
+	 */
 	public static ItemStack insertIntoInventory(ItemStack stack, IItemHandler inventory, boolean simulate) {
 		if (inventory instanceof InventoryHandler) {
 			return ((InventoryHandler) inventory).insertItem(stack, simulate);
@@ -78,12 +81,7 @@ public class InventoryHelper {
 		if (inventory instanceof FilteredItemHandler.Modifiable) {
 			return ((FilteredItemHandler.Modifiable) inventory).insertItem(stack, simulate);
 		}
-		ItemStack remainingStack = stack.copy();
-		int slots = inventory.getSlots();
-		for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
-			remainingStack = inventory.insertItem(slot, remainingStack, simulate);
-		}
-		return remainingStack;
+		return ItemHandlerHelper.insertItemStacked(inventory, stack.copy(), simulate);
 	}
 
 	/** All that handler B takes from handler A, a stack at most at a time; each moved stack is reported. */
