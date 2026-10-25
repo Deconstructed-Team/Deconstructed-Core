@@ -157,6 +157,18 @@ public class InventoryHelper {
 		return cloned;
 	}
 
+	/** How many of the filter's item the handler lacks to hold the expected count of it. */
+	public static int getCountMissingInHandler(IItemHandler itemHandler, ItemStack filter, int expectedCount) {
+		int missingCount = expectedCount;
+		for (int slot = 0; slot < itemHandler.getSlots() && missingCount > 0; slot++) {
+			ItemStack stack = itemHandler.getStackInSlot(slot);
+			if (ItemHandlerHelper.canItemStacksStack(stack, filter)) {
+				missingCount -= Math.min(stack.getCount(), missingCount);
+			}
+		}
+		return missingCount;
+	}
+
 	/** As many of the stack, by its count, as the handler has, from whichever slots hold it. */
 	public static ItemStack extractFromInventory(ItemStack stack, IItemHandler inventory, boolean simulate) {
 		int extractedCount = 0;
