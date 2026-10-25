@@ -64,6 +64,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	protected final EntityPlayer player;
 	protected final S storageWrapper;
+	@Nullable
+	private final IStorageWrapper parentStorageWrapper;
 	private final int storageItemSlotIndex;
 	private final boolean shouldLockStorageItemSlot;
 	private int storageItemSlotNumber = -1;
@@ -76,8 +78,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private long errorResultExpirationTime = 0;
 
 	protected StorageContainerMenuBase(EntityPlayer player, S storageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
+		this(player, storageWrapper, null, storageItemSlotIndex, shouldLockStorageItemSlot);
+	}
+
+	/** With a parent, the storage is open from inside it, as a backpack in a backpack. */
+	protected StorageContainerMenuBase(EntityPlayer player, S storageWrapper, @Nullable IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		this.player = player;
 		this.storageWrapper = storageWrapper;
+		this.parentStorageWrapper = parentStorageWrapper;
 		this.storageItemSlotIndex = storageItemSlotIndex;
 		this.shouldLockStorageItemSlot = shouldLockStorageItemSlot;
 
@@ -234,6 +242,17 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		MainSettingsCategory<?> category = getGlobalSettingsCategory();
 		if (Boolean.FALSE.equals(SettingsManager.getSettingValue(player, category.getPlayerSettingsTagName(), category, SettingsManager.KEEP_TAB_OPEN))) {
 			storageWrapper.removeOpenTabId();
+		}
+	}
+
+	public boolean isFirstLevelStorage() {
+		return parentStorageWrapper == null;
+	}
+
+	/** The parent's upgrades, which may work with this storage's, as inception's, see the change. */
+	private void refreshParentUpgradeWrappers() {
+		if (parentStorageWrapper != null) {
+			parentStorageWrapper.getUpgradeHandler().refreshUpgradeWrappers();
 		}
 	}
 
@@ -800,6 +819,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			boolean isEmpty = getStack().isEmpty();
 			if (wasEmpty != isEmpty) {
 				updateColumnsTaken();
+				refreshParentUpgradeWrappers();
 				onUpgradeChanged();
 			} else {
 				updateUpgradeContainerWrappers();
@@ -814,6 +834,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			wasEmpty = getStack().isEmpty();
 			if (changed) {
 				updateColumnsTaken();
+				refreshParentUpgradeWrappers();
 				onUpgradeChanged();
 			} else {
 				updateUpgradeContainerWrappers();
@@ -827,7 +848,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 			UpgradeSlotChangeResult result;
 			if (getStack().isEmpty()) {
-				result = ((IUpgradeItem<?>) stack.getItem()).canAddUpgradeTo(storageWrapper, stack, true, player.world.isRemote);
+				result = ((IUpgradeItem<?>) stack.getItem()).canAddUpgradeTo(storageWrapper, stack, isFirstLevelStorage(), player.world.isRemote);
 			} else if (stack.getCount() > 1) {
 				return false;
 			} else {
