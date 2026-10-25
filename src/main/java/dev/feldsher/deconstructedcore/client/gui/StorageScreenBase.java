@@ -393,7 +393,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (sortButton != null && sortByButton != null && (sortButton.mouseClicked(mouseX, mouseY, mouseButton) || sortByButton.mouseClicked(mouseX, mouseY, mouseButton))) {
 			return;
 		}
-		if (settingsTabControl != null && !isOverTabSlot(mouseX, mouseY) && settingsTabControl.mouseClicked(mouseX, mouseY, mouseButton)) {
+		if (settingsTabControl != null && (!isOverTabSlot(mouseX, mouseY) || isSlotCoveredByOpenTab(mouseX, mouseY)) && settingsTabControl.mouseClicked(mouseX, mouseY, mouseButton)) {
 			return;
 		}
 		if (isScrolling() && mouseButton == 0 && isOverScrollBar(mouseX, mouseY)) {
@@ -426,6 +426,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop) {
 		return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop) && !isOverScrollBar(mouseX, mouseY) && !isOverUpgradeColumn(mouseX, mouseY)
 				&& (settingsTabControl == null || !settingsTabControl.isMouseOver(mouseX, mouseY));
+	}
+
+	/** What the open tab draws over its own slots, as the crafting tab's choice of results, takes clicks there. */
+	private boolean isSlotCoveredByOpenTab(int mouseX, int mouseY) {
+		return settingsTabControl.getOpenTab().filter(UpgradeSettingsTab.class::isInstance)
+				.map(tab -> !((UpgradeSettingsTab<?>) tab).slotIsNotCoveredAt(null, mouseX, mouseY)).orElse(false);
 	}
 
 	/** Slots of an open tab are the container's, and take their clicks as any slot does. */

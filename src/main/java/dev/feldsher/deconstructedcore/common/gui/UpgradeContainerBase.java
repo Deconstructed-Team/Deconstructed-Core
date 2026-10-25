@@ -90,6 +90,21 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 		upgradeWrapper = (W) updatedUpgradeWrapper;
 	}
 
+	/** What shift click moves out of the slot. */
+	public ItemStack getSlotStackToTransfer(Slot slot) {
+		return slot.getStack();
+	}
+
+	/** Whether shift click moves the slot's stack into the storage before the player's inventory. */
+	public boolean mergeIntoStorageFirst(Slot slot) {
+		return true;
+	}
+
+	/** Whether a double click gathering a stack may take from the slot. */
+	public boolean allowsPickupAll(Slot slot) {
+		return true;
+	}
+
 	public boolean containsSlot(Slot slot) {
 		return slots.contains(slot);
 	}

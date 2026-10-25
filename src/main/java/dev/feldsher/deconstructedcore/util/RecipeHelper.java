@@ -247,6 +247,22 @@ public class RecipeHelper {
 		THREE_BY_THREE
 	}
 
+	/** Every crafting recipe that matches the grid, in the order vanilla looks for the first. */
+	public static List<IRecipe> getCraftingRecipesFor(InventoryCrafting inventory, World world) {
+		List<IRecipe> ret = new ArrayList<>();
+		for (IRecipe recipe : ForgeRegistries.RECIPES) {
+			try {
+				if (recipe.matches(inventory, world)) {
+					ret.add(recipe);
+				}
+			}
+			catch (RuntimeException e) {
+				DeconstructedCore.LOGGER.debug("Recipe {} failed to match", recipe.getRegistryName(), e);
+			}
+		}
+		return ret;
+	}
+
 	public static class CompactingResult {
 		public static final CompactingResult EMPTY = new CompactingResult(ItemStack.EMPTY, Collections.emptyList());
 		private final ItemStack result;

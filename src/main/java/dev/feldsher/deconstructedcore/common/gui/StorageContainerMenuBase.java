@@ -500,7 +500,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public boolean canMergeSlot(ItemStack stack, Slot slot) {
-		return !(slot instanceof IFilterSlot) && super.canMergeSlot(stack, slot);
+		return !(slot instanceof IFilterSlot) && getSlotUpgradeContainer(slot).map(c -> c.allowsPickupAll(slot)).orElse(true) && super.canMergeSlot(stack, slot);
 	}
 
 	@Override
@@ -576,10 +576,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		ItemStack itemstack = ItemStack.EMPTY;
 		Slot slot = inventorySlots.get(index);
 		if (slot != null && slot.getHasStack()) {
-			ItemStack slotStack = slot.getStack();
+			Optional<UpgradeContainerBase<?, ?>> upgradeContainer = getSlotUpgradeContainer(slot);
+			ItemStack slotStack = upgradeContainer.map(c -> c.getSlotStackToTransfer(slot)).orElse(slot.getStack());
 			itemstack = slotStack.copy();
 
-			if (!mergeSlotStack(index, slotStack)) {
+			if (!mergeSlotStack(index, slotStack, upgradeContainer.map(c -> c.mergeIntoStorageFirst(slot)).orElse(true))) {
 				return ItemStack.EMPTY;
 			}
 
@@ -597,7 +598,19 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return itemstack;
 	}
 
-	private boolean mergeSlotStack(int index, ItemStack slotStack) {
+	public Optional<UpgradeContainerBase<?, ?>> getSlotUpgradeContainer(Slot slot) {
+		if (!isUpgradeSettingsSlot(slot.slotNumber)) {
+			return Optional.empty();
+		}
+		for (UpgradeContainerBase<?, ?> container : upgradeContainers.values()) {
+			if (container.containsSlot(slot)) {
+				return Optional.of(container);
+			}
+		}
+		return Optional.empty();
+	}
+
+	private boolean mergeSlotStack(int index, ItemStack slotStack, boolean intoStorageFirst) {
 		int storageSlots = getNumberOfStorageInventorySlots();
 		int playerSlotsEnd = getInventorySlotsSize();
 		if (isUpgradeSlot(index)) {
@@ -608,6 +621,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 			return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true) || mergeToOpenUpgradeTab(slotStack);
 		} else if (isUpgradeSettingsSlot(index)) {
+			if (!intoStorageFirst) {
+				return mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true) || mergeItemStack(slotStack, 0, storageSlots, false);
+			}
 			return mergeItemStack(slotStack, 0, storageSlots, false) || mergeItemStack(slotStack, storageSlots, playerSlotsEnd, true);
 		}
 		if (shouldShiftClickIntoOpenTabFirst()) {
