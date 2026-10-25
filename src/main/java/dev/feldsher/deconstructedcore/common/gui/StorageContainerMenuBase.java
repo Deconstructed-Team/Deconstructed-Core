@@ -306,6 +306,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 			return ItemStack.EMPTY;
 		}
+		if (clickType == ClickType.SWAP && dragType >= 0 && dragType < 9 && isHotbarSwapBlocked(slotId, dragType, player)) {
+			return ItemStack.EMPTY;
+		}
 		ItemStack result;
 		if (isStorageInventorySlot(slotId) && clickType == ClickType.PICKUP && (dragType == 0 || dragType == 1)) {
 			resetDrag();
@@ -324,6 +327,25 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			result.setCount(64);
 		}
 		return result;
+	}
+
+	/**
+	 * Vanilla's hotbar key swap doesn't ask the hotbar slot whether its stack can be taken or another put in, so the
+	 * open storage's own slot, which is locked, would be swapped away by its number key.
+	 */
+	private boolean isHotbarSwapBlocked(int slotId, int hotbarIndex, EntityPlayer player) {
+		Slot hotbarSlot = null;
+		for (Slot slot : inventorySlots) {
+			if (slot.inventory == player.inventory && slot.getSlotIndex() == hotbarIndex) {
+				hotbarSlot = slot;
+				break;
+			}
+		}
+		if (hotbarSlot == null || slotId < 0 || slotId >= inventorySlots.size()) {
+			return false;
+		}
+		ItemStack fromStack = inventorySlots.get(slotId).getStack();
+		return !fromStack.isEmpty() && !hotbarSlot.isItemValid(fromStack) || hotbarSlot.getHasStack() && !hotbarSlot.canTakeStack(player);
 	}
 
 	/** Vanilla's left and right click, but taking at most a stack out of a slot and putting in up to the slot's limit. */
