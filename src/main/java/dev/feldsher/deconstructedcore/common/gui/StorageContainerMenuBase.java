@@ -55,6 +55,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private static final String GHOST_STACK_TAG = "ghostStack";
 	private static final String SORT_BY_TAG = "sortBy";
 	private static final String ACTION_TAG = "action";
+	private static final String UPGRADE_ENABLED_TAG = "upgradeEnabled";
+	private static final String UPGRADE_SLOT_TAG = "upgradeSlot";
 
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
 	public static final String EMPTY_UPGRADE_SLOT_BACKGROUND = DeconstructedCore.MOD_ID + ":item/empty_upgrade_slot";
@@ -257,6 +259,30 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		storageWrapper.removeOpenTabId();
 	}
 
+	public void setUpgradeEnabled(int upgradeSlot, boolean enabled) {
+		Map<Integer, IUpgradeWrapper> slotWrappers = storageWrapper.getUpgradeHandler().getSlotWrappers();
+		if (!slotWrappers.containsKey(upgradeSlot) || !slotWrappers.get(upgradeSlot).canBeDisabled()) {
+			return;
+		}
+		if (player.world.isRemote) {
+			sendToServer(UPGRADE_ENABLED_TAG, tag -> {
+				tag.setBoolean(UPGRADE_ENABLED_TAG, enabled);
+				tag.setInteger(UPGRADE_SLOT_TAG, upgradeSlot);
+			});
+		}
+		slotWrappers.get(upgradeSlot).setEnabled(enabled);
+	}
+
+	public boolean getUpgradeEnabled(int upgradeSlot) {
+		Map<Integer, IUpgradeWrapper> slotWrappers = storageWrapper.getUpgradeHandler().getSlotWrappers();
+		return slotWrappers.containsKey(upgradeSlot) && slotWrappers.get(upgradeSlot).isEnabled();
+	}
+
+	public boolean canDisableUpgrade(int upgradeSlot) {
+		Map<Integer, IUpgradeWrapper> slotWrappers = storageWrapper.getUpgradeHandler().getSlotWrappers();
+		return slotWrappers.containsKey(upgradeSlot) && slotWrappers.get(upgradeSlot).canBeDisabled();
+	}
+
 	private void sendToServer(String key, java.util.function.Consumer<NBTTagCompound> fill) {
 		NBTTagCompound data = new NBTTagCompound();
 		fill.accept(data);
@@ -274,6 +300,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			setOpenTabId(data.getInteger(OPEN_TAB_ID_TAG));
 		} else if (data.hasKey(REMOVE_OPEN_TAB_ID_TAG)) {
 			removeOpenTabId();
+		} else if (data.hasKey(UPGRADE_ENABLED_TAG)) {
+			setUpgradeEnabled(data.getInteger(UPGRADE_SLOT_TAG), data.getBoolean(UPGRADE_ENABLED_TAG));
 		} else if (data.hasKey(SORT_BY_TAG)) {
 			setSortBy(SortBy.fromName(data.getString(SORT_BY_TAG)));
 		} else if ("sort".equals(data.getString(ACTION_TAG))) {

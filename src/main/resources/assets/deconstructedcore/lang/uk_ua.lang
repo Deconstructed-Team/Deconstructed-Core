@@ -191,3 +191,5 @@ gui.deconstructedcore.narrate.context_button=Перемикач контекст
 gui.deconstructedcore.narrate.context_button.usage=Натисніть, щоб перемкнути контекст
 fluid.deconstructedcore.xp_still=Досвід
 gui.deconstructedcore.tooltip.stack_count=Кільк.: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=УВІМК
+gui.deconstructedcore.buttons.upgrade_switch_disabled=ВИМК

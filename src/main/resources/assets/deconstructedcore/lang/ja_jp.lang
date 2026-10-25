@@ -216,3 +216,5 @@ fluid.deconstructedcore.experience=経験値
 gui.deconstructedcore.tooltip.stack_count=個数: %s
 gui.deconstructedcore.tooltip.stack_limit=上限: %s
 _eol=for excel flag
+gui.deconstructedcore.buttons.upgrade_switch_enabled=ON
+gui.deconstructedcore.buttons.upgrade_switch_disabled=OFF

@@ -245,3 +245,5 @@ gui.deconstructedcore.narrate.context_button=上下文切换设置为：%s
 gui.deconstructedcore.narrate.context_button.usage=单击以切换上下文
 fluid.deconstructedcore.experience=经验
 gui.deconstructedcore.tooltip.stack_count=数量：%s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=开
+gui.deconstructedcore.buttons.upgrade_switch_disabled=关

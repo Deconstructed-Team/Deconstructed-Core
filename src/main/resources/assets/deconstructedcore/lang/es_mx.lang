@@ -187,3 +187,5 @@ gui.deconstructedcore.narrate.context_button=Contexto establecido en: %s
 gui.deconstructedcore.narrate.context_button.usage=Clic para cambiar contexto
 fluid.deconstructedcore.experience=Experiencia
 gui.deconstructedcore.tooltip.stack_count=Cantidad: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=SÍ
+gui.deconstructedcore.buttons.upgrade_switch_disabled=NO

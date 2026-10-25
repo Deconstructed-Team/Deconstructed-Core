@@ -37,7 +37,7 @@ import java.util.Map;
  * then the rows scroll, as in 1.21's InventoryScrollPanel.
  * <p>
  * The upgrade slots sit in a column on the left, the upgrades' settings tabs on the right.
- * Upgrade switches, settings, sort buttons and the search box come with the stages that port them.
+ * Left of the upgrade slots, the switches of those that can be switched off. The search box isn't ported.
  */
 public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> extends GuiContainer {
 	public static final int DISABLED_SLOT_X_POS = -2000;
@@ -69,6 +69,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Nullable
 	private ToggleButton<SortBy> sortByButton = null;
 	private final Map<Integer, UpgradeInventoryPartBase<?>> inventoryParts = new LinkedHashMap<>();
+	private final Map<Integer, ToggleButton<Boolean>> upgradeSwitches = new LinkedHashMap<>();
 
 	protected StorageScreenBase(S menu, String title) {
 		super(menu);
@@ -91,6 +92,27 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			addSortButtons();
 		}
 		initUpgradeInventoryParts();
+		addUpgradeSwitches();
+	}
+
+	/** Left of each upgrade slot; shown while the slot has an upgrade that can be switched off. */
+	private void addUpgradeSwitches() {
+		upgradeSwitches.clear();
+		int switchTop = guiTop + 8;
+		for (int slot = 0; slot < numberOfUpgradeSlots; slot++) {
+			int finalSlot = slot;
+			upgradeSwitches.put(slot, new ToggleButton<>(new Position(guiLeft - 22, switchTop), ButtonDefinitions.UPGRADE_SWITCH,
+					button -> getMenu().setUpgradeEnabled(finalSlot, !getMenu().getUpgradeEnabled(finalSlot)), () -> getMenu().getUpgradeEnabled(finalSlot)));
+			switchTop += UPGRADE_SLOT_HEIGHT;
+		}
+	}
+
+	private void forEachShownUpgradeSwitch(java.util.function.Consumer<ToggleButton<Boolean>> action) {
+		upgradeSwitches.forEach((slot, upgradeSwitch) -> {
+			if (getMenu().canDisableUpgrade(slot)) {
+				action.accept(upgradeSwitch);
+			}
+		});
 	}
 
 	/** In the columns upgrades take, right of the slots and their scroll bar, side by side, two columns each. */
@@ -261,6 +283,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			sortByButton.renderTooltip(this, mouseX, mouseY);
 		}
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, mouseX, mouseY));
+		forEachShownUpgradeSwitch(upgradeSwitch -> upgradeSwitch.renderTooltip(this, mouseX, mouseY));
 		renderUpgradeSlotChangeError(mouseX, mouseY);
 	}
 
@@ -320,6 +343,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		inventoryParts.values().forEach(part -> part.render(mouseX, mouseY));
 		drawUpgradeBackground();
+		forEachShownUpgradeSwitch(upgradeSwitch -> upgradeSwitch.render(mouseX, mouseY, partialTicks));
 		if (sortButton != null && sortByButton != null) {
 			sortButton.render(mouseX, mouseY, partialTicks);
 			sortByButton.render(mouseX, mouseY, partialTicks);
@@ -363,6 +387,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (numberOfUpgradeSlots > 0) {
 			areas.add(new Rect2i(guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop, UPGRADE_INVENTORY_OFFSET, getUpgradeHeight()));
 		}
+		forEachShownUpgradeSwitch(upgradeSwitch -> areas.add(new Rect2i(upgradeSwitch.getX(), upgradeSwitch.getY(), upgradeSwitch.getWidth(), upgradeSwitch.getHeight())));
 		if (settingsTabControl != null) {
 			areas.addAll(settingsTabControl.getTabRectangles());
 		}
@@ -463,6 +488,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		if (sortButton != null && sortByButton != null && (sortButton.mouseClicked(mouseX, mouseY, mouseButton) || sortByButton.mouseClicked(mouseX, mouseY, mouseButton))) {
 			return;
+		}
+		for (Map.Entry<Integer, ToggleButton<Boolean>> entry : upgradeSwitches.entrySet()) {
+			if (getMenu().canDisableUpgrade(entry.getKey()) && entry.getValue().mouseClicked(mouseX, mouseY, mouseButton)) {
+				return;
+			}
 		}
 		if (settingsTabControl != null && (!isOverTabSlot(mouseX, mouseY) || isSlotCoveredByOpenTab(mouseX, mouseY)) && settingsTabControl.mouseClicked(mouseX, mouseY, mouseButton)) {
 			return;

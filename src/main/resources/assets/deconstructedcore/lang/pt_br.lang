@@ -171,3 +171,5 @@ gui.deconstructedcore.error.add.battery_energy_high=Esta mochila não permite eq
 gui.deconstructedcore.error.add.battery_exists=Já existe um acessório de Bateria Portátil equipado
 fluid.deconstructedcore.xp_still=Experiência
 gui.deconstructedcore.tooltip.stack_count=Contagem: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=LIG.
+gui.deconstructedcore.buttons.upgrade_switch_disabled=DESL.

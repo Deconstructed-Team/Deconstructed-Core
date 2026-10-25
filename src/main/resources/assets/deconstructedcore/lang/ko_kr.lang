@@ -152,3 +152,5 @@ gui.deconstructedcore.error.add.battery_energy_high=배낭이 이 배터리 강�
 gui.deconstructedcore.error.add.battery_exists=다른 강화 슬롯에 이미 배터리 강화가 있습니다
 fluid.deconstructedcore.xp_still=경험치
 gui.deconstructedcore.tooltip.stack_count=개수: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=켜짐
+gui.deconstructedcore.buttons.upgrade_switch_disabled=꺼짐

@@ -216,3 +216,5 @@ gui.deconstructedcore.narrate.context_button=İçerik geçişi şöyle ayarland�
 gui.deconstructedcore.narrate.context_button.usage=İçeriği değiştirmek için tıkla
 fluid.deconstructedcore.experience=Tecrübe
 gui.deconstructedcore.tooltip.stack_count=Sayı: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=AÇIK
+gui.deconstructedcore.buttons.upgrade_switch_disabled=KAPALI

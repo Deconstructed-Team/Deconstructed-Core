@@ -174,3 +174,5 @@ gui.deconstructedcore.narrate.context_button.usage=Klicken, um den Kontext umzus
 gui.deconstructedcore.error.add.needs_occupied_inventory_slots=Es gibt einen Gegenstand in mindestens einem der letzten %s-Slots, der für %s benötigt wird
 fluid.deconstructedcore.xp_still=Erfahrung
 gui.deconstructedcore.tooltip.stack_count=Anzahl: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=EIN
+gui.deconstructedcore.buttons.upgrade_switch_disabled=AUS

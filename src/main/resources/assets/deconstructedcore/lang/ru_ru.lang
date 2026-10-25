@@ -217,3 +217,5 @@ gui.deconstructedcore.narrate.context_button=Приоритет установл
 gui.deconstructedcore.narrate.context_button.usage=Нажмите для смены приоритета
 fluid.deconstructedcore.experience=Опыт
 gui.deconstructedcore.tooltip.stack_count=Кол-во предметов: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=ВКЛ.
+gui.deconstructedcore.buttons.upgrade_switch_disabled=ВЫКЛ.

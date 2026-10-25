@@ -248,3 +248,5 @@ gui.deconstructedcore.narrate.context_button=Context toggle set to: %s
 gui.deconstructedcore.narrate.context_button.usage=Click to toggle context
 fluid.deconstructedcore.experience=Experience
 gui.deconstructedcore.tooltip.stack_count=Count: %s
+gui.deconstructedcore.buttons.upgrade_switch_enabled=ON
+gui.deconstructedcore.buttons.upgrade_switch_disabled=OFF
