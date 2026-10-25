@@ -379,6 +379,18 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop, 0, 0, 26, 4);
 		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop + 4, 0, 4, 25, heightWithoutBottom - 4);
 		GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET, guiTop + heightWithoutBottom, 0, 198, 25, UPGRADE_BOTTOM_HEIGHT);
+
+		// a ledge left of each slot with a switch, joined with the one above
+		boolean previousHasSwitch = false;
+		for (int slot = 0; slot < numberOfUpgradeSlots; slot++) {
+			if (getMenu().canDisableUpgrade(slot)) {
+				int y = guiTop + 5 + slot * UPGRADE_SLOT_HEIGHT + (previousHasSwitch ? 1 : 0);
+				GuiHelper.blit(GuiHelper.GUI_CONTROLS, guiLeft - UPGRADE_INVENTORY_OFFSET - 4, y, 0, 204 + (previousHasSwitch ? 1 : 0), 7, 18 - (previousHasSwitch ? 1 : 0));
+				previousHasSwitch = true;
+			} else {
+				previousHasSwitch = false;
+			}
+		}
 	}
 
 	/** What the screen draws outside of its main area, which item list mods mustn't cover: upgrades, tabs, sort buttons. */
