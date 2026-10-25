@@ -475,13 +475,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			Slot slot = getMenu().getSlot(slotIndex);
 			ItemStack stack = slot.getStack();
 			if (slot.xPos != DISABLED_SLOT_X_POS && stack.getCount() > StorageInventorySlot.SPECIAL_COUNT_RENDER_THRESHOLD) {
-				renderStackCount(CountAbbreviator.abbreviate(stack.getCount()), slot.xPos, slot.yPos);
+				boolean infinite = getMenu().getStorageWrapper().getInventoryHandler().isInfinite(slotIndex);
+				renderStackCount(infinite ? INFINITE_COUNT : CountAbbreviator.abbreviate(stack.getCount()), slot.xPos, slot.yPos);
 			}
 		}
 		GlStateManager.enableLighting();
 		GlStateManager.enableDepth();
 		StorageInventorySlot.setHideLargeCounts(true);
 	}
+
+	private static final String INFINITE_COUNT = "\u221E";
 
 	private void renderStackCount(String count, int x, int y) {
 		GlStateManager.pushMatrix();

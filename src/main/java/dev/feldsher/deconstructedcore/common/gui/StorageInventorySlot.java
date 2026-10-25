@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore.common.gui;
 
 import dev.feldsher.deconstructedcore.api.ISlotChangeResponseUpgrade;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -16,10 +17,12 @@ public class StorageInventorySlot extends SlotItemHandler {
 	private final boolean isClientSide;
 	private final IStorageWrapper storageWrapper;
 	private final int slotIndex;
+	private final EntityPlayer player;
 
-	public StorageInventorySlot(boolean isClientSide, IStorageWrapper storageWrapper, int slotIndex) {
+	public StorageInventorySlot(EntityPlayer player, IStorageWrapper storageWrapper, int slotIndex) {
 		super(storageWrapper.getInventoryHandler(), slotIndex, 0, 0);
-		this.isClientSide = isClientSide;
+		this.player = player;
+		isClientSide = player.world.isRemote;
 		this.storageWrapper = storageWrapper;
 		this.slotIndex = slotIndex;
 	}
@@ -45,7 +48,7 @@ public class StorageInventorySlot extends SlotItemHandler {
 
 	@Override
 	public boolean isItemValid(@Nonnull ItemStack stack) {
-		return storageWrapper.getInventoryHandler().isItemValid(slotIndex, stack);
+		return storageWrapper.getInventoryHandler().isItemValid(slotIndex, stack, player);
 	}
 
 	@Override

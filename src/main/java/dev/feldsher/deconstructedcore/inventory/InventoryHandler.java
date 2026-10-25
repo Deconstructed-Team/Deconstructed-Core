@@ -6,6 +6,7 @@ import dev.feldsher.deconstructedcore.upgrades.IInsertResponseUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.IOverflowResponseUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.ISlotLimitUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.stack.StackUpgradeConfig;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,6 +17,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,10 +29,12 @@ import java.util.function.IntConsumer;
  * and saved through the save handler whenever a slot changes.
  * <p>
  * Memorized slots take only what they remember, and are filled with it before empty slots that remember nothing.
- * The inventory partitioner and the slot tracker come with the stages that port them.
+ * Runs of slots can be handled by parts other than the plain one, as the infinity upgrade's, through its
+ * {@link InventoryPartitioner}, kept under {@link #PARTITIONER_TAG}. The slot tracker comes with the stage that ports it.
  */
 public abstract class InventoryHandler extends ItemStackHandler {
 	public static final String INVENTORY_TAG = "inventory";
+	private static final String PARTITIONER_TAG = "partitioner";
 	protected final IStorageWrapper storageWrapper;
 	private final NBTTagCompound contentsNbt;
 	private final Runnable saveHandler;
@@ -40,6 +44,7 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	private int baseSlotLimit;
 	private final StackUpgradeConfig stackUpgradeConfig;
+	private final InventoryPartitioner inventoryPartitioner;
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, NBTTagCompound contentsNbt, Runnable saveHandler, int baseSlotLimit,
 			StackUpgradeConfig stackUpgradeConfig) {
@@ -49,6 +54,7 @@ public abstract class InventoryHandler extends ItemStackHandler {
 		this.contentsNbt = contentsNbt;
 		this.saveHandler = saveHandler;
 		this.baseSlotLimit = baseSlotLimit;
+		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompoundTag(PARTITIONER_TAG), this, this::getMemorySettings);
 		deserializeNBT(contentsNbt.getCompoundTag(INVENTORY_TAG));
 		initStackNbts();
 	}
@@ -142,6 +148,17 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	public void setBaseSlotLimit(int baseSlotLimit) {
 		this.baseSlotLimit = baseSlotLimit;
+		if (inventoryPartitioner != null) {
+			inventoryPartitioner.onSlotLimitChange();
+		}
+	}
+
+	private IInventoryPartHandler getPart(int slot) {
+		return inventoryPartitioner.getPartBySlot(slot);
+	}
+
+	public InventoryPartitioner getInventoryPartitioner() {
+		return inventoryPartitioner;
 	}
 
 	@Override
@@ -150,7 +167,7 @@ public abstract class InventoryHandler extends ItemStackHandler {
 		for (ISlotLimitUpgrade slotLimitUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(ISlotLimitUpgrade.class)) {
 			slotLimit = Math.max(slotLimit, slotLimitUpgrade.getSlotLimit());
 		}
-		return slotLimit;
+		return slotLimit > baseSlotLimit ? slotLimit : getPart(slot).getSlotLimit(slot);
 	}
 
 	/** Into this slot, the upgrades' insert responses around it; what doesn't fit next to the same item goes to the overflow upgrades. */
@@ -214,7 +231,7 @@ public abstract class InventoryHandler extends ItemStackHandler {
 		if (!isItemValid(slot, remaining)) {
 			return remaining;
 		}
-		ItemStack ret = super.insertItem(slot, remaining, simulate);
+		ItemStack ret = getPart(slot).insertItem(slot, remaining, simulate, (s, st, sim) -> super.insertItem(s, st, sim));
 		if (ret != remaining && !simulate) {
 			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class).forEach(u -> u.onAfterInsert(this, slot));
 		}
@@ -246,7 +263,37 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	@Override
 	public int getStackLimit(int slot, @Nonnull ItemStack stack) {
-		return getBaseStackLimit(stack);
+		return getPart(slot).getStackLimit(slot, stack);
+	}
+
+	@Nonnull
+	@Override
+	public ItemStack extractItem(int slot, int amount, boolean simulate) {
+		return getPart(slot).extractItem(slot, amount, simulate);
+	}
+
+	/** Extraction as a plain inventory does it, for the parts to use. */
+	public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
+		return super.extractItem(slot, amount, simulate);
+	}
+
+	@Override
+	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+		getPart(slot).setStackInSlot(slot, stack, (s, st) -> super.setStackInSlot(s, st));
+	}
+
+	@Nonnull
+	@Override
+	public ItemStack getStackInSlot(int slot) {
+		return getPart(slot).getStackInSlot(slot, s -> super.getStackInSlot(s));
+	}
+
+	public boolean isSlotAccessible(int slot) {
+		return getPart(slot).isSlotAccessible(slot);
+	}
+
+	public boolean isInfinite(int slot) {
+		return inventoryPartitioner.isInfinite(slot);
 	}
 
 	public ItemStack getSlotStack(int slot) {
@@ -260,7 +307,13 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	@Override
 	public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-		return super.isItemValid(slot, stack) && isAllowed(stack) && getMemorySettings().matchesFilter(slot, stack);
+		return isItemValid(slot, stack, null);
+	}
+
+	/** As the slot's part allows, for the player who puts it in, if a player does. */
+	public boolean isItemValid(int slot, ItemStack stack, @Nullable EntityPlayer player) {
+		return getPart(slot).isItemValid(slot, stack, player, (s, st) -> super.isItemValid(s, st))
+				&& isAllowed(stack) && getMemorySettings().matchesFilter(slot, stack);
 	}
 
 	private MemorySettingsCategory getMemorySettings() {
@@ -275,6 +328,9 @@ public abstract class InventoryHandler extends ItemStackHandler {
 
 	public void saveInventory() {
 		contentsNbt.setTag(INVENTORY_TAG, serializeNBT());
+		if (inventoryPartitioner != null) {
+			contentsNbt.setTag(PARTITIONER_TAG, inventoryPartitioner.serializeNBT());
+		}
 		saveHandler.run();
 	}
 

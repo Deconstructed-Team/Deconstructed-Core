@@ -104,7 +104,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	protected void addStorageInventorySlots() {
 		for (int slotIndex = 0; slotIndex < storageWrapper.getInventoryHandler().getSlots(); slotIndex++) {
-			addSlotToContainer(new StorageInventorySlot(player.world.isRemote, storageWrapper, slotIndex));
+			addSlotToContainer(new StorageInventorySlot(player, storageWrapper, slotIndex));
 		}
 	}
 
