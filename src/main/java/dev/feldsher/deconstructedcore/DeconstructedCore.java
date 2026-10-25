@@ -4,7 +4,9 @@ import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.settings.FileSettingsTemplates;
 import dev.feldsher.deconstructedcore.util.RecipeHelper;
 import net.minecraft.util.ResourceLocation;
+import dev.feldsher.deconstructedcore.upgrades.jukebox.DiscLengths;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLInterModComms;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +21,15 @@ public class DeconstructedCore {
 	public void preInit(FMLPreInitializationEvent event) {
 		LOGGER.info("{} {} loading", Tags.MOD_NAME, Tags.VERSION);
 		PacketHandler.init();
+	}
+
+	@Mod.EventHandler
+	public void onImc(FMLInterModComms.IMCEvent event) {
+		for (FMLInterModComms.IMCMessage message : event.getMessages()) {
+			if (message.key.equals(DiscLengths.IMC_KEY) && message.isNBTMessage()) {
+				DiscLengths.registerFromImc(message.getSender(), message.getNBTValue());
+			}
+		}
 	}
 
 	@Mod.EventHandler
