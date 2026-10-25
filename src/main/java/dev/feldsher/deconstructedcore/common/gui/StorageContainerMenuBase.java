@@ -1,5 +1,7 @@
 package dev.feldsher.deconstructedcore.common.gui;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeWrapper;
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
@@ -197,6 +199,16 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected abstract void openSettingsScreen();
+
+	/** Where the storage is placed, for what it does from there, as playing a disc; empty when it's carried. */
+	public Optional<BlockPos> getBlockPosition() {
+		return Optional.empty();
+	}
+
+	/** Who carries the storage. */
+	public Optional<Entity> getEntity() {
+		return Optional.of(player);
+	}
 
 	private MainSettingsCategory<?> getGlobalSettingsCategory() {
 		return storageWrapper.getSettingsHandler().getGlobalSettingsCategory();
