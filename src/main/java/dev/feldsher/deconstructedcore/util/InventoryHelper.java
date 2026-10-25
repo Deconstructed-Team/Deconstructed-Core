@@ -7,9 +7,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -128,5 +131,47 @@ public class InventoryHelper {
 			}
 		});
 		return uniqueStacks;
+	}
+
+	/** All of the stacks into the handler, what doesn't fit returned; simulated, into a copy of the handler. */
+	public static List<ItemStack> insertIntoInventory(List<ItemStack> stacks, IItemHandler inventory, boolean simulate) {
+		if (stacks.isEmpty()) {
+			return stacks;
+		}
+		IItemHandler targetInventory = simulate ? cloneInventory(inventory) : inventory;
+		List<ItemStack> remaining = new ArrayList<>();
+		for (ItemStack stack : stacks) {
+			ItemStack result = insertIntoInventory(stack, targetInventory, false);
+			if (!result.isEmpty()) {
+				remaining.add(result);
+			}
+		}
+		return remaining;
+	}
+
+	public static IItemHandler cloneInventory(IItemHandler inventory) {
+		ItemStackHandler cloned = new ItemStackHandler(inventory.getSlots());
+		for (int slot = 0; slot < inventory.getSlots(); slot++) {
+			cloned.setStackInSlot(slot, inventory.getStackInSlot(slot).copy());
+		}
+		return cloned;
+	}
+
+	/** As many of the stack, by its count, as the handler has, from whichever slots hold it. */
+	public static ItemStack extractFromInventory(ItemStack stack, IItemHandler inventory, boolean simulate) {
+		int extractedCount = 0;
+		int slots = inventory.getSlots();
+		for (int slot = 0; slot < slots && extractedCount < stack.getCount(); slot++) {
+			ItemStack slotStack = inventory.getStackInSlot(slot);
+			if (ItemHandlerHelper.canItemStacksStack(stack, slotStack)) {
+				int toExtract = Math.min(slotStack.getCount(), stack.getCount() - extractedCount);
+				extractedCount += inventory.extractItem(slot, toExtract, simulate).getCount();
+			}
+		}
+
+		if (extractedCount == 0) {
+			return ItemStack.EMPTY;
+		}
+		return ItemHandlerHelper.copyStackWithSize(stack, extractedCount);
 	}
 }

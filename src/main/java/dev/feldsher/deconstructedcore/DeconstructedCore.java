@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore;
 
 import dev.feldsher.deconstructedcore.network.PacketHandler;
 import dev.feldsher.deconstructedcore.settings.FileSettingsTemplates;
+import dev.feldsher.deconstructedcore.util.RecipeHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -23,6 +24,7 @@ public class DeconstructedCore {
 	@Mod.EventHandler
 	public void serverStarting(FMLServerStartingEvent event) {
 		FileSettingsTemplates.loadServerTemplates();
+		RecipeHelper.clearCache();
 	}
 
 	public static ResourceLocation getRL(String regName) {
