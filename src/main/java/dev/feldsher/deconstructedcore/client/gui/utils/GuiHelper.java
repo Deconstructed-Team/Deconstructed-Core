@@ -53,6 +53,16 @@ public class GuiHelper {
 				texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
+	/** Draws the texture's part tinted with the color, as 0xRRGGBB. */
+	public static void coloredBlit(int x, int y, TextureBlitData texData, int color) {
+		Minecraft.getMinecraft().getTextureManager().bindTexture(texData.getTextureName());
+		GlStateManager.color((color >> 16 & 255) / 255F, (color >> 8 & 255) / 255F, (color & 255) / 255F, 1);
+		GlStateManager.enableBlend();
+		Gui.drawModalRectWithCustomSizedTexture(x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(),
+				texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
+		GlStateManager.color(1, 1, 1, 1);
+	}
+
 	/** Draws the texture's part at another size, its four corners kept and its middle cut out or repeated at the edges. */
 	public static void blit(int x, int y, TextureBlitData texData, int width, int height) {
 		int halfWidth = width / 2;

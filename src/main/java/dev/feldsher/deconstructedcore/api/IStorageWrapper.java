@@ -9,6 +9,7 @@ import dev.feldsher.deconstructedcore.settings.SettingsHandler;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import java.util.ArrayList;
@@ -18,7 +19,6 @@ import java.util.UUID;
 
 /**
  * A storage: its inventory, where its contents live, and how it looks.
- * Energy comes with the stage that ports it.
  */
 public interface IStorageWrapper {
 
@@ -41,6 +41,11 @@ public interface IStorageWrapper {
 	}
 
 	UpgradeHandler getUpgradeHandler();
+
+	/** Its battery, when it has one. */
+	default Optional<IEnergyStorage> getEnergyStorage() {
+		return Optional.empty();
+	}
 
 	/** Its tanks, when it has any. */
 	default Optional<IStorageFluidHandler> getFluidHandler() {
