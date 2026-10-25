@@ -33,7 +33,8 @@ public class UpgradeHandler extends ItemStackHandler {
 	private Runnable refreshCallBack = null;
 	private final Map<Integer, IUpgradeWrapper> slotWrappers = new LinkedHashMap<>();
 	private final Map<UpgradeType<? extends IUpgradeWrapper>, List<? extends IUpgradeWrapper>> typeWrappers = new HashMap<>();
-	private final Map<Class<?>, List<?>> interfaceWrappers = new HashMap<>();
+	@Nullable
+	private IUpgradeWrapperAccessor wrapperAccessor = null;
 	private boolean justSavingNbtChange = false;
 	private boolean wrappersInitialized = false;
 	private boolean typeWrappersInitialized = false;
@@ -102,7 +103,9 @@ public class UpgradeHandler extends ItemStackHandler {
 		wrappersInitialized = true;
 		slotWrappers.clear();
 		typeWrappers.clear();
-		interfaceWrappers.clear();
+		if (wrapperAccessor != null) {
+			wrapperAccessor.clearCache();
+		}
 
 		InventoryHelper.iterate(this, (slot, upgrade) -> {
 			if (upgrade.isEmpty() || !(upgrade.getItem() instanceof IUpgradeItem<?>)) {
@@ -207,15 +210,27 @@ public class UpgradeHandler extends ItemStackHandler {
 		return !getTypeWrappers(type).isEmpty();
 	}
 
+	/** The enabled upgrades that implement it, as the accessor finds them: with inception, also those of the storages inside. */
 	public <T> List<T> getWrappersThatImplement(Class<T> upgradeClass) {
 		initializeWrappers();
-		//noinspection unchecked
-		return (List<T>) interfaceWrappers.computeIfAbsent(upgradeClass, this::getListOfWrappersThatImplement);
+		return getWrapperAccessor().getWrappersThatImplement(upgradeClass);
 	}
 
-	/** Upgrades of sub-storages reach their parent's main storage through this, once inception comes. */
+	private IUpgradeWrapperAccessor getWrapperAccessor() {
+		if (wrapperAccessor == null) {
+			IUpgradeWrapperAccessor accessor = new Accessor(this);
+			for (IUpgradeAccessModifier upgrade : getListOfWrappersThatImplement(IUpgradeAccessModifier.class)) {
+				accessor = upgrade.wrapAccessor(accessor);
+			}
+			wrapperAccessor = accessor;
+		}
+		return wrapperAccessor;
+	}
+
+	/** Only this storage's own upgrades, even with inception. */
 	public <T> List<T> getWrappersThatImplementFromMainStorage(Class<T> upgradeClass) {
-		return getWrappersThatImplement(upgradeClass);
+		initializeWrappers();
+		return getWrapperAccessor().getWrappersThatImplementFromMainStorage(upgradeClass);
 	}
 
 	public <T> List<T> getListOfWrappersThatImplement(Class<T> uc) {
@@ -239,7 +254,9 @@ public class UpgradeHandler extends ItemStackHandler {
 
 	public void refreshWrappersThatImplementAndTypeWrappers() {
 		typeWrappersInitialized = false;
-		interfaceWrappers.clear();
+		if (wrapperAccessor != null) {
+			wrapperAccessor.clearCache();
+		}
 		if (refreshCallBack != null) {
 			refreshCallBack.run();
 		}
@@ -248,7 +265,10 @@ public class UpgradeHandler extends ItemStackHandler {
 	public void refreshUpgradeWrappers() {
 		wrappersInitialized = false;
 		typeWrappersInitialized = false;
-		interfaceWrappers.clear();
+		if (wrapperAccessor != null) {
+			wrapperAccessor.onBeforeDeconstruct();
+			wrapperAccessor = null;
+		}
 		if (refreshCallBack != null) {
 			refreshCallBack.run();
 		}
@@ -267,5 +287,30 @@ public class UpgradeHandler extends ItemStackHandler {
 	@Override
 	public int getSlotLimit(int slot) {
 		return 1;
+	}
+
+	private static class Accessor implements IUpgradeWrapperAccessor {
+		private final Map<Class<?>, List<?>> interfaceWrappers = new HashMap<>();
+		private final UpgradeHandler upgradeHandler;
+
+		private Accessor(UpgradeHandler upgradeHandler) {
+			this.upgradeHandler = upgradeHandler;
+		}
+
+		@Override
+		public <T> List<T> getWrappersThatImplement(Class<T> upgradeClass) {
+			//noinspection unchecked
+			return (List<T>) interfaceWrappers.computeIfAbsent(upgradeClass, upgradeHandler::getListOfWrappersThatImplement);
+		}
+
+		@Override
+		public <T> List<T> getWrappersThatImplementFromMainStorage(Class<T> upgradeClass) {
+			return getWrappersThatImplement(upgradeClass);
+		}
+
+		@Override
+		public void clearCache() {
+			interfaceWrappers.clear();
+		}
 	}
 }

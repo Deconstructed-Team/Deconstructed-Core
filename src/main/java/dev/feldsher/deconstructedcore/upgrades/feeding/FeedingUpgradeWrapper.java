@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.upgrades.feeding;
 
+import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
@@ -68,7 +69,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	private boolean tryFeedingFoodFromStorage(World world, int hungerLevel, EntityPlayer player) {
-		InventoryHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
+		IItemHandlerSimpleInserter inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		for (int slot = 0; slot < inventory.getSlots(); slot++) {
 			if (tryFeedingStack(world, hungerLevel, player, slot, inventory.getStackInSlot(slot), inventory)) {
 				return true;
@@ -81,7 +82,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	 * Eats one of the stack as the player would: put in the player's hand for the moment, so that the food's own use
 	 * decides whether the player can eat it, then finished at once. What eating leaves, as a bowl, goes back to storage.
 	 */
-	private boolean tryFeedingStack(World world, int hungerLevel, EntityPlayer player, int slot, ItemStack stack, InventoryHandler inventory) {
+	private boolean tryFeedingStack(World world, int hungerLevel, EntityPlayer player, int slot, ItemStack stack, IItemHandlerSimpleInserter inventory) {
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
 		if (!isEdible(stack) || !filterLogic.matchesFilter(stack)
 				|| !(isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {

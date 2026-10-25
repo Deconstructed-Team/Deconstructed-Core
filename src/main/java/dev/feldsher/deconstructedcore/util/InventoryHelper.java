@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.util;
 
+import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.inventory.ItemStackKey;
@@ -78,11 +79,8 @@ public class InventoryHelper {
 	 * into empty slots, wherever in the handler they are.
 	 */
 	public static ItemStack insertIntoInventory(ItemStack stack, IItemHandler inventory, boolean simulate) {
-		if (inventory instanceof InventoryHandler) {
-			return ((InventoryHandler) inventory).insertItem(stack, simulate);
-		}
-		if (inventory instanceof FilteredItemHandler.Modifiable) {
-			return ((FilteredItemHandler.Modifiable) inventory).insertItem(stack, simulate);
+		if (inventory instanceof IItemHandlerSimpleInserter) {
+			return ((IItemHandlerSimpleInserter) inventory).insertItem(stack, simulate);
 		}
 		return ItemHandlerHelper.insertItemStacked(inventory, stack.copy(), simulate);
 	}

@@ -66,11 +66,12 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 	}
 
 	/** A storage's own inventory, filtered, which also takes a stack into the whole inventory at once. */
-	public static class Modifiable extends FilteredItemHandler<InventoryHandler> implements IItemHandlerModifiable {
-		public Modifiable(InventoryHandler inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
+	public static class Modifiable extends FilteredItemHandler<IItemHandlerSimpleInserter> implements IItemHandlerSimpleInserter {
+		public Modifiable(IItemHandlerSimpleInserter inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 			super(inventoryHandler, inputFilters, outputFilters);
 		}
 
+		@Override
 		public ItemStack insertItem(ItemStack stack, boolean simulate) {
 			return matchesAny(inputFilters, stack) ? inventoryHandler.insertItem(stack, simulate) : stack;
 		}

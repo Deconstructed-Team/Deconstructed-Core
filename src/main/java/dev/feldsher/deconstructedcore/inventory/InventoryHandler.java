@@ -1,5 +1,7 @@
 package dev.feldsher.deconstructedcore.inventory;
 
+import java.util.function.ObjIntConsumer;
+import java.util.WeakHashMap;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.IInsertResponseUpgrade;
@@ -32,13 +34,14 @@ import java.util.function.IntConsumer;
  * Runs of slots can be handled by parts other than the plain one, as the infinity upgrade's, through its
  * {@link InventoryPartitioner}, kept under {@link #PARTITIONER_TAG}. The slot tracker comes with the stage that ports it.
  */
-public abstract class InventoryHandler extends ItemStackHandler {
+public abstract class InventoryHandler extends ItemStackHandler implements IItemHandlerSimpleInserter {
 	public static final String INVENTORY_TAG = "inventory";
 	private static final String PARTITIONER_TAG = "partitioner";
 	protected final IStorageWrapper storageWrapper;
 	private final NBTTagCompound contentsNbt;
 	private final Runnable saveHandler;
 	private final List<IntConsumer> onContentsChangedListeners = new ArrayList<>();
+	private final Map<Object, ObjIntConsumer<Object>> ownedListeners = new WeakHashMap<>();
 	private boolean persistent = true;
 	private final Map<Integer, NBTBase> stackNbts = new LinkedHashMap<>();
 
@@ -87,6 +90,9 @@ public abstract class InventoryHandler extends ItemStackHandler {
 	public void triggerOnChangeListeners(int slot) {
 		for (IntConsumer onContentsChangedListener : onContentsChangedListeners) {
 			onContentsChangedListener.accept(slot);
+		}
+		for (Map.Entry<Object, ObjIntConsumer<Object>> entry : new ArrayList<>(ownedListeners.entrySet())) {
+			entry.getValue().accept(entry.getKey(), slot);
 		}
 	}
 
@@ -344,8 +350,19 @@ public abstract class InventoryHandler extends ItemStackHandler {
 		onContentsChangedListeners.add(onContentsChanged);
 	}
 
+	/**
+	 * A listener that lives only as long as its owner, which it's given: one that shouldn't keep the owner alive, as
+	 * what an upgrade's wrapper made, which is made again each time the upgrades change. The listener must not hold
+	 * the owner itself.
+	 */
+	public <T> void addListener(T owner, ObjIntConsumer<T> onContentsChanged) {
+		//noinspection unchecked
+		ownedListeners.put(owner, (ObjIntConsumer<Object>) onContentsChanged);
+	}
+
 	public void clearListeners() {
 		onContentsChangedListeners.clear();
+		ownedListeners.clear();
 	}
 
 	public void changeSlots(int diff) {

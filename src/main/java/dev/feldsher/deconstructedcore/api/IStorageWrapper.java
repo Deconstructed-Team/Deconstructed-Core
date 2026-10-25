@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.api;
 
+import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
@@ -29,9 +30,14 @@ public interface IStorageWrapper {
 
 	InventoryHandler getInventoryHandler();
 
-	/** The inventory as upgrades see it; one that changes what they see comes with the upgrade that does. */
-	default InventoryHandler getInventoryForUpgradeProcessing() {
+	/** The inventory as upgrades see it: with inception, also the inventories of the storages inside. */
+	default IItemHandlerSimpleInserter getInventoryForUpgradeProcessing() {
 		return getInventoryHandler();
+	}
+
+	/** Builds the inventory upgrades see anew, when what changes it changed. */
+	default void refreshInventoryForUpgradeProcessing() {
+		//noop
 	}
 
 	UpgradeHandler getUpgradeHandler();
@@ -52,14 +58,14 @@ public interface IStorageWrapper {
 	}
 
 	/** The inventory as machines see it: through the filter upgrades that filter input and output. */
-	default IItemHandlerModifiable getInventoryForInputOutput() {
+	default IItemHandlerSimpleInserter getInventoryForInputOutput() {
 		List<FilterLogic> inputFilters = new ArrayList<>();
 		List<FilterLogic> outputFilters = new ArrayList<>();
 		for (IIOFilterUpgrade filterUpgrade : getUpgradeHandler().getWrappersThatImplement(IIOFilterUpgrade.class)) {
 			filterUpgrade.getInputFilter().ifPresent(inputFilters::add);
 			filterUpgrade.getOutputFilter().ifPresent(outputFilters::add);
 		}
-		InventoryHandler inventory = getInventoryForUpgradeProcessing();
+		IItemHandlerSimpleInserter inventory = getInventoryForUpgradeProcessing();
 		return inputFilters.isEmpty() && outputFilters.isEmpty() ? inventory : new FilteredItemHandler.Modifiable(inventory, inputFilters, outputFilters);
 	}
 

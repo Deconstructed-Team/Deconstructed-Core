@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.upgrades.magnet;
 
+import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.upgrades.ContentsFilterLogic;
@@ -98,7 +99,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 
 	private boolean tryToInsertItem(@Nullable EntityPlayer player, EntityItem itemEntity) {
 		ItemStack stack = itemEntity.getItem();
-		InventoryHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
+		IItemHandlerSimpleInserter inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		ItemStack remaining = inventory.insertItem(stack, true);
 		if (remaining.getCount() == stack.getCount()) {
 			return false;
