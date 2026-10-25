@@ -59,6 +59,21 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
+	public void onScreenClicked(double mouseX, double mouseY, int button) {
+		new ArrayList<>(children).forEach(child -> child.onScreenClicked(mouseX, mouseY, button));
+	}
+
+	@Override
+	public boolean keyTyped(char typedChar, int keyCode) {
+		for (T child : new ArrayList<>(children)) {
+			if (child.visible && child.keyTyped(typedChar, keyCode)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public void renderTooltip(GuiScreen screen, int mouseX, int mouseY) {
 		super.renderTooltip(screen, mouseX, mouseY);
 		new ArrayList<>(children).forEach(c -> c.renderTooltip(screen, mouseX, mouseY));

@@ -44,6 +44,27 @@ public class GuiHelper {
 				texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
+	/** Draws the texture's part at another size, its four corners kept and its middle cut out or repeated at the edges. */
+	public static void blit(int x, int y, TextureBlitData texData, int width, int height) {
+		int halfWidth = width / 2;
+		int secondHalfWidth = width - halfWidth;
+		int halfHeight = height / 2;
+		int secondHalfHeight = height - halfHeight;
+		int left = x + texData.getXOffset();
+		int top = y + texData.getYOffset();
+		int secondU = texData.getU() + texData.getWidth() - secondHalfWidth;
+		int secondV = texData.getV() + texData.getHeight() - secondHalfHeight;
+		int textureWidth = texData.getTextureWidth();
+		int textureHeight = texData.getTextureHeight();
+		Minecraft.getMinecraft().getTextureManager().bindTexture(texData.getTextureName());
+		GlStateManager.color(1, 1, 1, 1);
+		GlStateManager.enableBlend();
+		Gui.drawModalRectWithCustomSizedTexture(left, top, texData.getU(), texData.getV(), halfWidth, halfHeight, textureWidth, textureHeight);
+		Gui.drawModalRectWithCustomSizedTexture(left + halfWidth, top, secondU, texData.getV(), secondHalfWidth, halfHeight, textureWidth, textureHeight);
+		Gui.drawModalRectWithCustomSizedTexture(left, top + halfHeight, texData.getU(), secondV, halfWidth, secondHalfHeight, textureWidth, textureHeight);
+		Gui.drawModalRectWithCustomSizedTexture(left + halfWidth, top + halfHeight, secondU, secondV, secondHalfWidth, secondHalfHeight, textureWidth, textureHeight);
+	}
+
 	/** The slots' background, 12 rows at most at a time since that's how tall the texture is. */
 	public static void renderSlotsBackground(int x, int y, int slotWidth, int slotHeight) {
 		for (int currentY = y, remainingSlotHeight = slotHeight; remainingSlotHeight > 0; currentY += 12 * 18, remainingSlotHeight -= Math.min(slotHeight, 12)) {

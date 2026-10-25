@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore.common.gui;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
@@ -26,6 +27,16 @@ public class SlotSuppliedHandler extends SlotItemHandler {
 	@Override
 	public boolean isItemValid(@Nonnull ItemStack stack) {
 		return itemHandlerSupplier.get().isItemValid(slot, stack);
+	}
+
+	/** Clicks and merges grow and shrink the slot's stack in place; setting it again lets the handler save it. */
+	@Override
+	public void onSlotChanged() {
+		super.onSlotChanged();
+		IItemHandler handler = itemHandlerSupplier.get();
+		if (handler instanceof IItemHandlerModifiable) {
+			((IItemHandlerModifiable) handler).setStackInSlot(slot, handler.getStackInSlot(slot));
+		}
 	}
 
 	@Override

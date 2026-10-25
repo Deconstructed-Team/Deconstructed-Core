@@ -77,6 +77,16 @@ public abstract class WidgetBase {
 		return false;
 	}
 
+	/** A click anywhere on the screen, before it goes to whatever is under it, as a text box loses its focus to it. */
+	public void onScreenClicked(double mouseX, double mouseY, int button) {
+		//noop
+	}
+
+	/** Whether this widget took the typed key. */
+	public boolean keyTyped(char typedChar, int keyCode) {
+		return false;
+	}
+
 	public int getX() {
 		return x;
 	}

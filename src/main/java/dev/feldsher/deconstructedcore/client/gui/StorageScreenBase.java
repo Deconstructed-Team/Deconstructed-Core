@@ -390,6 +390,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		if (settingsTabControl != null) {
+			settingsTabControl.onScreenClicked(mouseX, mouseY, mouseButton);
+		}
 		if (sortButton != null && sortByButton != null && (sortButton.mouseClicked(mouseX, mouseY, mouseButton) || sortByButton.mouseClicked(mouseX, mouseY, mouseButton))) {
 			return;
 		}
@@ -402,6 +405,14 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			return;
 		}
 		super.mouseClicked(mouseX, mouseY, mouseButton);
+	}
+
+	@Override
+	protected void keyTyped(char typedChar, int keyCode) throws IOException {
+		if (settingsTabControl != null && settingsTabControl.keyTyped(typedChar, keyCode)) {
+			return;
+		}
+		super.keyTyped(typedChar, keyCode);
 	}
 
 	@Override
