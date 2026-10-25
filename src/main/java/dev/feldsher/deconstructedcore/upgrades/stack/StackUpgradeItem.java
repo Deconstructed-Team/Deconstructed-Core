@@ -3,6 +3,7 @@ package dev.feldsher.deconstructedcore.upgrades.stack;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.client.gui.utils.TranslationHelper;
 import dev.feldsher.deconstructedcore.common.gui.UpgradeSlotChangeResult;
+import dev.feldsher.deconstructedcore.upgrades.IStackableContentsUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeCountLimitConfig;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeGroup;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeItemBase;
@@ -104,7 +105,6 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		return isMultiplierHighEnough(storageWrapper, multiplierWhenRemoved * otherStackUpgradeItem.stackSizeMultiplier);
 	}
 
-	/** Stackable contents upgrades (tanks, batteries) come with the stages that port them. */
 	private UpgradeSlotChangeResult isMultiplierHighEnough(IStorageWrapper storageWrapper, double multiplier) {
 		Set<Integer> slotsOverMultiplier = new HashSet<>();
 
@@ -119,8 +119,15 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			}
 		}
 
-		if (!slotsOverMultiplier.isEmpty()) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", multiplier), Collections.emptySet(), slotsOverMultiplier);
+		Set<Integer> errorInventoryParts = new HashSet<>();
+		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
+			if (wrapper instanceof IStackableContentsUpgrade && ((IStackableContentsUpgrade) wrapper).getMinimumMultiplierRequired() > multiplier) {
+				errorInventoryParts.add(slot);
+			}
+		});
+
+		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty()) {
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", multiplier), Collections.emptySet(), slotsOverMultiplier, errorInventoryParts);
 		}
 
 		return UpgradeSlotChangeResult.success();

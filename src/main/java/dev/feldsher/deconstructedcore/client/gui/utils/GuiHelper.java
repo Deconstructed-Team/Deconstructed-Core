@@ -6,13 +6,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +32,9 @@ public class GuiHelper {
 	public static final TextureBlitData DEFAULT_BUTTON_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(29, 0), Dimension.SQUARE_18);
 	public static final TextureBlitData SMALL_BUTTON_BACKGROUND = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 18), Dimension.SQUARE_12);
 	public static final TextureBlitData SMALL_BUTTON_HOVERED_BACKGROUND = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 18), Dimension.SQUARE_12);
+	public static final TextureBlitData BAR_BACKGROUND_TOP = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 30), Dimension.SQUARE_18);
+	public static final TextureBlitData BAR_BACKGROUND_MIDDLE = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 48), Dimension.SQUARE_18);
+	public static final TextureBlitData BAR_BACKGROUND_BOTTOM = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 66), Dimension.SQUARE_18);
 
 	private GuiHelper() {}
 
@@ -134,5 +143,35 @@ public class GuiHelper {
 
 	public static ToggleButton.StateData getButtonStateData(UV uv, Dimension dimension, Position offset, List<ITextComponent> tooltip) {
 		return new ToggleButton.StateData(new TextureBlitData(ICONS, offset, Dimension.SQUARE_256, uv, dimension), tooltip);
+	}
+
+	/** A column 16 wide of the block atlas sprite, tinted, tiled up from its bottom: a fluid as high as it fills. */
+	public static void renderTiledFluidTextureAtlas(TextureAtlasSprite sprite, int color, int x, int y, int height) {
+		Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+		float red = (color >> 16 & 255) / 255.0F;
+		float green = (color >> 8 & 255) / 255.0F;
+		float blue = (color & 255) / 255.0F;
+		float alpha = (color >> 24 & 255) == 0 ? 1 : (color >> 24 & 255) / 255.0F;
+		GlStateManager.enableBlend();
+		GlStateManager.color(1, 1, 1, 1);
+		Tessellator tessellator = Tessellator.getInstance();
+		BufferBuilder builder = tessellator.getBuffer();
+		builder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+		float u0 = sprite.getMinU();
+		float u1 = sprite.getMaxU();
+		float v0 = sprite.getMinV();
+		int bottom = y + height;
+		while (height > 0) {
+			int renderHeight = Math.min(16, height);
+			height -= renderHeight;
+			float v1 = sprite.getInterpolatedV(renderHeight);
+			int top = bottom - renderHeight;
+			builder.pos(x, bottom, 0).tex(u0, v1).color(red, green, blue, alpha).endVertex();
+			builder.pos(x + 16D, bottom, 0).tex(u1, v1).color(red, green, blue, alpha).endVertex();
+			builder.pos(x + 16D, top, 0).tex(u1, v0).color(red, green, blue, alpha).endVertex();
+			builder.pos(x, top, 0).tex(u0, v0).color(red, green, blue, alpha).endVertex();
+			bottom = top;
+		}
+		tessellator.draw();
 	}
 }

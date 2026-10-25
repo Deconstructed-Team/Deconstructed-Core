@@ -18,7 +18,7 @@ import java.util.UUID;
 
 /**
  * A storage: its inventory, where its contents live, and how it looks.
- * Settings, sorting and fluids/energy come with the stages that port them.
+ * Energy comes with the stage that ports it.
  */
 public interface IStorageWrapper {
 
@@ -41,6 +41,11 @@ public interface IStorageWrapper {
 	}
 
 	UpgradeHandler getUpgradeHandler();
+
+	/** Its tanks, when it has any. */
+	default Optional<IStorageFluidHandler> getFluidHandler() {
+		return Optional.empty();
+	}
 
 	SettingsHandler getSettingsHandler();
 

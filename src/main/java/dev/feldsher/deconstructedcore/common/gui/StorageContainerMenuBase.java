@@ -13,6 +13,8 @@ import dev.feldsher.deconstructedcore.settings.main.MainSettingsCategory;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeItem;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
+import dev.feldsher.deconstructedcore.client.gui.utils.TranslationHelper;
+import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import invtweaks.api.container.ChestContainer;
 import invtweaks.api.container.ContainerSectionCallback;
 import net.minecraft.entity.player.EntityPlayer;
@@ -26,9 +28,12 @@ import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A storage's container: its inventory slots, then the player's 27 + 9, then the upgrade slots, then the slots of
@@ -705,6 +710,50 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
+	/** The columns an upgrade takes more than the one it replaces are the inventory's last: their slots must be empty. */
+	private UpgradeSlotChangeResult checkSlotsNeededAreEmpty(ItemStack upgradeStack, int currentColumnsTaken, int newColumnsTaken) {
+		if (currentColumnsTaken >= newColumnsTaken) {
+			return UpgradeSlotChangeResult.success();
+		}
+
+		int slotsToCheck = (newColumnsTaken - currentColumnsTaken) * getNumberOfRows();
+		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
+		Set<Integer> errorSlots = new HashSet<>();
+		int slots = inventoryHandler.getSlots();
+		for (int slotIndex = slots - 1; slotIndex >= Math.max(0, slots - slotsToCheck); slotIndex--) {
+			if (!inventoryHandler.getStackInSlot(slotIndex).isEmpty()) {
+				errorSlots.add(slotIndex);
+			}
+		}
+
+		if (!errorSlots.isEmpty()) {
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.needs_occupied_inventory_slots", slotsToCheck, upgradeStack.getDisplayName()),
+					Collections.emptySet(), errorSlots);
+		}
+		return UpgradeSlotChangeResult.success();
+	}
+
+	/**
+	 * On the server, the columns the upgrades take, out of the inventory: the storage builds its inventory again with
+	 * them, and the container is opened again by then.
+	 */
+	private void updateColumnsTaken() {
+		if (player.world.isRemote) {
+			return;
+		}
+		UpgradeHandler upgradeHandler = storageWrapper.getUpgradeHandler();
+		int columnsTaken = 0;
+		for (int slot = 0; slot < upgradeHandler.getSlots(); slot++) {
+			ItemStack upgrade = upgradeHandler.getStackInSlot(slot);
+			if (upgrade.getItem() instanceof IUpgradeItem<?>) {
+				columnsTaken += ((IUpgradeItem<?>) upgrade.getItem()).getInventoryColumnsTaken();
+			}
+		}
+		if (columnsTaken != storageWrapper.getColumnsTaken()) {
+			storageWrapper.setColumnsTaken(columnsTaken, true);
+		}
+	}
+
 	/** An upgrade slot: it takes one upgrade, and only what the upgrade allows to be added to or removed from this storage. */
 	public class StorageUpgradeSlot extends SlotItemHandler {
 		private final int slotIndex;
@@ -722,6 +771,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			super.onSlotChanged();
 			boolean isEmpty = getStack().isEmpty();
 			if (wasEmpty != isEmpty) {
+				updateColumnsTaken();
 				onUpgradeChanged();
 			} else {
 				updateUpgradeContainerWrappers();
@@ -735,6 +785,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			super.putStack(stack);
 			wasEmpty = getStack().isEmpty();
 			if (changed) {
+				updateColumnsTaken();
 				onUpgradeChanged();
 			} else {
 				updateUpgradeContainerWrappers();
@@ -753,6 +804,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				return false;
 			} else {
 				result = ((IUpgradeItem<?>) getStack().getItem()).canSwapUpgradeFor(stack, slotIndex, storageWrapper, player.world.isRemote);
+			}
+			if (result.successful()) {
+				int currentColumnsTaken = getStack().isEmpty() ? 0 : ((IUpgradeItem<?>) getStack().getItem()).getInventoryColumnsTaken();
+				result = checkSlotsNeededAreEmpty(stack, currentColumnsTaken, ((IUpgradeItem<?>) stack.getItem()).getInventoryColumnsTaken());
 			}
 
 			updateSlotChangeError(result);

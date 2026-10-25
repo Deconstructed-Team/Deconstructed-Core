@@ -12,6 +12,8 @@ import dev.feldsher.deconstructedcore.common.gui.SortBy;
 import dev.feldsher.deconstructedcore.settings.ISlotColorCategory;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsTab;
 import dev.feldsher.deconstructedcore.common.gui.StorageInventorySlot;
+import dev.feldsher.deconstructedcore.common.gui.UpgradeContainerBase;
+import dev.feldsher.deconstructedcore.common.gui.UpgradeSlotChangeResult;
 import dev.feldsher.deconstructedcore.util.CountAbbreviator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -26,7 +28,9 @@ import org.lwjgl.input.Mouse;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows, or as the screen lets it be:
@@ -45,6 +49,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private static final int UPGRADE_SLOT_HEIGHT = 16;
 	private static final int UPGRADE_BOTTOM_HEIGHT = 6;
 	public static final int UPGRADE_INVENTORY_OFFSET = 21;
+	public static final int ERROR_SLOT_COLOR = 0xAA_B02E26;
 
 	protected final S menu;
 	private final String title;
@@ -63,6 +68,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private Button sortButton = null;
 	@Nullable
 	private ToggleButton<SortBy> sortByButton = null;
+	private final Map<Integer, UpgradeInventoryPartBase<?>> inventoryParts = new LinkedHashMap<>();
 
 	protected StorageScreenBase(S menu, String title) {
 		super(menu);
@@ -83,6 +89,26 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		settingsTabControl = new UpgradeSettingsTabControl(new Position(guiLeft + xSize, guiTop + 4), this, getStorageSettingsTabTooltip());
 		if (shouldShowSortButtons()) {
 			addSortButtons();
+		}
+		initUpgradeInventoryParts();
+	}
+
+	/** In the columns upgrades take, right of the slots and their scroll bar, side by side, two columns each. */
+	private void initUpgradeInventoryParts() {
+		inventoryParts.clear();
+		if (getMenu().getColumnsTaken() == 0) {
+			return;
+		}
+
+		int scrollBarOffset = isScrolling() ? SCROLL_BAR_WIDTH : 0;
+		int x = SLOTS_X_OFFSET + getSlotsOnLine() * 18 + scrollBarOffset;
+		int height = numberOfVisibleRows * 18;
+		for (Map.Entry<Integer, UpgradeContainerBase<?, ?>> entry : getMenu().getUpgradeContainers().entrySet()) {
+			java.util.Optional<? extends UpgradeInventoryPartBase<?>> part = UpgradeGuiManager.getInventoryPart(entry.getKey(), entry.getValue(), new Position(x, SLOTS_Y_OFFSET), height, this);
+			if (part.isPresent()) {
+				inventoryParts.put(entry.getKey(), part.get());
+				x += 36;
+			}
 		}
 	}
 
@@ -234,12 +260,53 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			sortButton.renderTooltip(this, mouseX, mouseY);
 			sortByButton.renderTooltip(this, mouseX, mouseY);
 		}
+		inventoryParts.values().forEach(part -> part.renderTooltip(this, mouseX, mouseY));
 		renderUpgradeSlotChangeError(mouseX, mouseY);
 	}
 
+	/** The upgrade slots, storage slots and inventory parts in the way, in red, and why. */
 	private void renderUpgradeSlotChangeError(int mouseX, int mouseY) {
-		getMenu().getErrorUpgradeSlotChangeResult().flatMap(result -> result.getErrorMessage()).ifPresent(message ->
-				drawHoveringText(java.util.Collections.singletonList(net.minecraft.util.text.TextFormatting.RED + message.getFormattedText()), mouseX, mouseY));
+		getMenu().getErrorUpgradeSlotChangeResult().ifPresent(result -> {
+			renderErrorOverlays(result);
+			result.getErrorMessage().ifPresent(message ->
+					drawHoveringText(java.util.Collections.singletonList(net.minecraft.util.text.TextFormatting.RED + message.getFormattedText()), mouseX, mouseY));
+		});
+	}
+
+	private void renderErrorOverlays(UpgradeSlotChangeResult result) {
+		for (int slotIndex : result.errorUpgradeSlots()) {
+			int index = getMenu().getFirstUpgradeSlot() + slotIndex;
+			if (index < getMenu().inventorySlots.size()) {
+				renderSlotOverlay(getMenu().getSlot(index), ERROR_SLOT_COLOR);
+			}
+		}
+		for (int slotIndex : result.errorInventorySlots()) {
+			if (slotIndex < getMenu().getNumberOfStorageInventorySlots()) {
+				renderSlotOverlay(getMenu().getSlot(slotIndex), ERROR_SLOT_COLOR);
+			}
+		}
+		for (int upgradeSlot : result.errorInventoryParts()) {
+			UpgradeInventoryPartBase<?> part = inventoryParts.get(upgradeSlot);
+			if (part != null) {
+				part.renderErrorOverlay();
+			}
+		}
+	}
+
+	private void renderSlotOverlay(Slot slot, int color) {
+		if (slot.xPos != DISABLED_SLOT_X_POS) {
+			renderOverlay(color, guiLeft + slot.xPos, guiTop + slot.yPos, 16, 16);
+		}
+	}
+
+	/** A translucent color over what's drawn, at screen positions. */
+	public void renderOverlay(int color, int x, int y, int width, int height) {
+		GlStateManager.disableLighting();
+		GlStateManager.disableDepth();
+		GlStateManager.colorMask(true, true, true, false);
+		drawRect(x, y, x + width, y + height, color);
+		GlStateManager.colorMask(true, true, true, true);
+		GlStateManager.enableDepth();
 	}
 
 	@Override
@@ -251,6 +318,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (isScrolling()) {
 			drawScrollBar();
 		}
+		inventoryParts.values().forEach(part -> part.render(mouseX, mouseY));
 		drawUpgradeBackground();
 		if (sortButton != null && sortByButton != null) {
 			sortButton.render(mouseX, mouseY, partialTicks);
@@ -432,6 +500,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (draggingScrollBar) {
 			draggingScrollBar = false;
 			return;
+		}
+		for (UpgradeInventoryPartBase<?> inventoryPart : inventoryParts.values()) {
+			if (inventoryPart.handleMouseReleased(mouseX, mouseY, state)) {
+				return;
+			}
 		}
 		super.mouseReleased(mouseX, mouseY, state);
 	}
