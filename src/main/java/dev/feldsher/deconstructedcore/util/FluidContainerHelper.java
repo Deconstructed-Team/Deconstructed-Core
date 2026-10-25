@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 
@@ -108,6 +109,30 @@ public final class FluidContainerHelper {
 			handler.fill(new FluidStack(drained, drained.amount - inserted), true);
 		}
 		return inserted > 0 ? new FluidActionResult(handler.getContainer()) : FluidActionResult.FAILURE;
+	}
+
+	/**
+	 * Moves up to maxAmount from one fluid handler to another, the same way: simulated both ways, drained by the
+	 * fluid, and what the destination doesn't take after all given back. True when something moved.
+	 */
+	public static boolean moveFluid(IFluidHandler source, IFluidHandler destination, int maxAmount) {
+		FluidStack drainable = source.drain(maxAmount, false);
+		if (drainable == null || drainable.amount <= 0) {
+			return false;
+		}
+		int room = destination.fill(drainable, false);
+		if (room <= 0) {
+			return false;
+		}
+		FluidStack drained = source.drain(new FluidStack(drainable, room), true);
+		if (drained == null || drained.amount <= 0) {
+			return false;
+		}
+		int filled = destination.fill(drained, true);
+		if (filled < drained.amount) {
+			source.fill(new FluidStack(drained, drained.amount - filled), true);
+		}
+		return filled > 0;
 	}
 
 	/**
