@@ -2,18 +2,19 @@ package dev.feldsher.deconstructedcore.inventory;
 
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-/** A storage as machines see it: what goes in has to match an input filter, what comes out an output filter. */
-public class FilteredItemHandler implements IItemHandlerModifiable {
-	protected final InventoryHandler inventoryHandler;
+/** A handler seen through filters: stacks go in only if an input filter matches, and out only if an output one does. */
+public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
+	protected final T inventoryHandler;
 	protected final List<FilterLogic> inputFilters;
 	private final List<FilterLogic> outputFilters;
 
-	public FilteredItemHandler(InventoryHandler inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
+	public FilteredItemHandler(T inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 		this.inventoryHandler = inventoryHandler;
 		this.inputFilters = inputFilters;
 		this.outputFilters = outputFilters;
@@ -30,7 +31,7 @@ public class FilteredItemHandler implements IItemHandlerModifiable {
 		return inventoryHandler.getStackInSlot(slot);
 	}
 
-	private boolean matchesAny(List<FilterLogic> filters, ItemStack stack) {
+	protected static boolean matchesAny(List<FilterLogic> filters, ItemStack stack) {
 		if (filters.isEmpty()) {
 			return true;
 		}
@@ -46,10 +47,6 @@ public class FilteredItemHandler implements IItemHandlerModifiable {
 	@Override
 	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
 		return matchesAny(inputFilters, stack) ? inventoryHandler.insertItem(slot, stack, simulate) : stack;
-	}
-
-	public ItemStack insertItem(ItemStack stack, boolean simulate) {
-		return matchesAny(inputFilters, stack) ? inventoryHandler.insertItem(stack, simulate) : stack;
 	}
 
 	@Nonnull
@@ -68,8 +65,19 @@ public class FilteredItemHandler implements IItemHandlerModifiable {
 		return inventoryHandler.isItemValid(slot, stack);
 	}
 
-	@Override
-	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
-		inventoryHandler.setStackInSlot(slot, stack);
+	/** A storage's own inventory, filtered, which also takes a stack into the whole inventory at once. */
+	public static class Modifiable extends FilteredItemHandler<InventoryHandler> implements IItemHandlerModifiable {
+		public Modifiable(InventoryHandler inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
+			super(inventoryHandler, inputFilters, outputFilters);
+		}
+
+		public ItemStack insertItem(ItemStack stack, boolean simulate) {
+			return matchesAny(inputFilters, stack) ? inventoryHandler.insertItem(stack, simulate) : stack;
+		}
+
+		@Override
+		public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+			inventoryHandler.setStackInSlot(slot, stack);
+		}
 	}
 }

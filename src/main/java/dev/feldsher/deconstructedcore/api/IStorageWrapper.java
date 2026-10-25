@@ -60,7 +60,7 @@ public interface IStorageWrapper {
 			filterUpgrade.getOutputFilter().ifPresent(outputFilters::add);
 		}
 		InventoryHandler inventory = getInventoryForUpgradeProcessing();
-		return inputFilters.isEmpty() && outputFilters.isEmpty() ? inventory : new FilteredItemHandler(inventory, inputFilters, outputFilters);
+		return inputFilters.isEmpty() && outputFilters.isEmpty() ? inventory : new FilteredItemHandler.Modifiable(inventory, inputFilters, outputFilters);
 	}
 
 	default void setUpgradeCachesInvalidatedHandler(Runnable handler) {
