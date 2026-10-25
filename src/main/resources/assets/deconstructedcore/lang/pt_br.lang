@@ -10,26 +10,16 @@ item.deconstructedcore.storage.tooltip.press_for_contents=Pressione <%s> para Ve
 item.deconstructedcore.storage.tooltip.shift=Shift Esquerdo
 gui.deconstructedcore.settings.no_sort=Sem Classificação
 gui.deconstructedcore.settings.no_sort.tooltip=Exceção de classificação de espaços
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Permite selecionar espaços que serão ignorados pela classificação
-Abra a guia para modificar as configurações dos espaços
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Permite selecionar espaços que serão ignorados pela classificação
-Use os botões abaixo para Selecionar tudo ou Desmarcar tudo
-Clique ou arraste com o botão direito para selecionar os espaços
-Clique ou arraste com o botão direito para desmarcar os espaços
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Permite selecionar espaços que serão ignorados pela classificação\nAbra a guia para modificar as configurações dos espaços
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Permite selecionar espaços que serão ignorados pela classificação\nUse os botões abaixo para Selecionar tudo ou Desmarcar tudo\nClique ou arraste com o botão direito para selecionar os espaços\nClique ou arraste com o botão direito para desmarcar os espaços
 gui.deconstructedcore.settings.memory=Memorizar
 gui.deconstructedcore.settings.memory.tooltip=Configurações dos Espaços Memorizados
-gui.deconstructedcore.settings.memory.tooltip_detail=Permite selecionar espaços que memorizam seus conteúdos e depois armazenam apenas pilhas do item correspondente
-Abra a guia para modificar as configurações dos espaços
-gui.deconstructedcore.settings.memory.tooltip_open_detail=Permite selecionar espaços que memorizam seus conteúdos e depois armazenam apenas pilhas do item correspondente
-Use os botões abaixo para Selecionar tudo ou Desmarcar tudo
-Clique ou arraste com o botão esquerdo para selecionar os espaços
-Clique ou arraste com o botão direito para desmarcar os espaços
+gui.deconstructedcore.settings.memory.tooltip_detail=Permite selecionar espaços que memorizam seus conteúdos e depois armazenam apenas pilhas do item correspondente\nAbra a guia para modificar as configurações dos espaços
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Permite selecionar espaços que memorizam seus conteúdos e depois armazenam apenas pilhas do item correspondente\nUse os botões abaixo para Selecionar tudo ou Desmarcar tudo\nClique ou arraste com o botão esquerdo para selecionar os espaços\nClique ou arraste com o botão direito para desmarcar os espaços
 gui.deconstructedcore.settings.item_display=Exibir Item
 gui.deconstructedcore.settings.item_display.tooltip=Configurações de Exibição de Item
 gui.deconstructedcore.settings.item_display.tooltip_detail=Permite selecionar um espaço para ser usado pra definir o item exibido no topo da mochila
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Permite selecionar um espaço para ser usado pra definir o item exibido no topo da mochila
-Clique com o botão esquerdo para selecionar o espaço
-Clique com o botão direito para selecionar o espaço
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Permite selecionar um espaço para ser usado pra definir o item exibido no topo da mochila\nClique com o botão esquerdo para selecionar o espaço\nClique com o botão direito para selecionar o espaço
 gui.deconstructedcore.upgrades.pickup=Coletor
 gui.deconstructedcore.upgrades.advanced_pickup=Coletor Avançado
 gui.deconstructedcore.upgrades.filter=Filtro
@@ -115,14 +105,10 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=Funciona na interface també
 gui.deconstructedcore.upgrades.buttons.only_automatic=Funciona apenas com outros acessórios
 gui.deconstructedcore.upgrades.buttons.play=Reproduzir
 gui.deconstructedcore.upgrades.buttons.stop=Parar
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Alimenta o jogador assim que ele estiver com um pouquinho de fome e
-desperdiça alguns pontos de fome da comida
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Alimenta o jogador assim que ele estiver com fome o suficiente
-para desperdiçar no máximo metade dos pontos de fome da comida
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Alimenta o jogador assim que ele estiver com fome o suficiente
-para não desperdiçar nenhum ponto de fome da comida
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Alimenta o jogador imediatamente quando se ferir
-Ignora a configuração de fome quando o jogador não está com a vida máxima
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Alimenta o jogador assim que ele estiver com um pouquinho de fome e\ndesperdiça alguns pontos de fome da comida
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Alimenta o jogador assim que ele estiver com fome o suficiente\npara desperdiçar no máximo metade dos pontos de fome da comida
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Alimenta o jogador assim que ele estiver com fome o suficiente\npara não desperdiçar nenhum ponto de fome da comida
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Alimenta o jogador imediatamente quando se ferir\nIgnora a configuração de fome quando o jogador não está com a vida máxima
 gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Ignora a vida do jogador e só se alimenta com base na configuração de fome
 gui.deconstructedcore.upgrades.buttons.pickup_items=Pegar Itens
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Não Pegar Itens
@@ -132,15 +118,12 @@ gui.deconstructedcore.upgrades.buttons.do_not_pickup_xp=Não Pegar Experiência
 gui.deconstructedcore.upgrades.buttons.pump_input=Entrada
 gui.deconstructedcore.upgrades.buttons.pump_output=Saída
 gui.deconstructedcore.upgrades.buttons.void_overflow=Esvaziar
-gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Permite que apenas as pilhas incompletas sejam completadas
-e esvazia o sobressalente
+gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Permite que apenas as pilhas incompletas sejam completadas\ne esvazia o sobressalente
 gui.deconstructedcore.upgrades.buttons.void_any=Esvaziar Tudo
 gui.deconstructedcore.upgrades.buttons.interact_with_world=Interagir com o Mundo
 gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=Não Interagir com o Mundo
-gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interagir com o Armazenamento
- de Fluídos nas mãos
-gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Não Interagir com o Armazenamento
-de Fluídos nas mãos
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interagir com o Armazenamento\n de Fluídos nas mãos
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Não Interagir com o Armazenamento\nde Fluídos nas mãos
 gui.deconstructedcore.upgrades.buttons.xp_pump_input=Bombear Experiência do Jogador
 gui.deconstructedcore.upgrades.buttons.xp_pump_output=Bombear Experiência para o Jogador
 gui.deconstructedcore.upgrades.buttons.xp_pump_off=Bomba Desligada
@@ -166,11 +149,9 @@ gui.deconstructedcore.buttons.sort_action=Organizar Mochila
 gui.deconstructedcore.settings.buttons.select_all_slots=Selecionar tudo
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Desmarcar tudo
 gui.deconstructedcore.settings.buttons.rotate=Girar
-gui.deconstructedcore.settings.buttons.rotate_detail=Clique com o botão esquerdo para girar no sentido horário
-Clique com o botão esquerdo para girar no sentido anti-horário
+gui.deconstructedcore.settings.buttons.rotate_detail=Clique com o botão esquerdo para girar no sentido horário\nClique com o botão esquerdo para girar no sentido anti-horário
 gui.deconstructedcore.settings.buttons.toggle_color=Trocar Cor
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Próximo = Clique Esquerdo
-Anterior = Clique Direito
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Próximo = Clique Esquerdo\nAnterior = Clique Direito
 gui.deconstructedcore.settings.buttons.context_player=Jogador
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Configuração de todas as Mochilas
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Aplica estas configurações a todas as mochilas do jogador presentes no mundo

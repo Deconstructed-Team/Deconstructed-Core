@@ -10,27 +10,16 @@ item.deconstructedcore.storage.tooltip.press_for_contents=Натисніть <%s
 item.deconstructedcore.storage.tooltip.shift=Лівий Shift
 gui.deconstructedcore.settings.no_sort=Не сортувати
 gui.deconstructedcore.settings.no_sort.tooltip=Налаштування слоту «Не сортувати»
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Дозволяє вибирати слоти, які ігноруються під час сортування
-Відкрийте вкладку, щоб змінити налаштування слота
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Дозволяє вибирати слоти, які ігноруються під час сортування
-Вибрати все / Скасувати вибір = кнопки
-Вибрати слот = ЛКМ/перетягніть
-Скасувати вибір = ПКМ/перетягніть
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Дозволяє вибирати слоти, які ігноруються під час сортування\nВідкрийте вкладку, щоб змінити налаштування слота
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Дозволяє вибирати слоти, які ігноруються під час сортування\nВибрати все / Скасувати вибір = кнопки\nВибрати слот = ЛКМ/перетягніть\nСкасувати вибір = ПКМ/перетягніть
 gui.deconstructedcore.settings.memory=Пам'ять
 gui.deconstructedcore.settings.memory.tooltip=Налаштування слоту «Пам'ять»
-gui.deconstructedcore.settings.memory.tooltip_detail=Дозволяє вибирати слоти, які запам’ятовують свій вміст і дозволяють у них лише відповідні стаки
-Відкрийте вкладку, щоб змінити налаштування слота
-gui.deconstructedcore.settings.memory.tooltip_open_detail=Дозволяє вибирати слоти, які запам’ятовують свій вміст і дозволяють у них лише відповідні стеки
- Відкрити вкладку, щоб змінити налаштування слота
-Вибрати все / Скасувати вибір = кнопки
-Вибрати слот = ЛКМ/перетягніть
-Скасувати вибір = ПКМ/перетягніть
+gui.deconstructedcore.settings.memory.tooltip_detail=Дозволяє вибирати слоти, які запам’ятовують свій вміст і дозволяють у них лише відповідні стаки\nВідкрийте вкладку, щоб змінити налаштування слота
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Дозволяє вибирати слоти, які запам’ятовують свій вміст і дозволяють у них лише відповідні стеки\n Відкрити вкладку, щоб змінити налаштування слота\nВибрати все / Скасувати вибір = кнопки\nВибрати слот = ЛКМ/перетягніть\nСкасувати вибір = ПКМ/перетягніть
 gui.deconstructedcore.settings.item_display=Екран
 gui.deconstructedcore.settings.item_display.tooltip=Налаштування екрану предметів
 gui.deconstructedcore.settings.item_display.tooltip_detail=Дозволяє вибрати слот, який використовуватиметься для показу свого предмета поверх сховища
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Дозволяє вибрати слот, який використовуватиметься для показу свого предмета поверх сховища
-Вибрати слот = ЛКМ/перетягніть
-Скасувати вибір = ПКМ/перетягніть
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Дозволяє вибрати слот, який використовуватиметься для показу свого предмета поверх сховища\nВибрати слот = ЛКМ/перетягніть\nСкасувати вибір = ПКМ/перетягніть
 gui.deconstructedcore.upgrades.pickup=Pickup
 gui.deconstructedcore.upgrades.advanced_pickup=Прос. Збір
 gui.deconstructedcore.upgrades.filter=Фільтр
@@ -116,16 +105,11 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=Також працює в G
 gui.deconstructedcore.upgrades.buttons.only_automatic=Працює лише з іншими покращеннями/автоматизацією
 gui.deconstructedcore.upgrades.buttons.play=Пуск
 gui.deconstructedcore.upgrades.buttons.stop=Павза
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Годувати, щойно гравець трохи зголодніє,
-витрачає чимало балів голоду в їжі
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Годувати лише тоді, коли гравець настільки голодний,
-щоб витрачати щонайбільше половину балів голоду їжі
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Годувати лише тоді, коли гравець настільки голодний,
-щоб взагалі не витрачати жодних балів голоду в їжі
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Негайно нагодуйте гравця, якщо його поранили
-Ігнорує налаштування голоду, коли гравець не має максимального рівня здоров’я
-gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Не зважати на здоров'я
-Ігнорує здоров'я гравця та годує лише на основі налаштування голоду
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Годувати, щойно гравець трохи зголодніє,\nвитрачає чимало балів голоду в їжі
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Годувати лише тоді, коли гравець настільки голодний,\nщоб витрачати щонайбільше половину балів голоду їжі
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Годувати лише тоді, коли гравець настільки голодний,\nщоб взагалі не витрачати жодних балів голоду в їжі
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Негайно нагодуйте гравця, якщо його поранили\nІгнорує налаштування голоду, коли гравець не має максимального рівня здоров’я
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Не зважати на здоров'я\nІгнорує здоров'я гравця та годує лише на основі налаштування голоду
 gui.deconstructedcore.upgrades.buttons.pickup_items=Підіймати предмети
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Не підіймати предмети
 gui.deconstructedcore.upgrades.buttons.pickup_xp=Підіймати досвід
@@ -134,16 +118,13 @@ gui.deconstructedcore.upgrades.buttons.do_not_pickup_xp=Не підіймати 
 gui.deconstructedcore.upgrades.buttons.pump_input=Вхід
 gui.deconstructedcore.upgrades.buttons.pump_output=Вихід
 gui.deconstructedcore.upgrades.buttons.void_overflow=Надлишок поглинання
-gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Дозволяє заповнити предметом один слот і
-анулює все, що переповнюється
+gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Дозволяє заповнити предметом один слот і\nанулює все, що переповнюється
 gui.deconstructedcore.upgrades.buttons.void_anything_disabled=Опція «Поглинати будь-що» вимкнута
 gui.deconstructedcore.upgrades.buttons.void_any=Поглинати будь-який
 gui.deconstructedcore.upgrades.buttons.interact_with_world=Взаємодіяти зі світом
 gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=Не взаємодіяти зі світом
-gui.deconstructedcore.upgrades.buttons.interact_with_hand=Взаємодіяти з
-рідинним контейнером у руці
-gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Не взаємодіяти з
-рідинним контейнером у руці
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Взаємодіяти з\nрідинним контейнером у руці
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Не взаємодіяти з\nрідинним контейнером у руці
 gui.deconstructedcore.upgrades.buttons.xp_pump_input=Викачувати досвід з гравця
 gui.deconstructedcore.upgrades.buttons.xp_pump_output=Перекачувати досвід гравцю
 gui.deconstructedcore.upgrades.buttons.xp_pump_off=Помпа вимк.
@@ -169,11 +150,9 @@ gui.deconstructedcore.buttons.sort_action=Відсортувати інвент�
 gui.deconstructedcore.settings.buttons.select_all_slots=Вибрати всі слоти
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Скасувати вибір усіх слотів
 gui.deconstructedcore.settings.buttons.rotate=Крутити
-gui.deconstructedcore.settings.buttons.rotate_detail=За годинниковою стрілкою = ЛКМ
-Проти - ПКМ
+gui.deconstructedcore.settings.buttons.rotate_detail=За годинниковою стрілкою = ЛКМ\nПроти - ПКМ
 gui.deconstructedcore.settings.buttons.toggle_color=Змінити колір
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Натупн. = ЛКМ
-Попередн. = ПКМ
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Натупн. = ЛКМ\nПопередн. = ПКМ
 gui.deconstructedcore.settings.buttons.context_player=Гравець
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Налаштування рівня гравця
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Застосовувати до всіх рюкзаків/сховищ, якщо не перевизначений

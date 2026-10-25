@@ -12,27 +12,16 @@ upgrade_group.deconstructedcore.stack_upgrades=Стаковые улучшени
 upgrade_group.deconstructedcore.cooking_upgrades=Печные улучшения
 gui.deconstructedcore.settings.no_sort=Игнор. сорт.
 gui.deconstructedcore.settings.no_sort.tooltip=Настройки игнорирования сортировки
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Позволяют задавать слоты для их исключения из процесса сортировки.
-Откройте вкладку для дальнейшей настройки
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Позволяют задавать слоты для их исключения из процесса сортировки.
-Выделить все слоты / снять выделение со всех слотов = отдельные клавиши.
-Выделить слот = нажать / зажать ЛКМ.
-Снять выделение со слота = нажать / зажать ПКМ
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Позволяют задавать слоты для их исключения из процесса сортировки.\nОткройте вкладку для дальнейшей настройки
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Позволяют задавать слоты для их исключения из процесса сортировки.\nВыделить все слоты / снять выделение со всех слотов = отдельные клавиши.\nВыделить слот = нажать / зажать ЛКМ.\nСнять выделение со слота = нажать / зажать ПКМ
 gui.deconstructedcore.settings.memory=Запом.
 gui.deconstructedcore.settings.memory.tooltip=Настройки запоминания слота
-gui.deconstructedcore.settings.memory.tooltip_detail=Позволяют задавать слоты для запоминания содержимого и учитывания точного совпадения предметов в них.
-Откройте вкладку для дальнейшей настройки
-gui.deconstructedcore.settings.memory.tooltip_open_detail=Позволяют задавать слоты для запоминания содержимого и учитывания точного совпадения предметов в них.
-Выделить все слоты / снять выделение со всех слотов = отдельные клавиши.
-Выделить слот = нажать / зажать ЛКМ.
-Снять выделение со слота = нажать / зажать ПКМ
+gui.deconstructedcore.settings.memory.tooltip_detail=Позволяют задавать слоты для запоминания содержимого и учитывания точного совпадения предметов в них.\nОткройте вкладку для дальнейшей настройки
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Позволяют задавать слоты для запоминания содержимого и учитывания точного совпадения предметов в них.\nВыделить все слоты / снять выделение со всех слотов = отдельные клавиши.\nВыделить слот = нажать / зажать ЛКМ.\nСнять выделение со слота = нажать / зажать ПКМ
 gui.deconstructedcore.settings.item_display=Отображ.
 gui.deconstructedcore.settings.item_display.tooltip=Настройки отображения предмета
-gui.deconstructedcore.settings.item_display.tooltip_detail=Позволяют задавать слот под наглядный рендер находящегося в нём предмета на модели хранилища.
-Откройте вкладку для дальнейшей настройки
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Позволяют задавать слот под наглядный рендер находящегося в нём предмета на модели хранилища.
-Выбрать слот = нажать / зажать ЛКМ.
-Снять выделение со слота = нажать / зажать ПКМ
+gui.deconstructedcore.settings.item_display.tooltip_detail=Позволяют задавать слот под наглядный рендер находящегося в нём предмета на модели хранилища.\nОткройте вкладку для дальнейшей настройки
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Позволяют задавать слот под наглядный рендер находящегося в нём предмета на модели хранилища.\nВыбрать слот = нажать / зажать ЛКМ.\nСнять выделение со слота = нажать / зажать ПКМ
 gui.deconstructedcore.upgrades.pickup=Сбор
 gui.deconstructedcore.upgrades.advanced_pickup=Продв. сбор
 gui.deconstructedcore.upgrades.filter=Фильтр
@@ -132,16 +121,11 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=Работать также 
 gui.deconstructedcore.upgrades.buttons.only_automatic=Работать лишь при автоматизации или с другими улучшениями
 gui.deconstructedcore.upgrades.buttons.play=Проиграть
 gui.deconstructedcore.upgrades.buttons.stop=Остановить
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Кормить игрока при малейшем падении уровня голода
-(с максимальным перерасходом потребляемой пищи)
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Кормить лишь в том случае, когда игрок достаточно голоден
-(с перерасходом потребляемой пищи до половины единиц голода)
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Кормить лишь в том случае, когда игрок достаточно голоден
-(с эффективным расходом потребляемой пищи)
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Кормить игрока при малейшем получении урона.
-При неполном уровне здоровья настройки голода будут игнорироваться
-gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Кормить игрока без учёта уровня здоровья.
-Кормление будет осуществляться за счёт настроек голода
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Кормить игрока при малейшем падении уровня голода\n(с максимальным перерасходом потребляемой пищи)
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Кормить лишь в том случае, когда игрок достаточно голоден\n(с перерасходом потребляемой пищи до половины единиц голода)
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Кормить лишь в том случае, когда игрок достаточно голоден\n(с эффективным расходом потребляемой пищи)
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Кормить игрока при малейшем получении урона.\nПри неполном уровне здоровья настройки голода будут игнорироваться
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Кормить игрока без учёта уровня здоровья.\nКормление будет осуществляться за счёт настроек голода
 gui.deconstructedcore.upgrades.buttons.pickup_items=Собирать предметы
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Не собирать предметы
 gui.deconstructedcore.upgrades.buttons.pickup_xp=Собирать опыт
@@ -186,11 +170,9 @@ gui.deconstructedcore.buttons.sort_action=Сортировка инвентар�
 gui.deconstructedcore.settings.buttons.select_all_slots=Выделить все слоты
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Снять выделение со всех слотов
 gui.deconstructedcore.settings.buttons.rotate=Повернуть
-gui.deconstructedcore.settings.buttons.rotate_detail=По часовой стрелке = ЛКМ.
-Против часовой стрелки = ПКМ
+gui.deconstructedcore.settings.buttons.rotate_detail=По часовой стрелке = ЛКМ.\nПротив часовой стрелки = ПКМ
 gui.deconstructedcore.settings.buttons.toggle_color=Задать цвет
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Следующий цвет = ЛКМ.
-Предыдущий цвет = ПКМ
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Следующий цвет = ЛКМ.\nПредыдущий цвет = ПКМ
 gui.deconstructedcore.settings.buttons.context_player=Игрок
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Настройки на стороне игрока
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Применяются ко всем хранилищам игрока до их отдельного переназначения

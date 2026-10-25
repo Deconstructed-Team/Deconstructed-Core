@@ -10,26 +10,16 @@ item.deconstructedcore.storage.tooltip.press_for_contents=Drücke <%s>, um den I
 item.deconstructedcore.storage.tooltip.shift=Shift-Taste
 gui.deconstructedcore.settings.no_sort=Keine Sortierung
 gui.deconstructedcore.settings.no_sort.tooltip=Keine Sortierplatzeinstellungen
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Erlaubt die Auswahl von Slots, die beim Sortieren ignoriert werden
-Tab öffnen, um Slot-Einstellungen zu ändern
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Erlaubt die Auswahl von Slots, die ignoriert werden, durch Sortieren
-Alle auswählen / Alle abwählen = Schaltflächen
-Slot auswählen = Linksklick/Ziehen
-Slot abwählen = Rechtsklick/Ziehen
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Erlaubt die Auswahl von Slots, die beim Sortieren ignoriert werden\nTab öffnen, um Slot-Einstellungen zu ändern
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Erlaubt die Auswahl von Slots, die ignoriert werden, durch Sortieren\nAlle auswählen / Alle abwählen = Schaltflächen\nSlot auswählen = Linksklick/Ziehen\nSlot abwählen = Rechtsklick/Ziehen
 gui.deconstructedcore.settings.memory=Speicher
 gui.deconstructedcore.settings.memory.tooltip=Slot-Speichereinstellungen
-gui.deconstructedcore.settings.memory.tooltip_detail=Erlaubt die Auswahl von Slots, die sich an ihren Inhalt erinnern und nur übereinstimmende Stapel darin zulassen
-Tab öffnen, um Slot-Einstellungen zu ändern
-gui.deconstructedcore.settings.memory.tooltip_open_detail=Ermöglicht die Auswahl von Slots, die sich an ihren Inhalt erinnern und nur übereinstimmende Stapel darin zulassen
-Alle auswählen / Alle abwählen = Schaltflächen
-Slot auswählen = Linksklick/Ziehen
-Slot abwählen = Rechtsklick/ ziehen
+gui.deconstructedcore.settings.memory.tooltip_detail=Erlaubt die Auswahl von Slots, die sich an ihren Inhalt erinnern und nur übereinstimmende Stapel darin zulassen\nTab öffnen, um Slot-Einstellungen zu ändern
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Ermöglicht die Auswahl von Slots, die sich an ihren Inhalt erinnern und nur übereinstimmende Stapel darin zulassen\nAlle auswählen / Alle abwählen = Schaltflächen\nSlot auswählen = Linksklick/Ziehen\nSlot abwählen = Rechtsklick/ ziehen
 gui.deconstructedcore.settings.item_display=Gegenstandsanzeige.
 gui.deconstructedcore.settings.item_display.tooltip=Elementanzeigeeinstellungen
 gui.deconstructedcore.settings.item_display.tooltip_detail=Ermöglicht die Auswahl eines Platzes, der verwendet wird, um seinen Gegenstand auf dem Rucksackmodell anzuzeigen
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Ermöglicht die Auswahl eines Slots, der verwendet wird, um seinen Gegenstand oben auf dem Rucksackmodell anzuzeigen
-Slot auswählen = Linksklick/Ziehen
-Slot abwählen = Rechtsklick/Ziehen
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Ermöglicht die Auswahl eines Slots, der verwendet wird, um seinen Gegenstand oben auf dem Rucksackmodell anzuzeigen\nSlot auswählen = Linksklick/Ziehen\nSlot abwählen = Rechtsklick/Ziehen
 gui.deconstructedcore.upgrades.pickup=Pickup
 gui.deconstructedcore.upgrades.advanced_pickup=Erw. Pickup
 gui.deconstructedcore.upgrades.filter=Filter
@@ -115,16 +105,11 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=Funktioniert auch in GUI
 gui.deconstructedcore.upgrades.buttons.only_automatic=Funktioniert nur mit anderen Upgrades/Automatisierungen
 gui.deconstructedcore.upgrades.buttons.play=Spielen
 gui.deconstructedcore.upgrades.buttons.stop=Stopp
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Füttern, sobald der Spieler ein bisschen hungrig ist
-verschwendet ziemlich viele Hungerpunkte des Essens
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Füttere nur, wenn der Spieler hungrig genug ist,
-um höchstens die Hälfte der Hungerpunkte des Essens zu verschwenden
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Füttere nur, wenn der Spieler hungrig genug ist,
-um überhaupt keine Hungerpunkte des Essens zu verschwenden
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Spieler sofort füttern, wenn er verletzt ist
-Ignoriert die Hungereinstellung, wenn der Spieler nicht bei maximaler Gesundheit ist
-gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Gesundheit nicht berücksichtigen
-Ignoriert die Gesundheit des Spielers und füttert nur basierend auf der Hungereinstellung
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Füttern, sobald der Spieler ein bisschen hungrig ist\nverschwendet ziemlich viele Hungerpunkte des Essens
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Füttere nur, wenn der Spieler hungrig genug ist,\num höchstens die Hälfte der Hungerpunkte des Essens zu verschwenden
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Füttere nur, wenn der Spieler hungrig genug ist,\num überhaupt keine Hungerpunkte des Essens zu verschwenden
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Spieler sofort füttern, wenn er verletzt ist\nIgnoriert die Hungereinstellung, wenn der Spieler nicht bei maximaler Gesundheit ist
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Gesundheit nicht berücksichtigen\nIgnoriert die Gesundheit des Spielers und füttert nur basierend auf der Hungereinstellung
 gui.deconstructedcore.upgrades.buttons.pickup_items=Gegenstände einsammeln
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Gegenstände nicht einsammeln
 gui.deconstructedcore.upgrades.buttons.pickup_xp=XP einsammeln
@@ -137,10 +122,8 @@ gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Erlaubt das Füllen 
 gui.deconstructedcore.upgrades.buttons.void_any=Void Any
 gui.deconstructedcore.upgrades.buttons.interact_with_world=Mit der Welt interagieren
 gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=Nicht mit der Welt interagieren
-gui.deconstructedcore.upgrades.buttons.interact_with_hand=Mit
-Flüssigkeitsbehälter in der Hand interagieren
-gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Interagiere nicht mit
-Flüssigkeitsbehälter in der Hand
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Mit\nFlüssigkeitsbehälter in der Hand interagieren
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Interagiere nicht mit\nFlüssigkeitsbehälter in der Hand
 gui.deconstructedcore.upgrades.buttons.xp_pump_input=XP von Spieler nehmen
 gui.deconstructedcore.upgrades.buttons.xp_pump_output=XP zum Spieler übertragen
 gui.deconstructedcore.upgrades.buttons.xp_pump_off=Pumpe aus
@@ -166,11 +149,9 @@ gui.deconstructedcore.buttons.sort_action=Rucksack sortieren
 gui.deconstructedcore.settings.buttons.select_all_slots=Alle Slots auswählen
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Alle Slots abwählen
 gui.deconstructedcore.settings.buttons.rotate=Drehen
-gui.deconstructedcore.settings.buttons.rotate_detail=Im Uhrzeigersinn = Linksklick
-Gegen den Uhrzeigersinn = Rechtsklick
+gui.deconstructedcore.settings.buttons.rotate_detail=Im Uhrzeigersinn = Linksklick\nGegen den Uhrzeigersinn = Rechtsklick
 gui.deconstructedcore.settings.buttons.toggle_color=Farbe umschalten
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Weiter = Linksklick
-Zurück = Rechtsklick
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Weiter = Linksklick\nZurück = Rechtsklick
 gui.deconstructedcore.settings.buttons.context_player=Spieler
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Spielerlevel-Einstellungen
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Auf alle Rucksäcke anwenden, sofern nicht überschrieben

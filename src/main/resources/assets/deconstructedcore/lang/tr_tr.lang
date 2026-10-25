@@ -13,26 +13,16 @@ upgrade_group.deconstructedcore.stack_upgrades=İstif Yükseltmeleri
 upgrade_group.deconstructedcore.cooking_upgrades=Fırın Yükseltmeleri
 gui.deconstructedcore.settings.no_sort=Sıralama Yok
 gui.deconstructedcore.settings.no_sort.tooltip=Sıralama Yuvası Ayarları Yok
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Sıralama tarafından göz ardı edilen yuvaların seçilmesine izin verir
-Yuva ayarlarını değiştirmek için sekmeyi aç
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Sıralama tarafından göz ardı edilen yuvaların seçilmesine izin verir
-Tümünü seç / Tümünün seçimini kaldır = butonlar
-Yuva seç = sol tıkla/sürükle
-Yuva seçimini kaldır = sağ tıkla/sürükle
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Sıralama tarafından göz ardı edilen yuvaların seçilmesine izin verir\nYuva ayarlarını değiştirmek için sekmeyi aç
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Sıralama tarafından göz ardı edilen yuvaların seçilmesine izin verir\nTümünü seç / Tümünün seçimini kaldır = butonlar\nYuva seç = sol tıkla/sürükle\nYuva seçimini kaldır = sağ tıkla/sürükle
 gui.deconstructedcore.settings.memory=Bellek
 gui.deconstructedcore.settings.memory.tooltip=Yuva Bellek Ayarları
-gui.deconstructedcore.settings.memory.tooltip_detail=İçeriklerini hatırlayan ve içlerinde yalnızca eşleşen yığınlara izin veren yuvaların seçilmesine izin verir
-Yuva ayarlarını değiştirmek için sekmeyi aç
-gui.deconstructedcore.settings.memory.tooltip_open_detail=İçeriklerini hatırlayan ve içlerinde yalnızca eşleşen yığınlara izin veren yuvaların seçilmesine izin verir
-Tümünü seç / Tümünün seçimini kaldır = butonlar
-Yuva seç = sol tıkla/sürükle
-Yuva seçimini kaldır = sağ tıkla/sürükle
+gui.deconstructedcore.settings.memory.tooltip_detail=İçeriklerini hatırlayan ve içlerinde yalnızca eşleşen yığınlara izin veren yuvaların seçilmesine izin verir\nYuva ayarlarını değiştirmek için sekmeyi aç
+gui.deconstructedcore.settings.memory.tooltip_open_detail=İçeriklerini hatırlayan ve içlerinde yalnızca eşleşen yığınlara izin veren yuvaların seçilmesine izin verir\nTümünü seç / Tümünün seçimini kaldır = butonlar\nYuva seç = sol tıkla/sürükle\nYuva seçimini kaldır = sağ tıkla/sürükle
 gui.deconstructedcore.settings.item_display=Eşya Grn.
 gui.deconstructedcore.settings.item_display.tooltip=Eşya Görüntüleme Ayarları
 gui.deconstructedcore.settings.item_display.tooltip_detail=Eşyayı depolama alanının üstünde göstermek için kullanılacak bir yuva seçmeye izin verir
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Eşyayı depolama alanının üstünde göstermek için kullanılacak bir yuva seçmeye izin verir
-Yuva seç = sol tıkla/sürükle
-Yuva seçimini kaldır = sağ tıkla/sürükle
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Eşyayı depolama alanının üstünde göstermek için kullanılacak bir yuva seçmeye izin verir\nYuva seç = sol tıkla/sürükle\nYuva seçimini kaldır = sağ tıkla/sürükle
 gui.deconstructedcore.upgrades.pickup=Alma
 gui.deconstructedcore.upgrades.advanced_pickup=Glş. Alma
 gui.deconstructedcore.upgrades.filter=Filtre
@@ -132,16 +122,11 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=GUI'de de çalışır
 gui.deconstructedcore.upgrades.buttons.only_automatic=Sadece diğer yükseltmeler/otomasyon ile çalışır
 gui.deconstructedcore.upgrades.buttons.play=Oynat
 gui.deconstructedcore.upgrades.buttons.stop=Durdur
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Oyuncu çok az acıkır acıkmaz beslenmek
-yiyeceğin açlık puanlarını boşa harcar
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Sadece oyuncu en fazla yarım açlık puanı
-harcayacak kadar aç olduğunda beslenin
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Sadece oyuncu yeterince aç olduğunda beslenin
-böylece yiyeceğin açlık puanları boşa gitmez
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Yaralandığında oyuncuyu hemen besler
-Oyuncu maksimum sağlıkta olmadığında açlık ayarını yok sayar
-gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Sağlığı dikkate alma
-Oyuncunun sağlığını yok sayar ve sadece açlık ayarına göre besler
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Oyuncu çok az acıkır acıkmaz beslenmek\nyiyeceğin açlık puanlarını boşa harcar
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Sadece oyuncu en fazla yarım açlık puanı\nharcayacak kadar aç olduğunda beslenin
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Sadece oyuncu yeterince aç olduğunda beslenin\nböylece yiyeceğin açlık puanları boşa gitmez
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Yaralandığında oyuncuyu hemen besler\nOyuncu maksimum sağlıkta olmadığında açlık ayarını yok sayar
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Sağlığı dikkate alma\nOyuncunun sağlığını yok sayar ve sadece açlık ayarına göre besler
 gui.deconstructedcore.upgrades.buttons.pickup_items=Eşyaları Al
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Eşyaları Alma
 gui.deconstructedcore.upgrades.buttons.pickup_xp=Tecrübeleri Al
@@ -150,16 +135,13 @@ gui.deconstructedcore.upgrades.buttons.do_not_pickup_xp=Tecrübeleri Alma
 gui.deconstructedcore.upgrades.buttons.pump_input=Girdi
 gui.deconstructedcore.upgrades.buttons.pump_output=Çıktı
 gui.deconstructedcore.upgrades.buttons.void_overflow=Taşanları Geçersiz Kıl
-gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Tek bir yuvanın eşya ile doldurulmasına izin verir
-ve taşan her şeyi geçersiz kılar
+gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Tek bir yuvanın eşya ile doldurulmasına izin verir\nve taşan her şeyi geçersiz kılar
 gui.deconstructedcore.upgrades.buttons.void_anything_disabled=Herhangi Şeyi Geçersiz Kıl seçeneği devre dışı
 gui.deconstructedcore.upgrades.buttons.void_any=Herhangi Şeyi Geçersiz Kıl
 gui.deconstructedcore.upgrades.buttons.interact_with_world=Dünya ile Etkileşime Geç
 gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=Dünya ile Etkileşime Geçme
-gui.deconstructedcore.upgrades.buttons.interact_with_hand=Elinizdeki Sıvı Kabı ile
-Etkileşime Geç
-gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Elinizdeki Sıvı Kabı ile
-Etkileşime Geçme
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Elinizdeki Sıvı Kabı ile\nEtkileşime Geç
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Elinizdeki Sıvı Kabı ile\nEtkileşime Geçme
 gui.deconstructedcore.upgrades.buttons.xp_pump_input=Oyuncudaki Tecrübeyi Pompala
 gui.deconstructedcore.upgrades.buttons.xp_pump_output=Oyuncuya Tecrübe Pompala
 gui.deconstructedcore.upgrades.buttons.xp_pump_off=Pompa Kapalı
@@ -189,11 +171,9 @@ gui.deconstructedcore.buttons.sort_action=Envanteri Sırala
 gui.deconstructedcore.settings.buttons.select_all_slots=Tüm Slotları Seç
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Tüm Slotların Seçimini Kaldır
 gui.deconstructedcore.settings.buttons.rotate=Döndür
-gui.deconstructedcore.settings.buttons.rotate_detail=Saat Yönü = Sol Tık
-Saat Yönünün Tersi = Sağ Tık
+gui.deconstructedcore.settings.buttons.rotate_detail=Saat Yönü = Sol Tık\nSaat Yönünün Tersi = Sağ Tık
 gui.deconstructedcore.settings.buttons.toggle_color=Rengi Değiştir
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Sonraki = Sol Tık
-Önceki = Sağ Tık
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Sonraki = Sol Tık\nÖnceki = Sağ Tık
 gui.deconstructedcore.settings.buttons.context_player=Oyuncu
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Oyuncu seviye ayarları
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Geçersiz kılınmadığı sürece tüm sırt çantaları/depolar için geçerlidir

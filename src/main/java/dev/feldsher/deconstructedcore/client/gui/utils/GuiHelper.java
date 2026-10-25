@@ -4,6 +4,7 @@ import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.client.gui.controls.ToggleButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -85,9 +86,16 @@ public class GuiHelper {
 		}
 	}
 
+	/** A line per component, split where the translation has a line break, each part keeping the formatting before it. */
 	public static List<String> toLines(List<ITextComponent> components) {
 		List<String> lines = new ArrayList<>();
-		components.forEach(component -> lines.add(component.getFormattedText()));
+		for (ITextComponent component : components) {
+			String formatting = "";
+			for (String part : component.getFormattedText().split("\\\\n|\n")) {
+				lines.add(formatting + part);
+				formatting = FontRenderer.getFormatFromString(formatting + part);
+			}
+		}
 		return lines;
 	}
 

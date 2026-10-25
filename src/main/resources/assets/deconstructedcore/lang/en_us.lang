@@ -15,26 +15,16 @@ upgrade_group.deconstructedcore.cooking_upgrades=Furnace Upgrades
 upgrade_group.deconstructedcore.jukebox_upgrades=Jukebox Upgrades
 gui.deconstructedcore.settings.no_sort=No Sort
 gui.deconstructedcore.settings.no_sort.tooltip=No Sort Slot Settings
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Allows selecting slots that are ignored by sorting
-Open tab to modify slot settings
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Allows selecting slots that are ignored by sorting
-Select all / Unselect all = buttons
-Select slot = left click/drag
-Unselect slot = right click/drag
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Allows selecting slots that are ignored by sorting\nOpen tab to modify slot settings
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Allows selecting slots that are ignored by sorting\nSelect all / Unselect all = buttons\nSelect slot = left click/drag\nUnselect slot = right click/drag
 gui.deconstructedcore.settings.memory=Memory
 gui.deconstructedcore.settings.memory.tooltip=Slot Memory Settings
-gui.deconstructedcore.settings.memory.tooltip_detail=Allows selecting slots that remember their contents and only allow matching stacks in them
-Open tab to modify slot settings
-gui.deconstructedcore.settings.memory.tooltip_open_detail=Allows selecting slots that remember their contents and only allow matching stacks in them
-Select all / Unselect all = buttons
-Select slot = left click/drag
-Unselect slot = right click/drag
+gui.deconstructedcore.settings.memory.tooltip_detail=Allows selecting slots that remember their contents and only allow matching stacks in them\nOpen tab to modify slot settings
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Allows selecting slots that remember their contents and only allow matching stacks in them\nSelect all / Unselect all = buttons\nSelect slot = left click/drag\nUnselect slot = right click/drag
 gui.deconstructedcore.settings.item_display=Item Disp.
 gui.deconstructedcore.settings.item_display.tooltip=Item Display Settings
 gui.deconstructedcore.settings.item_display.tooltip_detail=Allows selecting a slot that will be used to show its item on top of storage
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Allows selecting a slot that will be used to show its item on top of storage
-Select slot = left click/drag
-Unselect slot = right click/drag
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Allows selecting a slot that will be used to show its item on top of storage\nSelect slot = left click/drag\nUnselect slot = right click/drag
 gui.deconstructedcore.upgrades.pickup=Pickup
 gui.deconstructedcore.upgrades.advanced_pickup=Adv. Pickup
 gui.deconstructedcore.upgrades.filter=Filter
@@ -136,16 +126,11 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=Works in GUI as well
 gui.deconstructedcore.upgrades.buttons.only_automatic=Only works with other upgrades/automation
 gui.deconstructedcore.upgrades.buttons.play=Play
 gui.deconstructedcore.upgrades.buttons.stop=Stop
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Feed as soon as player is tiny bit hungry
-wastes quite a few hunger points of the food
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Only feed when player is hungry enough
-to only waste half hunger points of the food at most
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Only feed when player is hungry enough
-to not waste any hunger points of the food at all
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Feed player immediately when hurt
-Ignores hunger setting when player is not at max health
-gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Do not consider health
-Ignores player's health and only feeds based on hunger setting
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Feed as soon as player is tiny bit hungry\nwastes quite a few hunger points of the food
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Only feed when player is hungry enough\nto only waste half hunger points of the food at most
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Only feed when player is hungry enough\nto not waste any hunger points of the food at all
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Feed player immediately when hurt\nIgnores hunger setting when player is not at max health
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=Do not consider health\nIgnores player's health and only feeds based on hunger setting
 gui.deconstructedcore.upgrades.buttons.pickup_items=Pickup Items
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=Do Not Pickup Items
 gui.deconstructedcore.upgrades.buttons.pickup_xp=Pickup Experience
@@ -154,16 +139,13 @@ gui.deconstructedcore.upgrades.buttons.do_not_pickup_xp=Do Not Pickup Experience
 gui.deconstructedcore.upgrades.buttons.pump_input=Input
 gui.deconstructedcore.upgrades.buttons.pump_output=Output
 gui.deconstructedcore.upgrades.buttons.void_overflow=Void Overflow
-gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Allows single slot to be filled with the item
-and voids anything that overflows
+gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Allows single slot to be filled with the item\nand voids anything that overflows
 gui.deconstructedcore.upgrades.buttons.void_anything_disabled=Void Anything option is disabled
 gui.deconstructedcore.upgrades.buttons.void_any=Void Any
 gui.deconstructedcore.upgrades.buttons.interact_with_world=Interact With World
 gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=Do Not Interact With World
-gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interact With
-Fluid Container in Hand
-gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Do Not Interact With
-Fluid Container in Hand
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interact With\nFluid Container in Hand
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=Do Not Interact With\nFluid Container in Hand
 gui.deconstructedcore.upgrades.buttons.xp_pump_input=Pump Experience From Player
 gui.deconstructedcore.upgrades.buttons.xp_pump_output=Pump Experience To Player
 gui.deconstructedcore.upgrades.buttons.xp_pump_keep=Keep Player at Level
@@ -212,11 +194,9 @@ gui.deconstructedcore.text_box.search_box_detail=@ prefix to search by mod name
 gui.deconstructedcore.settings.buttons.select_all_slots=Select All Slots
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Unselect All Slots
 gui.deconstructedcore.settings.buttons.rotate=Rotate
-gui.deconstructedcore.settings.buttons.rotate_detail=Clockwise = Left Click
-Counter-Clockwise = Right Click
+gui.deconstructedcore.settings.buttons.rotate_detail=Clockwise = Left Click\nCounter-Clockwise = Right Click
 gui.deconstructedcore.settings.buttons.toggle_color=Toggle Color
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Next = Left Click
-Previous = Right Click
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Next = Left Click\nPrevious = Right Click
 gui.deconstructedcore.settings.buttons.context_player=Player
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Player level settings
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Apply to all backpacks/storages unless overriden

@@ -12,26 +12,16 @@ upgrade_group.deconstructedcore.stack_upgrades=Mejoras de Stack
 upgrade_group.deconstructedcore.cooking_upgrades=Mejoras de Horno
 gui.deconstructedcore.settings.no_sort=No ordenar
 gui.deconstructedcore.settings.no_sort.tooltip=Opciones de slot no ordenable
-gui.deconstructedcore.settings.no_sort.tooltip_detail=Permite seleccionar slots que son ignorados al ordenar
-Abrir pestaña para modificar las opciones de los slots
-gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Permite seleccionar slots que son ignorados al ordenar
-Seleccionar todos / Deseleccionar todos = botones
-Seleccionar slot = clic izquierdo/arrastrar
-Deseleccionar slot = clic derecho/arrastrar
+gui.deconstructedcore.settings.no_sort.tooltip_detail=Permite seleccionar slots que son ignorados al ordenar\nAbrir pestaña para modificar las opciones de los slots
+gui.deconstructedcore.settings.no_sort.tooltip_open_detail=Permite seleccionar slots que son ignorados al ordenar\nSeleccionar todos / Deseleccionar todos = botones\nSeleccionar slot = clic izquierdo/arrastrar\nDeseleccionar slot = clic derecho/arrastrar
 gui.deconstructedcore.settings.memory=Memoria
 gui.deconstructedcore.settings.memory.tooltip=Opciones de memoria de slot
-gui.deconstructedcore.settings.memory.tooltip_detail=Permite seleccionar slots que recuerdan su contenido y solo permiten stacks que coincidan en ellos
-Abrir pestaña para modificar las opciones de los slots
-gui.deconstructedcore.settings.memory.tooltip_open_detail=Permite seleccionar slots que recuerdan su contenido y solo permiten stacks que coincidan en ellos
-Seleccionar todos / Deseleccionar todos = botones
-Seleccionar slot = clic izquierdo/arrastrar
-Deseleccionar slot = clic derecho/arrastrar
+gui.deconstructedcore.settings.memory.tooltip_detail=Permite seleccionar slots que recuerdan su contenido y solo permiten stacks que coincidan en ellos\nAbrir pestaña para modificar las opciones de los slots
+gui.deconstructedcore.settings.memory.tooltip_open_detail=Permite seleccionar slots que recuerdan su contenido y solo permiten stacks que coincidan en ellos\nSeleccionar todos / Deseleccionar todos = botones\nSeleccionar slot = clic izquierdo/arrastrar\nDeseleccionar slot = clic derecho/arrastrar
 gui.deconstructedcore.settings.item_display=Mostrador de ítem
 gui.deconstructedcore.settings.item_display.tooltip=Opciones de mostrador de ítem
 gui.deconstructedcore.settings.item_display.tooltip_detail=Permite seleccionar un slot que se usará para mostrar su ítem en la parte superior del almacenamiento
-gui.deconstructedcore.settings.item_display.tooltip_open_detail=Permite seleccionar un slot que se usará para mostrar su ítem en la parte superior del almacenamiento
-Seleccionar slot = clic izquierdo/arrastrar
-Deseleccionar slot = clic derecho/arrastrar
+gui.deconstructedcore.settings.item_display.tooltip_open_detail=Permite seleccionar un slot que se usará para mostrar su ítem en la parte superior del almacenamiento\nSeleccionar slot = clic izquierdo/arrastrar\nDeseleccionar slot = clic derecho/arrastrar
 gui.deconstructedcore.upgrades.pickup=Recolección
 gui.deconstructedcore.upgrades.advanced_pickup=Recolección avanz.
 gui.deconstructedcore.upgrades.filter=Filtrado
@@ -117,16 +107,11 @@ gui.deconstructedcore.upgrades.buttons.works_in_gui=Funciona en la interfaz tamb
 gui.deconstructedcore.upgrades.buttons.only_automatic=Solo funciona con otras mejoras/automatizaciones
 gui.deconstructedcore.upgrades.buttons.play=Reproducir
 gui.deconstructedcore.upgrades.buttons.stop=Detener
-gui.deconstructedcore.upgrades.buttons.hunger_level_any=Alimentar tan pronto como el jugador tenga un poco de hambre
-desperdicia bastantes puntos de hambre de la comida
-gui.deconstructedcore.upgrades.buttons.hunger_level_half=Solo alimentar cuando el jugador tenga suficiente hambre
-para solo desperdiciar la mitad de los puntos de hambre de la comida como máximo
-gui.deconstructedcore.upgrades.buttons.hunger_level_full=Solo alimentar cuando el jugador tenga suficiente hambre
-para no desperdiciar ningún punto de hambre de la comida en absoluto
-gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Alimentar al jugador inmediatamente cuando sea herido
-Ignora las opciones de hambre cuando el jugador no tiene la salud máxima
-gui.deconstructedcore.upgrades.buttons.do_not_consider_health=No considerar salud
-Ignora la salud del jugador y solo lo alimenta según las opciones de hambre
+gui.deconstructedcore.upgrades.buttons.hunger_level_any=Alimentar tan pronto como el jugador tenga un poco de hambre\ndesperdicia bastantes puntos de hambre de la comida
+gui.deconstructedcore.upgrades.buttons.hunger_level_half=Solo alimentar cuando el jugador tenga suficiente hambre\npara solo desperdiciar la mitad de los puntos de hambre de la comida como máximo
+gui.deconstructedcore.upgrades.buttons.hunger_level_full=Solo alimentar cuando el jugador tenga suficiente hambre\npara no desperdiciar ningún punto de hambre de la comida en absoluto
+gui.deconstructedcore.upgrades.buttons.feed_immediately_when_hurt=Alimentar al jugador inmediatamente cuando sea herido\nIgnora las opciones de hambre cuando el jugador no tiene la salud máxima
+gui.deconstructedcore.upgrades.buttons.do_not_consider_health=No considerar salud\nIgnora la salud del jugador y solo lo alimenta según las opciones de hambre
 gui.deconstructedcore.upgrades.buttons.pickup_items=Recolectar ítems
 gui.deconstructedcore.upgrades.buttons.do_not_pickup_items=No recolectar ítems
 gui.deconstructedcore.upgrades.buttons.pickup_xp=Recolectar experiencia
@@ -135,16 +120,13 @@ gui.deconstructedcore.upgrades.buttons.do_not_pickup_xp=No recolectar experienci
 gui.deconstructedcore.upgrades.buttons.pump_input=Entrada
 gui.deconstructedcore.upgrades.buttons.pump_output=Salida
 gui.deconstructedcore.upgrades.buttons.void_overflow=Desechar exceso
-gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Permite que un solo slot se llene con el ítem
-y desecha todo lo que se exceda
+gui.deconstructedcore.upgrades.buttons.void_overflow.detail=Permite que un solo slot se llene con el ítem\ny desecha todo lo que se exceda
 gui.deconstructedcore.upgrades.buttons.void_anything_disabled=La opción de desechar cualquier cosa está desactivada
 gui.deconstructedcore.upgrades.buttons.void_any=Desechar cualquiera
 gui.deconstructedcore.upgrades.buttons.interact_with_world=Interactuar con el mundo
 gui.deconstructedcore.upgrades.buttons.do_not_interact_with_world=No interactuar con el mundo
-gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interactuar con
-Contenedor de fluido en mano
-gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=No interactuar con
-Contenedor de fluido en mano
+gui.deconstructedcore.upgrades.buttons.interact_with_hand=Interactuar con\nContenedor de fluido en mano
+gui.deconstructedcore.upgrades.buttons.do_not_interact_with_hand=No interactuar con\nContenedor de fluido en mano
 gui.deconstructedcore.upgrades.buttons.xp_pump_input=Bombear experiencia del jugador
 gui.deconstructedcore.upgrades.buttons.xp_pump_output=Bombear experiencia hacia el jugador
 gui.deconstructedcore.upgrades.buttons.xp_pump_off=No bombear
@@ -170,11 +152,9 @@ gui.deconstructedcore.buttons.sort_action=Ordenar inventario
 gui.deconstructedcore.settings.buttons.select_all_slots=Seleccionar todos los slots
 gui.deconstructedcore.settings.buttons.unselect_all_slots=Deseleccionar todos los slots
 gui.deconstructedcore.settings.buttons.rotate=Rotar
-gui.deconstructedcore.settings.buttons.rotate_detail=En sentido de las manecillas del reloj = Clic izquierdo
-En sentido contrario de las manecillas del reloj = Clic derecho
+gui.deconstructedcore.settings.buttons.rotate_detail=En sentido de las manecillas del reloj = Clic izquierdo\nEn sentido contrario de las manecillas del reloj = Clic derecho
 gui.deconstructedcore.settings.buttons.toggle_color=Cambiar color
-gui.deconstructedcore.settings.buttons.toggle_color_detail=Siguiente = Clic izquierdo
-Anterior = Clic derecho
+gui.deconstructedcore.settings.buttons.toggle_color_detail=Siguiente = Clic izquierdo\nAnterior = Clic derecho
 gui.deconstructedcore.settings.buttons.context_player=Jugador
 gui.deconstructedcore.settings.buttons.context_player.tooltip=Opciones de nivel del jugador
 gui.deconstructedcore.settings.buttons.context_player.tooltip_detail=Aplicar a todas las mochilas/almacenes a menos que sea anulado
