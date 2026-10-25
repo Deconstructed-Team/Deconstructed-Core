@@ -128,6 +128,11 @@ public class TranslationHelper {
 
 	/** A translation's lines, each formatted; none when the key has no translation. */
 	public List<String> getTranslatedLines(String translateKey, TextFormatting... textFormattings) {
+		return getTranslatedLines(translateKey, new Object[0], textFormattings);
+	}
+
+	/** As {@link #getTranslatedLines(String, TextFormatting...)}, with the translation's parameters. */
+	public List<String> getTranslatedLines(String translateKey, Object[] parameters, TextFormatting... textFormattings) {
 		List<String> ret = new ArrayList<>();
 		if (!hasTranslation(translateKey)) {
 			return ret;
@@ -136,7 +141,7 @@ public class TranslationHelper {
 		for (TextFormatting formatting : textFormattings) {
 			prefix.append(formatting);
 		}
-		for (String line : translate(translateKey).split(java.util.regex.Pattern.quote(LINE_BREAK))) {
+		for (String line : translate(translateKey, parameters).split(java.util.regex.Pattern.quote(LINE_BREAK))) {
 			ret.add(prefix + line);
 		}
 		return ret;
