@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.common.gui;
 
+import dev.feldsher.deconstructedcore.upgrades.IUpgradeWrapper;
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.compat.invtweaks.InvTweaksSections;
@@ -678,6 +679,20 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		//noop by default
 	}
 
+	/**
+	 * A changed upgrade stack, as the client gets each time an upgrade saves, makes the storage's wrappers anew: the
+	 * open tabs of the same upgrades go on with the new ones.
+	 */
+	private void updateUpgradeContainerWrappers() {
+		for (Map.Entry<Integer, IUpgradeWrapper> slotWrapper : storageWrapper.getUpgradeHandler().getSlotWrappers().entrySet()) {
+			UpgradeContainerBase<?, ?> container = upgradeContainers.get(slotWrapper.getKey());
+			if (container != null && container.getUpgradeWrapper() != slotWrapper.getValue()
+					&& container.getUpgradeWrapper().getUpgradeStack().getItem() == slotWrapper.getValue().getUpgradeStack().getItem()) {
+				container.setUpgradeWrapper(slotWrapper.getValue());
+			}
+		}
+	}
+
 	/** An upgrade slot: it takes one upgrade, and only what the upgrade allows to be added to or removed from this storage. */
 	public class StorageUpgradeSlot extends SlotItemHandler {
 		private final int slotIndex;
@@ -696,6 +711,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			boolean isEmpty = getStack().isEmpty();
 			if (wasEmpty != isEmpty) {
 				onUpgradeChanged();
+			} else {
+				updateUpgradeContainerWrappers();
 			}
 			wasEmpty = isEmpty;
 		}
@@ -707,6 +724,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			wasEmpty = getStack().isEmpty();
 			if (changed) {
 				onUpgradeChanged();
+			} else {
+				updateUpgradeContainerWrappers();
 			}
 		}
 
