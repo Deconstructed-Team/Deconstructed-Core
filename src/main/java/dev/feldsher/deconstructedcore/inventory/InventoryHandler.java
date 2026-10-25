@@ -210,6 +210,10 @@ public abstract class InventoryHandler extends ItemStackHandler {
 			}
 		}
 
+		// 1.12's ItemStackHandler inserts whatever it's given; 1.21's checks isItemValid first, which the storages rely on
+		if (!isItemValid(slot, remaining)) {
+			return remaining;
+		}
 		ItemStack ret = super.insertItem(slot, remaining, simulate);
 		if (ret != remaining && !simulate) {
 			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class).forEach(u -> u.onAfterInsert(this, slot));
