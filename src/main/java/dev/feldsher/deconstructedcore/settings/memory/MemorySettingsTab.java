@@ -34,6 +34,10 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 				button -> container.setIgnoreNbt(!container.ignoresNbt()), () -> !container.ignoresNbt()));
 	}
 
+	public MemorySettingsContainer getMemorySettingsContainer() {
+		return getSettingsContainer();
+	}
+
 	@Override
 	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
 		return Optional.empty();

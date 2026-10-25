@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A storage's settings screen: its slots, to pick for the open settings tab, the tabs on the right and the settings
@@ -51,6 +52,10 @@ public abstract class SettingsScreen extends GuiContainer {
 
 	public SettingsContainerMenu<?> getMenu() {
 		return menu;
+	}
+
+	public Optional<StorageSettingsTabControlBase> getSettingsTabControl() {
+		return Optional.ofNullable(settingsTabControl);
 	}
 
 	public int getGuiLeft() {

@@ -13,6 +13,8 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	private static final String UNSELECT_SLOT_TAG = "unselectSlot";
 	private static final String SELECT_SLOT_TAG = "selectSlot";
 	private static final String IGNORE_NBT_TAG = "ignoreNbt";
+	private static final String SET_FILTER_SLOT_TAG = "setFilterSlot";
+	private static final String FILTER_TAG = "filter";
 
 	public MemorySettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MemorySettingsCategory category) {
 		super(settingsContainer, categoryName, category);
@@ -33,6 +35,8 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 			unselectSlot(data.getInteger(UNSELECT_SLOT_TAG));
 		} else if (data.hasKey(IGNORE_NBT_TAG)) {
 			setIgnoreNbt(data.getBoolean(IGNORE_NBT_TAG));
+		} else if (data.hasKey(SET_FILTER_SLOT_TAG)) {
+			setFilter(data.getInteger(SET_FILTER_SLOT_TAG), new ItemStack(data.getCompoundTag(FILTER_TAG)));
 		}
 	}
 
@@ -71,6 +75,20 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 			getCategory().selectSlots(0, getSettingsContainer().getNumberOfStorageInventorySlots());
 		} else {
 			sendStringToServer(ACTION_TAG, SELECT_ALL_ACTION);
+		}
+	}
+
+	/** An empty slot remembers an item it never held, as one dragged onto it from an item list. */
+	public void setFilter(int slotNumber, ItemStack filter) {
+		if (isServer()) {
+			getCategory().setFilter(slotNumber, filter);
+		} else {
+			sendDataToServer(() -> {
+				NBTTagCompound data = new NBTTagCompound();
+				data.setInteger(SET_FILTER_SLOT_TAG, slotNumber);
+				data.setTag(FILTER_TAG, filter.writeToNBT(new NBTTagCompound()));
+				return data;
+			});
 		}
 	}
 

@@ -43,6 +43,8 @@ import java.util.Optional;
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends LargeStackSyncContainer implements ISyncedContainer {
 	private static final String OPEN_TAB_ID_TAG = "openTabId";
 	private static final String REMOVE_OPEN_TAB_ID_TAG = "removeOpenTabId";
+	private static final String GHOST_SLOT_TAG = "ghostSlot";
+	private static final String GHOST_STACK_TAG = "ghostStack";
 	private static final String SORT_BY_TAG = "sortBy";
 	private static final String ACTION_TAG = "action";
 
@@ -260,6 +262,30 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			sort();
 		} else if ("openSettings".equals(data.getString(ACTION_TAG))) {
 			openSettings();
+		} else if (data.hasKey(GHOST_SLOT_TAG)) {
+			setGhostSlot(data.getInteger(GHOST_SLOT_TAG), new ItemStack(data.getCompoundTag(GHOST_STACK_TAG)));
+		}
+	}
+
+	/** A ghost copy into an upgrade's filter slot that takes it, as one dragged onto it from an item list. */
+	public void setGhostSlot(int slotId, ItemStack stack) {
+		if (player.world.isRemote) {
+			sendToServer(GHOST_SLOT_TAG, tag -> {
+				tag.setInteger(GHOST_SLOT_TAG, slotId);
+				tag.setTag(GHOST_STACK_TAG, stack.writeToNBT(new NBTTagCompound()));
+			});
+			return;
+		}
+		if (slotId < 0 || slotId >= inventorySlots.size() || !isUpgradeSettingsSlot(slotId) || !(inventorySlots.get(slotId) instanceof IFilterSlot)) {
+			return;
+		}
+		Slot slot = inventorySlots.get(slotId);
+		if (stack.isEmpty() || slot.isItemValid(stack)) {
+			ItemStack ghost = stack.copy();
+			if (ghost.getCount() > 1) {
+				ghost.setCount(1);
+			}
+			slot.putStack(ghost);
 		}
 	}
 

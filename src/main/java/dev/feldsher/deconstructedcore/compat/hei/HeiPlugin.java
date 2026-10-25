@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
 
 /**
  * HEI keeps its item list off what storage screens draw outside of their main area: the upgrade column, the tabs and
- * the sort buttons. Found by HEI's annotation scan, so nothing loads it without HEI.
+ * the sort buttons. Items dragged from it set filter slots and memorized slots. Found by HEI's annotation scan, so
+ * nothing loads it without HEI.
  */
 @JEIPlugin
 public class HeiPlugin implements IModPlugin {
@@ -25,6 +26,8 @@ public class HeiPlugin implements IModPlugin {
 		registry.addAdvancedGuiHandlers(
 				new ExtraAreasHandler<>(StorageScreenBase.class, StorageScreenBase::getExtraAreas),
 				new ExtraAreasHandler<>(SettingsScreen.class, SettingsScreen::getExtraAreas));
+		registry.addGhostIngredientHandler(StorageScreenBase.class, new StorageGhostIngredientHandler<>());
+		registry.addGhostIngredientHandler(SettingsScreen.class, new SettingsGhostIngredientHandler<>());
 	}
 
 	private static class ExtraAreasHandler<T extends GuiContainer> implements IAdvancedGuiHandler<T> {
