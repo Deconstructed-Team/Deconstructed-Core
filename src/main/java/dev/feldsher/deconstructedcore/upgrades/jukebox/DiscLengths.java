@@ -5,15 +5,16 @@ import dev.feldsher.deconstructedcore.DeconstructedCore;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * How long the discs play, which 1.12's records don't say: vanilla's and Future MC's, as 1.21 has them, those other
- * mods register, and those the config gives, which win over the rest. For others it's unknown, and the tab shows no
- * progress of them.
+ * How long the discs play, which 1.12's records don't say: vanilla's, as 1.21 has them, those other mods register,
+ * and those the config gives, Future MC's by default, which win over the rest. For others it's unknown, and the tab
+ * shows no progress of them.
  * <p>
  * Mods register theirs with {@link #register}, or, without depending on this mod, with an IMC message
  * {@value #IMC_KEY} to {@code deconstructedcore} whose NBT has the disc item's {@code item} name and its {@code seconds}.
@@ -37,9 +38,6 @@ public final class DiscLengths {
 		register("record_ward", 251);
 		register("record_11", 71);
 		register("record_wait", 238);
-		// Future MC's, of later versions
-		register(new ResourceLocation("futuremc", "record_pigstep"), 148);
-		register(new ResourceLocation("futuremc", "record_otherside"), 195);
 	}
 
 	private DiscLengths() {}
@@ -86,15 +84,23 @@ public final class DiscLengths {
 			Map<ResourceLocation, Integer> lengths = new HashMap<>();
 			for (String entry : Config.discLengths) {
 				String[] parts = entry.split("\\|");
+				ResourceLocation item = null;
+				int seconds = 0;
 				try {
-					if (parts.length == 2 && Integer.parseInt(parts[1].trim()) > 0) {
-						lengths.put(new ResourceLocation(parts[0].trim()), Integer.parseInt(parts[1].trim()));
-						continue;
+					if (parts.length == 2) {
+						item = new ResourceLocation(parts[0].trim());
+						seconds = Integer.parseInt(parts[1].trim());
 					}
-				} catch (NumberFormatException e) {
-					//logged below
+				} catch (RuntimeException e) {
+					item = null;
 				}
-				DeconstructedCore.LOGGER.warn("Disc length \"{}\" in the config isn't \"ItemRegistryName|Seconds\" with positive seconds", entry);
+				if (item == null || seconds <= 0) {
+					DeconstructedCore.LOGGER.warn("Disc length \"{}\" in the config isn't \"ItemRegistryName|Seconds\" with positive seconds", entry);
+				} else if (!ForgeRegistries.ITEMS.containsKey(item)) {
+					DeconstructedCore.LOGGER.debug("Disc length \"{}\" in the config is of an item the game doesn't have, skipped", entry);
+				} else {
+					lengths.put(item, seconds);
+				}
 			}
 			configLengthsInSeconds = lengths;
 		}
