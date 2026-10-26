@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -106,6 +107,39 @@ public final class StorageContentsManager {
 				DeconstructedCore.LOGGER.error("Failed to delete storage contents {}", file.getAbsolutePath());
 			}
 		}
+	}
+
+	/**
+	 * On the server, removes every storage's contents, loaded or only in their file, that the predicate matches.
+	 * Files are read only to be tested, not kept loaded.
+	 *
+	 * @return how many were removed
+	 */
+	public int removeMatching(BiPredicate<UUID, NBTTagCompound> shouldRemove) {
+		Set<UUID> uuids = new HashSet<>(serverContents.keySet());
+		File[] files = ensureStorageDir() ? storageDir.listFiles((dir, name) -> name.endsWith(".dat")) : null;
+		if (files != null) {
+			for (File file : files) {
+				try {
+					uuids.add(UUID.fromString(file.getName().substring(0, file.getName().length() - ".dat".length())));
+				} catch (IllegalArgumentException e) {
+					// not one of ours
+				}
+			}
+		}
+
+		int removed = 0;
+		for (UUID uuid : uuids) {
+			StorageContents contents = serverContents.get(uuid);
+			if (contents == null) {
+				contents = load(uuid);
+			}
+			if (contents != null && shouldRemove.test(uuid, contents.getNbt())) {
+				remove(uuid);
+				removed++;
+			}
+		}
+		return removed;
 	}
 
 	/**
