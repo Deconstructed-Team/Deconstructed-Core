@@ -2,11 +2,14 @@ package dev.feldsher.deconstructedcore.upgrades.jukebox;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -21,7 +24,8 @@ import java.util.UUID;
 
 /**
  * The discs storages play, by dimension: a storage that stops telling it's still there, as one put away in a chest,
- * has its disc stopped for the players near where it last was.
+ * has its disc stopped for the players near where it last was. A player who comes to see an entity playing one,
+ * as a mob first in their view, is sent its disc then.
  */
 @Mod.EventBusSubscriber(modid = DeconstructedCore.MOD_ID)
 public final class ServerStorageSoundHandler {
@@ -70,17 +74,38 @@ public final class ServerStorageSoundHandler {
 	public static void startPlayingDisc(WorldServer world, BlockPos position, UUID storageUuid, ItemStack disc, Runnable onFinishedHandler) {
 		Vec3d pos = new Vec3d(position).add(0.5, 0.5, 0.5);
 		sendNear(world, pos, new PlayDiscMessage(storageUuid, disc, position));
-		putKeepAliveInfo(world, storageUuid, onFinishedHandler, pos);
+		putKeepAliveInfo(world, storageUuid, onFinishedHandler, pos, disc, -1);
 	}
 
 	public static void startPlayingDisc(WorldServer world, Vec3d position, UUID storageUuid, int entityId, ItemStack disc, Runnable onFinishedHandler) {
 		sendNear(world, position, new PlayDiscMessage(storageUuid, disc, entityId));
-		putKeepAliveInfo(world, storageUuid, onFinishedHandler, position);
+		putKeepAliveInfo(world, storageUuid, onFinishedHandler, position, disc, entityId);
 	}
 
-	private static void putKeepAliveInfo(World world, UUID storageUuid, Runnable onFinishedHandler, Vec3d pos) {
+	private static void putKeepAliveInfo(World world, UUID storageUuid, Runnable onFinishedHandler, Vec3d pos, ItemStack disc, int entityId) {
 		worldStorageSoundKeepAlive.computeIfAbsent(world.provider.getDimension(), dim -> new HashMap<>())
-				.put(storageUuid, new KeepAliveInfo(onFinishedHandler, world.getTotalWorldTime(), pos));
+				.put(storageUuid, new KeepAliveInfo(onFinishedHandler, world.getTotalWorldTime(), pos, disc, entityId));
+	}
+
+	/**
+	 * The players near an entity as it started playing knew it only if they saw it then; one that sees it later, as a
+	 * mob that spawned far away, gets its disc now, from the start.
+	 */
+	@SubscribeEvent
+	public static void onStartTracking(PlayerEvent.StartTracking event) {
+		Entity target = event.getTarget();
+		if (!(target.world instanceof WorldServer) || !(event.getEntityPlayer() instanceof EntityPlayerMP)) {
+			return;
+		}
+		Map<UUID, KeepAliveInfo> keepAlive = worldStorageSoundKeepAlive.get(target.world.provider.getDimension());
+		if (keepAlive == null) {
+			return;
+		}
+		keepAlive.forEach((storageUuid, info) -> {
+			if (info.entityId == target.getEntityId()) {
+				PacketHandler.INSTANCE.sendTo(new PlayDiscMessage(storageUuid, info.disc, info.entityId), (EntityPlayerMP) event.getEntityPlayer());
+			}
+		});
 	}
 
 	public static void stopPlayingDisc(World world, Vec3d position, UUID storageUuid) {
@@ -122,11 +147,16 @@ public final class ServerStorageSoundHandler {
 		private final WeakReference<Runnable> onFinishedHandler;
 		private long lastKeepAliveTime;
 		private Vec3d lastPosition;
+		private final ItemStack disc;
+		/** The entity it plays from, -1 when it plays from a block. */
+		private final int entityId;
 
-		private KeepAliveInfo(Runnable onFinishedHandler, long lastKeepAliveTime, Vec3d lastPosition) {
+		private KeepAliveInfo(Runnable onFinishedHandler, long lastKeepAliveTime, Vec3d lastPosition, ItemStack disc, int entityId) {
 			this.onFinishedHandler = new WeakReference<>(onFinishedHandler);
 			this.lastKeepAliveTime = lastKeepAliveTime;
 			this.lastPosition = lastPosition;
+			this.disc = disc.copy();
+			this.entityId = entityId;
 		}
 
 		private long getLastKeepAliveTime() {

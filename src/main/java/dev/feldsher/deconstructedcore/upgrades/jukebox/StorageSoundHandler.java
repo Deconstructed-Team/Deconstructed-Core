@@ -65,6 +65,10 @@ public final class StorageSoundHandler {
 				playingSound.started = true;
 				return false;
 			}
+			// a mob gone from this client's view plays on for those who see it; the server sends it again if it comes back
+			if (playingSound.sound instanceof EntityRecordSound && ((EntityRecordSound) playingSound.sound).isEntityOutOfView()) {
+				return true;
+			}
 			if (playingSound.started || time - playingSound.startTime > START_TIMEOUT) {
 				PacketHandler.INSTANCE.sendToServer(new SoundFinishedNotificationMessage(entry.getKey()));
 				return true;
@@ -121,6 +125,11 @@ public final class StorageSoundHandler {
 			volume = 2.0F;
 			attenuationType = ISound.AttenuationType.LINEAR;
 			update();
+		}
+
+		/** Gone from this client but for a player, whose death ends the disc as its end does. */
+		private boolean isEntityOutOfView() {
+			return entity.isDead && !(entity instanceof EntityPlayer);
 		}
 
 		@Override
