@@ -1,5 +1,8 @@
 package dev.feldsher.deconstructedcore.upgrades.cooking;
 
+import java.util.Map;
+import net.minecraft.nbt.NBTTagCompound;
+import dev.feldsher.deconstructedcore.upgrades.IRenderDataUpgrade;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.ITickableUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeWrapperBase;
@@ -11,7 +14,9 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public class CookingUpgradeWrapper extends UpgradeWrapperBase<CookingUpgradeWrapper, CookingUpgradeItem> implements ITickableUpgrade, ICookingUpgrade {
+public class CookingUpgradeWrapper extends UpgradeWrapperBase<CookingUpgradeWrapper, CookingUpgradeItem> implements ITickableUpgrade, ICookingUpgrade, IRenderDataUpgrade {
+	/** As of its last tick, for its flames on the storage. */
+	private boolean burning = false;
 	private static final int NOTHING_TO_DO_COOLDOWN = 10;
 	private final CookingLogic cookingLogic;
 
@@ -22,6 +27,7 @@ public class CookingUpgradeWrapper extends UpgradeWrapperBase<CookingUpgradeWrap
 
 	@Override
 	public void tick(@Nullable Entity entity, World world, BlockPos pos) {
+		burning = cookingLogic.isBurning(world);
 		if (isInCooldown(world)) {
 			return;
 		}
@@ -30,9 +36,18 @@ public class CookingUpgradeWrapper extends UpgradeWrapperBase<CookingUpgradeWrap
 		}
 	}
 
+	/** Its flames, while it burns. */
+	@Override
+	public void addRenderData(Map<String, NBTTagCompound> renderData) {
+		if (burning) {
+			renderData.put(CookingLogic.RENDER_DATA_TYPE, new NBTTagCompound());
+		}
+	}
+
 	@Override
 	public void setEnabled(boolean enabled) {
 		if (!enabled) {
+			burning = false;
 			cookingLogic.pause();
 		}
 		super.setEnabled(enabled);

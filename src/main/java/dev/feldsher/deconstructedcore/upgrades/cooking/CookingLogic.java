@@ -18,6 +18,8 @@ import java.util.function.Predicate;
  * cooked, as world times, so that it needn't be saved each tick. Paused, it keeps the times left instead.
  */
 public class CookingLogic {
+	/** The render data a burning cooking upgrade shows its flames by. */
+	public static final String RENDER_DATA_TYPE = "cooking";
 	public static final int COOK_INPUT_SLOT = 0;
 	public static final int FUEL_SLOT = 1;
 	public static final int COOK_OUTPUT_SLOT = 2;

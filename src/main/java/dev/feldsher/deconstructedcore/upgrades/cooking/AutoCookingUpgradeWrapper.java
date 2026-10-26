@@ -1,5 +1,8 @@
 package dev.feldsher.deconstructedcore.upgrades.cooking;
 
+import java.util.Map;
+import net.minecraft.nbt.NBTTagCompound;
+import dev.feldsher.deconstructedcore.upgrades.IRenderDataUpgrade;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
@@ -21,7 +24,9 @@ import java.util.function.Predicate;
  * Takes what it can cook and burn from the storage, through filters for each, and puts what it cooked, and what's
  * left of fuel that no longer burns, such as an empty bucket, back into it.
  */
-public class AutoCookingUpgradeWrapper extends UpgradeWrapperBase<AutoCookingUpgradeWrapper, AutoCookingUpgradeItem> implements ITickableUpgrade, ICookingUpgrade {
+public class AutoCookingUpgradeWrapper extends UpgradeWrapperBase<AutoCookingUpgradeWrapper, AutoCookingUpgradeItem> implements ITickableUpgrade, ICookingUpgrade, IRenderDataUpgrade {
+	/** As of its last tick, for its flames on the storage. */
+	private boolean burning = false;
 	private static final int NOTHING_TO_DO_COOLDOWN = 10;
 	private static final int NO_INVENTORY_SPACE_COOLDOWN = 60;
 
@@ -49,9 +54,18 @@ public class AutoCookingUpgradeWrapper extends UpgradeWrapperBase<AutoCookingUpg
 		cookingLogic = new CookingLogic(upgrade, upgradeSaveHandler, isValidFuel, isValidInput, config, cookingType);
 	}
 
+	/** Its flames, while it burns. */
+	@Override
+	public void addRenderData(Map<String, NBTTagCompound> renderData) {
+		if (burning) {
+			renderData.put(CookingLogic.RENDER_DATA_TYPE, new NBTTagCompound());
+		}
+	}
+
 	@Override
 	public void setEnabled(boolean enabled) {
 		if (!enabled) {
+			burning = false;
 			cookingLogic.pause();
 		}
 		super.setEnabled(enabled);
@@ -86,6 +100,7 @@ public class AutoCookingUpgradeWrapper extends UpgradeWrapperBase<AutoCookingUpg
 
 	@Override
 	public void tick(@Nullable Entity entity, World world, BlockPos pos) {
+		burning = cookingLogic.isBurning(world);
 		if (isInCooldown(world)) {
 			return;
 		}

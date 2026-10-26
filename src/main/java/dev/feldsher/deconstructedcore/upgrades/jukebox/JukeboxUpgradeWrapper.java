@@ -1,5 +1,7 @@
 package dev.feldsher.deconstructedcore.upgrades.jukebox;
 
+import java.util.Map;
+import dev.feldsher.deconstructedcore.upgrades.IRenderDataUpgrade;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.ITickableUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeWrapperBase;
@@ -27,10 +29,12 @@ import java.util.function.Consumer;
  * Plays the discs it holds, one after another, from where the storage is: the clients near it play the sound, and
  * say when it has finished, while the storage keeps telling the server it's still there.
  */
-public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrapper, JukeboxUpgradeItem> implements ITickableUpgrade {
+public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrapper, JukeboxUpgradeItem> implements ITickableUpgrade, IRenderDataUpgrade {
 	private static final int KEEP_ALIVE_SEND_INTERVAL = 5;
 	private static final String DISC_INVENTORY_TAG = "discInventory";
 	private static final String IS_PLAYING_TAG = "isPlaying";
+	/** The render data a playing jukebox upgrade shows its notes by. */
+	public static final String RENDER_DATA_TYPE = "jukebox";
 	private static final String SHUFFLE_TAG = "shuffle";
 	private static final String REPEAT_MODE_TAG = "repeatMode";
 	private static final String DISC_SLOT_ACTIVE_TAG = "discSlotActive";
@@ -233,6 +237,14 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 					ServerStorageSoundHandler.updateKeepAlive(storageUuid, world, entity != null ? entity.getPositionVector() : new Vec3d(pos).add(0.5, 0.5, 0.5),
 							() -> setIsPlaying(false)));
 			lastKeepAliveSendTime = world.getTotalWorldTime();
+		}
+	}
+
+	/** Its notes, while it plays. */
+	@Override
+	public void addRenderData(Map<String, NBTTagCompound> renderData) {
+		if (isPlaying) {
+			renderData.put(RENDER_DATA_TYPE, new NBTTagCompound());
 		}
 	}
 
