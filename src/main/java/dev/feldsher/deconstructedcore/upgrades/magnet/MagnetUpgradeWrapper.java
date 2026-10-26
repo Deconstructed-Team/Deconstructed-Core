@@ -23,6 +23,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -37,6 +39,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	private static final String PICKUP_ITEMS_TAG = "pickup_items";
 	private static final String PICKUP_XP_TAG = "pickup_xp";
 
+	private static final Set<IMagnetPreventionChecker> MAGNET_CHECKERS = new HashSet<>();
 	private static final int COOLDOWN_TICKS = 10;
 	private static final int FULL_COOLDOWN_TICKS = 40;
 	private final ContentsFilterLogic filterLogic;
@@ -92,7 +95,23 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		return cooldown;
 	}
 
+	public static void addMagnetPreventionChecker(IMagnetPreventionChecker checker) {
+		MAGNET_CHECKERS.add(checker);
+	}
+
+	private static boolean isBlockedBySomething(Entity entity) {
+		for (IMagnetPreventionChecker checker : MAGNET_CHECKERS) {
+			if (checker.isBlocked(entity)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static boolean canNotPickup(Entity pickedUpEntity, @Nullable Entity entity) {
+		if (isBlockedBySomething(pickedUpEntity)) {
+			return true;
+		}
 		NBTTagCompound data = pickedUpEntity.getEntityData();
 		return entity != null ? data.hasKey(PREVENT_REMOTE_MOVEMENT) : data.hasKey(PREVENT_REMOTE_MOVEMENT) && !data.hasKey(ALLOW_MACHINE_MOVEMENT);
 	}
