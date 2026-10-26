@@ -35,6 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Saving a storage's settings as a template, loading one onto it, and exporting them to a file. Both sides run each
@@ -47,6 +48,10 @@ public class TemplatePersistanceContainer {
 	/** No path separators, so that an export stays in its folder. */
 	private static final Pattern EXPORT_FILE_NAME_PATTERN = Pattern.compile("[A-Za-z0-9._\\-\\s]+");
 	private static final int TOTAL_ORDINAL_SAVE_SLOTS = 10;
+	// each player's named templates and exports are kept and sent to clients: so many of them, with names so long, at most
+	private static final int MAX_NAME_LENGTH = 32;
+	private static final int MAX_NAMED_SAVES = 16;
+	private static final int MAX_EXPORTS_PER_PLAYER = 16;
 	private static final String ACTION_TAG = "action";
 	private static final String SAVE_SLOT_TAG = "saveSlot";
 	private static final String LOAD_SLOT_TAG = "loadSlot";
@@ -198,6 +203,14 @@ public class TemplatePersistanceContainer {
 		if (saveSlot.showsTextbox() && slotName.trim().isEmpty()) {
 			return;
 		}
+		if (saveSlot.showsTextbox() && slotName.trim().length() > MAX_NAME_LENGTH) {
+			sendErrorMessage(new TextComponentTranslation(TranslationHelper.INSTANCE.translSettingsMessage("save_template.name_too_long"), MAX_NAME_LENGTH));
+			return;
+		}
+		if (saveSlot.showsTextbox() && !getNamedSaves().contains(slotName.trim()) && getNamedSaves().size() >= MAX_NAMED_SAVES) {
+			sendErrorMessage(new TextComponentTranslation(TranslationHelper.INSTANCE.translSettingsMessage("save_template.too_many"), MAX_NAMED_SAVES));
+			return;
+		}
 		saveSlot.setSlotName(slotName.trim());
 		saveSlot.persistTo(getPlayer(), getTemplateStorage(), getSettingsHandler().getNbt().copy());
 
@@ -326,6 +339,11 @@ public class TemplatePersistanceContainer {
 			return;
 		}
 
+		if (fileName.trim().length() > MAX_NAME_LENGTH) {
+			sendErrorMessage(new TextComponentTranslation(TranslationHelper.INSTANCE.translSettingsMessage("export_template.name_too_long"), MAX_NAME_LENGTH));
+			return;
+		}
+
 		String finalFileName = fileName.trim().replace(' ', '_').toLowerCase(Locale.ROOT);
 		sendDataToServer(() -> {
 			NBTTagCompound data = action("exportTemplate");
@@ -342,6 +360,10 @@ public class TemplatePersistanceContainer {
 			String source = serverPlayer.getName().toLowerCase(Locale.ROOT);
 			Path sourceDir = templatesDir.resolve(source);
 			Path exportPath = sourceDir.resolve(finalFileName + FileSettingsTemplates.SUFFIX);
+			if (!Files.exists(exportPath) && countExports(sourceDir) >= MAX_EXPORTS_PER_PLAYER) {
+				serverPlayer.sendStatusMessage(new TextComponentTranslation(TranslationHelper.INSTANCE.translSettingsMessage("export_template.too_many"), MAX_EXPORTS_PER_PLAYER), false);
+				return;
+			}
 			NBTTagCompound settingsNbt = getSettingsHandler().getNbt().copy();
 			try {
 				Files.createDirectories(sourceDir);
@@ -358,6 +380,18 @@ public class TemplatePersistanceContainer {
 			Path worldDir = DimensionManager.getCurrentSaveRootDirectory().toPath();
 			serverPlayer.sendStatusMessage(new TextComponentTranslation(TranslationHelper.INSTANCE.translSettingsMessage("export_template"),
 					worldDir.relativize(exportPath).toString()), false);
+		}
+	}
+
+	private static long countExports(Path sourceDir) {
+		if (!Files.isDirectory(sourceDir)) {
+			return 0;
+		}
+		try (Stream<Path> files = Files.list(sourceDir)) {
+			return files.filter(file -> file.getFileName().toString().endsWith(FileSettingsTemplates.SUFFIX)).count();
+		} catch (IOException e) {
+			DeconstructedCore.LOGGER.error("Couldn't count settings template exports in {}", sourceDir, e);
+			return Long.MAX_VALUE;
 		}
 	}
 
