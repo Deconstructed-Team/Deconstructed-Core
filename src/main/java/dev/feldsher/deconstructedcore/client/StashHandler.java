@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.client;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
+import dev.feldsher.deconstructedcore.api.IStashSlotExtension;
 import dev.feldsher.deconstructedcore.api.IStashStorageItem;
 import dev.feldsher.deconstructedcore.client.gui.utils.TranslationHelper;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
@@ -21,10 +22,13 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
- * Stashing in any inventory screen, modded ones too, as long as it has real slots: a right click with a storage item
+ * Stashing in any inventory screen, modded ones too, as long as it has real slots or an extension knows its own kind
+ * (a network terminal's): a right click with a storage item
  * held onto an item, or with an item held onto a storage item, is caught before the screen sees it and done by the
  * server. Over the slots it can be done with, a sign: + on storage items, - on items, green where the storage has the
  * item or remembers it.
@@ -36,8 +40,24 @@ public final class StashHandler {
 	private static final int SPACE_COLOR = 0xFFFF00;
 	/** The release of a caught click is caught too, or the screen would take it for a click of its own. */
 	private static boolean catchRelease = false;
+	private static final List<IStashSlotExtension> EXTENSIONS = new ArrayList<>();
 
 	private StashHandler() {}
+
+	/** For a mod's own kind of slot, as one of a network terminal. */
+	public static void registerExtension(IStashSlotExtension extension) {
+		EXTENSIONS.add(extension);
+	}
+
+	@Nullable
+	private static IStashSlotExtension getExtension(Slot slot) {
+		for (IStashSlotExtension extension : EXTENSIONS) {
+			if (extension.handles(slot)) {
+				return extension;
+			}
+		}
+		return null;
+	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public static void onMouseInput(GuiScreenEvent.MouseInputEvent.Pre event) {
@@ -60,7 +80,12 @@ public final class StashHandler {
 		if (slot == null || player == null || getStashResult(slot, player.inventory.getItemStack()) == null) {
 			return;
 		}
-		PacketHandler.INSTANCE.sendToServer(new StashMessage(screen.inventorySlots.windowId, slot.slotNumber));
+		IStashSlotExtension extension = getExtension(slot);
+		if (extension != null) {
+			extension.stash(screen, slot);
+		} else {
+			PacketHandler.INSTANCE.sendToServer(new StashMessage(screen.inventorySlots.windowId, slot.slotNumber));
+		}
 		catchRelease = true;
 		event.setCanceled(true);
 	}
@@ -115,6 +140,10 @@ public final class StashHandler {
 	 */
 	@Nullable
 	private static IStashStorageItem.StashResult getStashResult(Slot slot, ItemStack held) {
+		IStashSlotExtension extension = getExtension(slot);
+		if (extension != null) {
+			return held.isEmpty() ? null : extension.getStashResult(slot, held);
+		}
 		ItemStack inSlot = slot.getStack();
 		EntityPlayerSP player = Minecraft.getMinecraft().player;
 		if (held.isEmpty() || inSlot.isEmpty() || !slot.canTakeStack(player)) {
