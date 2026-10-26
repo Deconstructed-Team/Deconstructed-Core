@@ -80,7 +80,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		EntityPlayer player = entity instanceof EntityPlayer ? (EntityPlayer) entity : null;
 
 		for (EntityItem itemEntity : itemEntities) {
-			if (itemEntity.isDead || !filterLogic.matchesFilter(itemEntity.getItem()) || canNotPickup(itemEntity, entity)) {
+			if (itemEntity.isDead || !filterLogic.matchesFilter(itemEntity.getItem()) || canNotPickup(itemEntity, entity) || isNotPickableYet(itemEntity, entity)) {
 				continue;
 			}
 			if (tryToInsertItem(player, itemEntity)) {
@@ -106,6 +106,18 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * As a player picks up: not while the item's pickup delay runs, so that one just thrown isn't pulled back at once,
+	 * nor while it's kept for the player it belongs to, as vanilla keeps it until 10 seconds before it despawns.
+	 */
+	private static boolean isNotPickableYet(EntityItem itemEntity, @Nullable Entity entity) {
+		if (itemEntity.cannotPickup()) {
+			return true;
+		}
+		String owner = itemEntity.getOwner();
+		return owner != null && itemEntity.lifespan - itemEntity.getAge() > 200 && !(entity instanceof EntityPlayer && owner.equals(entity.getName()));
 	}
 
 	private static boolean canNotPickup(Entity pickedUpEntity, @Nullable Entity entity) {
