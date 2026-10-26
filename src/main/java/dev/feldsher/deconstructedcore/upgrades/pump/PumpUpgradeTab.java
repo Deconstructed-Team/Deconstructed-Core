@@ -56,6 +56,8 @@ public class PumpUpgradeTab extends UpgradeSettingsTab<PumpUpgradeContainer> {
 	}
 
 	public static class Advanced extends PumpUpgradeTab {
+		private final FluidFilterControl fluidFilterControl;
+
 		public Advanced(PumpUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen) {
 			super(upgradeContainer, position, screen, "advanced_pump");
 			addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), INTERACT_WITH_WORLD, button -> {
@@ -68,7 +70,11 @@ public class PumpUpgradeTab extends UpgradeSettingsTab<PumpUpgradeContainer> {
 					getContainer().setInteractWithHand(!getContainer().shouldInteractWithHand());
 				}
 			}, () -> getContainer().shouldInteractWithHand()));
-			addHideableChild(new FluidFilterControl(new Position(x + 3, y + 44), getContainer().getFluidFilterContainer()));
+			fluidFilterControl = addHideableChild(new FluidFilterControl(new Position(x + 3, y + 44), getContainer().getFluidFilterContainer()));
+		}
+
+		public FluidFilterControl getFluidFilterControl() {
+			return fluidFilterControl;
 		}
 	}
 }

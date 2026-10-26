@@ -4,6 +4,7 @@ import dev.feldsher.deconstructedcore.client.gui.controls.WidgetBase;
 import dev.feldsher.deconstructedcore.client.gui.utils.Dimension;
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
+import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -57,6 +58,19 @@ public class FluidFilterControl extends WidgetBase {
 				GuiHelper.renderTooltip(screen, Collections.singletonList(fluid.getLocalizedName()), mouseX, mouseY);
 			}
 		});
+	}
+
+	public int getNumberOfSlots() {
+		return container.getNumberOfFluidFilters();
+	}
+
+	/** The slot's area on screen, for a fluid dragged onto it. */
+	public Rect2i getSlotArea(int slot) {
+		return new Rect2i(x + slot * 18, y, 17, 17);
+	}
+
+	public void setFluid(int slot, FluidStack fluid) {
+		container.setFluid(slot, fluid);
 	}
 
 	private Optional<Integer> getSlotClicked(double mouseX, double mouseY) {
