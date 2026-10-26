@@ -92,6 +92,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		if (player.world.isRemote) {
 			// The server sent the contents just before opening: the client builds from them, not from what it had
 			storageWrapper.onContentsNbtUpdated();
+		} else {
+			storageWrapper.fillWithLoot(player);
 		}
 		storageWrapper.onInit();
 		addStorageInventorySlots();

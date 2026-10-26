@@ -6,15 +6,19 @@ import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.inventory.ItemStackKey;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
@@ -183,5 +187,50 @@ public class InventoryHelper {
 			return ItemStack.EMPTY;
 		}
 		return ItemHandlerHelper.copyStackWithSize(stack, extractedCount);
+	}
+
+	/** The handler's empty slots, in random order. */
+	public static List<Integer> getEmptySlotsRandomized(IItemHandler inventory, Random rand) {
+		List<Integer> list = new ArrayList<>();
+		for (int i = 0; i < inventory.getSlots(); ++i) {
+			if (inventory.getStackInSlot(i).isEmpty()) {
+				list.add(i);
+			}
+		}
+		Collections.shuffle(list, rand);
+		return list;
+	}
+
+	/** Splits the stacks of more than one, at random, until they would fill the empty slots, and shuffles them all, as a loot chest's are. */
+	public static void shuffleItems(List<ItemStack> stacks, int emptySlotsCount, Random rand) {
+		List<ItemStack> splittable = new ArrayList<>();
+		Iterator<ItemStack> iterator = stacks.iterator();
+		while (iterator.hasNext()) {
+			ItemStack stack = iterator.next();
+			if (stack.isEmpty()) {
+				iterator.remove();
+			} else if (stack.getCount() > 1) {
+				splittable.add(stack);
+				iterator.remove();
+			}
+		}
+
+		while (emptySlotsCount - stacks.size() - splittable.size() > 0 && !splittable.isEmpty()) {
+			ItemStack stack = splittable.remove(MathHelper.getInt(rand, 0, splittable.size() - 1));
+			ItemStack split = stack.splitStack(MathHelper.getInt(rand, 1, stack.getCount() / 2));
+			if (stack.getCount() > 1 && rand.nextBoolean()) {
+				splittable.add(stack);
+			} else {
+				stacks.add(stack);
+			}
+			if (split.getCount() > 1 && rand.nextBoolean()) {
+				splittable.add(split);
+			} else {
+				stacks.add(split);
+			}
+		}
+
+		stacks.addAll(splittable);
+		Collections.shuffle(stacks, rand);
 	}
 }

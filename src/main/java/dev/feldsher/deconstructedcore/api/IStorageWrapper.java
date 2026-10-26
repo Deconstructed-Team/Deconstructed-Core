@@ -8,6 +8,7 @@ import dev.feldsher.deconstructedcore.renderdata.RenderInfo;
 import dev.feldsher.deconstructedcore.settings.SettingsHandler;
 import dev.feldsher.deconstructedcore.upgrades.FilterLogic;
 import dev.feldsher.deconstructedcore.upgrades.UpgradeHandler;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -95,6 +96,11 @@ public interface IStorageWrapper {
 	void onContentsNbtUpdated();
 
 	void setPersistent(boolean persistent);
+
+	/** On the server, as the player first opens it: puts in the loot it was given to hold. */
+	default void fillWithLoot(EntityPlayer player) {
+		//noop
+	}
 
 	int getMainColor();
 
