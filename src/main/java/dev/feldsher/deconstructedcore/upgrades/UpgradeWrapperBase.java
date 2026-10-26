@@ -15,6 +15,7 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 	protected final T upgradeItem;
 
 	private long cooldown = 0;
+	private boolean valid = true;
 
 	protected UpgradeWrapperBase(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		this.storageWrapper = storageWrapper;
@@ -29,8 +30,21 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 		return upgrade;
 	}
 
+	/** Not once invalid: the stack may be out of the storage by then, and saving would put it back. */
 	protected void save() {
-		upgradeSaveHandler.accept(upgrade);
+		if (valid) {
+			upgradeSaveHandler.accept(upgrade);
+		}
+	}
+
+	@Override
+	public boolean isValid() {
+		return valid;
+	}
+
+	@Override
+	public void invalidate() {
+		valid = false;
 	}
 
 	protected void setCooldown(World world, int time) {
@@ -52,6 +66,9 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 
 	@Override
 	public void setEnabled(boolean enabled) {
+		if (!valid) {
+			return;
+		}
 		StorageNbt.getOrCreateTag(upgrade).setBoolean(ENABLED_TAG, enabled);
 		save();
 		storageWrapper.getUpgradeHandler().refreshWrappersThatImplementAndTypeWrappers();

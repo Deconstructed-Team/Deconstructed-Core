@@ -29,6 +29,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -72,6 +73,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private int numberOfUpgradeSlots = 0;
 	private boolean reopening = false;
 	private final Map<Integer, UpgradeContainerBase<?, ?>> upgradeContainers = new LinkedHashMap<>();
+	// what the slots and tabs were built on, to tell when another player's change outdated them
+	private InventoryHandler builtInventoryHandler;
+	private int builtInventorySlots;
+	private UpgradeHandler builtUpgradeHandler;
+	private Map<Integer, IUpgradeWrapper> builtUpgradeWrappers = Collections.emptyMap();
 
 	@Nullable
 	private UpgradeSlotChangeResult errorUpgradeSlotChangeResult = null;
@@ -113,9 +119,49 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public void detectAndSendChanges() {
 		if (!player.world.isRemote) {
+			if (refuseIfOutdated()) {
+				return;
+			}
 			storageWrapper.refreshRenderInfo();
 		}
 		super.detectAndSendChanges();
+	}
+
+	/**
+	 * On the server: whether the storage's inventory or upgrades changed under this container since it was built, as
+	 * when another player viewing the same storage put an upgrade in or took one out. Its slots and tabs may then work
+	 * on what the storage no longer holds, a copy of it: the container takes nothing more, and is opened again.
+	 */
+	public boolean refuseIfOutdated() {
+		if (player.world.isRemote || !isOutdated()) {
+			return false;
+		}
+		onUpgradeChanged();
+		return true;
+	}
+
+	private boolean isOutdated() {
+		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
+		UpgradeHandler upgradeHandler = storageWrapper.getUpgradeHandler();
+		if (inventoryHandler != builtInventoryHandler || inventoryHandler.getSlots() != builtInventorySlots || upgradeHandler != builtUpgradeHandler
+				|| upgradeHandler.getSlots() != numberOfUpgradeSlots) {
+			return true;
+		}
+		Map<Integer, IUpgradeWrapper> wrappers = upgradeHandler.getSlotWrappers();
+		if (wrappers.size() != builtUpgradeWrappers.size()) {
+			return true;
+		}
+		for (Map.Entry<Integer, IUpgradeWrapper> entry : wrappers.entrySet()) {
+			if (builtUpgradeWrappers.get(entry.getKey()) != entry.getValue()) {
+				return true;
+			}
+		}
+		for (UpgradeContainerBase<?, ?> container : upgradeContainers.values()) {
+			if (!container.getUpgradeWrapper().isValid()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public S getStorageWrapper() {
@@ -123,6 +169,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected void addStorageInventorySlots() {
+		builtInventoryHandler = storageWrapper.getInventoryHandler();
+		builtInventorySlots = builtInventoryHandler.getSlots();
 		for (int slotIndex = 0; slotIndex < storageWrapper.getInventoryHandler().getSlots(); slotIndex++) {
 			addSlotToContainer(new StorageInventorySlot(player, storageWrapper, slotIndex));
 		}
@@ -161,6 +209,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	/** After the inventory: by then the storage has its contents, and with them its real upgrade handler on both sides. */
 	private void addUpgradeSlots() {
 		UpgradeHandler upgradeHandler = storageWrapper.getUpgradeHandler();
+		builtUpgradeHandler = upgradeHandler;
 		numberOfUpgradeSlots = upgradeHandler.getSlots();
 		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
 			addSlotToContainer(new StorageUpgradeSlot(upgradeHandler, slotIndex));
@@ -168,6 +217,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private void addUpgradeSettingsContainers() {
+		builtUpgradeWrappers = new HashMap<>(storageWrapper.getUpgradeHandler().getSlotWrappers());
 		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> UpgradeContainerRegistry.instantiateContainer(player, slot, wrapper)
 				.ifPresent(container -> upgradeContainers.put(slot, container)));
 
@@ -312,6 +362,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public void handlePacket(NBTTagCompound data) {
+		if (refuseIfOutdated()) {
+			return;
+		}
 		if (data.hasKey("containerId")) {
 			int containerId = data.getInteger("containerId");
 			if (upgradeContainers.containsKey(containerId)) {
@@ -359,6 +412,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	/** A click into a filter slot leaves a ghost copy of what's held there, and the held stack where it was. */
 	@Override
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickType, EntityPlayer player) {
+		if (refuseIfOutdated()) {
+			return ItemStack.EMPTY;
+		}
 		if (slotId >= 0 && isUpgradeSettingsSlot(slotId) && inventorySlots.get(slotId) instanceof IFilterSlot) {
 			Slot slot = inventorySlots.get(slotId);
 			ItemStack cursorStack = player.inventory.getItemStack();
@@ -757,6 +813,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				container.setUpgradeWrapper(slotWrapper.getValue());
 			}
 		}
+		// a tab left on an invalid wrapper still tells the container it's outdated
+		builtUpgradeWrappers = new HashMap<>(storageWrapper.getUpgradeHandler().getSlotWrappers());
 	}
 
 	/** The columns an upgrade takes more than the one it replaces are the inventory's last: their slots must be empty. */

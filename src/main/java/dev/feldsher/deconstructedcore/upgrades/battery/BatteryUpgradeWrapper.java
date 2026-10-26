@@ -59,6 +59,9 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 
 	@Override
 	public int receiveEnergy(int maxReceive, boolean simulate) {
+		if (!isValid()) {
+			return 0;
+		}
 		int ret = Math.max(0, Math.min(getMaxEnergyStored() - energyStored, Math.min(getMaxInOut(), maxReceive)));
 		if (!simulate && ret > 0) {
 			energyStored += ret;
@@ -69,6 +72,9 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 
 	@Override
 	public int extractEnergy(int maxExtract, boolean simulate) {
+		if (!isValid()) {
+			return 0;
+		}
 		int ret = Math.max(0, Math.min(energyStored, Math.min(getMaxInOut(), maxExtract)));
 		if (!simulate && ret > 0) {
 			energyStored -= ret;

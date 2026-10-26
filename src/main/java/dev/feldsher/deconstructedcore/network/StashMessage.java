@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.network;
 
 import dev.feldsher.deconstructedcore.api.IStashStorageItem;
+import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -49,7 +50,8 @@ public class StashMessage implements IMessage {
 
 		private static void handle(EntityPlayerMP player, StashMessage message) {
 			Container container = player.openContainer;
-			if (container.windowId != message.windowId || message.slotNumber < 0 || message.slotNumber >= container.inventorySlots.size()) {
+			if (container.windowId != message.windowId || message.slotNumber < 0 || message.slotNumber >= container.inventorySlots.size()
+					|| container instanceof StorageContainerMenuBase && ((StorageContainerMenuBase<?>) container).refuseIfOutdated()) {
 				return;
 			}
 			Slot slot = container.getSlot(message.slotNumber);

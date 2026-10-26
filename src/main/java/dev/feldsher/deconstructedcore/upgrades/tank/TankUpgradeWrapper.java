@@ -100,7 +100,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	}
 
 	public int fill(@Nullable FluidStack resource, boolean doFill, boolean ignoreInOutLimit) {
-		if (resource == null || resource.amount <= 0) {
+		if (resource == null || resource.amount <= 0 || !isValid()) {
 			return 0;
 		}
 		int capacity = getTankCapacity();
@@ -138,7 +138,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 	@Nullable
 	public FluidStack drain(int maxDrain, boolean doDrain, boolean ignoreInOutLimit) {
-		if (contents == null || maxDrain <= 0) {
+		if (contents == null || maxDrain <= 0 || !isValid()) {
 			return null;
 		}
 

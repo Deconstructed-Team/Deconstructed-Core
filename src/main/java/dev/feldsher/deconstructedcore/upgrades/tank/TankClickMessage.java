@@ -38,7 +38,7 @@ public class TankClickMessage implements IMessage {
 	}
 
 	private static void handle(EntityPlayerMP player, int upgradeSlot) {
-		if (!(player.openContainer instanceof StorageContainerMenuBase<?>)) {
+		if (!(player.openContainer instanceof StorageContainerMenuBase<?>) || ((StorageContainerMenuBase<?>) player.openContainer).refuseIfOutdated()) {
 			return;
 		}
 		UpgradeContainerBase<?, ?> upgradeContainer = ((StorageContainerMenuBase<?>) player.openContainer).getUpgradeContainers().get(upgradeSlot);

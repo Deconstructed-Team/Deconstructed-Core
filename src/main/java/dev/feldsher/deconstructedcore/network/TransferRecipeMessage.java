@@ -76,7 +76,8 @@ public class TransferRecipeMessage implements IMessage {
 		public IMessage onMessage(TransferRecipeMessage message, MessageContext ctx) {
 			EntityPlayerMP player = ctx.getServerHandler().player;
 			player.getServerWorld().addScheduledTask(() -> {
-				if (player.openContainer instanceof StorageContainerMenuBase && player.openContainer.windowId == message.windowId) {
+				if (player.openContainer instanceof StorageContainerMenuBase && player.openContainer.windowId == message.windowId
+							&& !((StorageContainerMenuBase<?>) player.openContainer).refuseIfOutdated()) {
 					CraftingRecipeTransfer.transfer(player, (StorageContainerMenuBase<?>) player.openContainer, message.grid, message.output, message.maxTransfer);
 				}
 			});

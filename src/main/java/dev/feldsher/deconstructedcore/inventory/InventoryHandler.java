@@ -47,7 +47,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 
 	private int baseSlotLimit;
 	private final StackUpgradeConfig stackUpgradeConfig;
-	private final InventoryPartitioner inventoryPartitioner;
+	private InventoryPartitioner inventoryPartitioner;
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, NBTTagCompound contentsNbt, Runnable saveHandler, int baseSlotLimit,
 			StackUpgradeConfig stackUpgradeConfig) {
@@ -372,6 +372,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 			stacks.set(slot, previousStacks.get(slot));
 		}
 		initStackNbts();
+		// its last part runs to the end of the inventory: read again, with the new end
+		inventoryPartitioner = new InventoryPartitioner(inventoryPartitioner.serializeNBT(), this, this::getMemorySettings);
 		saveInventory();
 	}
 }

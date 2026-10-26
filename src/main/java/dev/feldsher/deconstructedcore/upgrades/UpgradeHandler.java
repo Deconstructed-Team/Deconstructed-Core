@@ -106,6 +106,7 @@ public class UpgradeHandler extends ItemStackHandler {
 			return;
 		}
 		wrappersInitialized = true;
+		Map<Integer, IUpgradeWrapper> previousWrappers = new HashMap<>(slotWrappers);
 		slotWrappers.clear();
 		typeWrappers.clear();
 		if (wrapperAccessor != null) {
@@ -114,6 +115,13 @@ public class UpgradeHandler extends ItemStackHandler {
 
 		InventoryHelper.iterate(this, (slot, upgrade) -> {
 			if (upgrade.isEmpty() || !(upgrade.getItem() instanceof IUpgradeItem<?>)) {
+				return;
+			}
+			// the same stack still in its slot keeps its wrapper, and what the wrapper holds, as a tab open on it uses it
+			IUpgradeWrapper previous = previousWrappers.get(slot);
+			if (previous != null && previous.getUpgradeStack() == upgrade && previous.isValid()) {
+				previousWrappers.remove(slot);
+				slotWrappers.put(slot, previous);
 				return;
 			}
 			UpgradeType<?> type = ((IUpgradeItem<?>) upgrade.getItem()).getType();
@@ -125,6 +133,7 @@ public class UpgradeHandler extends ItemStackHandler {
 			setUpgradeDefaults(wrapper);
 			slotWrappers.put(slot, wrapper);
 		});
+		previousWrappers.values().forEach(IUpgradeWrapper::invalidate);
 	}
 
 	@Nonnull
