@@ -29,6 +29,15 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 		return true;
 	}
 
+	/** Opens the upgrade's tab, as a click on it would, unless it's open. */
+	public void openUpgradeTab(UpgradeContainerBase<?, ?> upgradeContainer) {
+		for (Tab tab : children) {
+			if (tab instanceof UpgradeSettingsTab<?> && ((UpgradeSettingsTab<?>) tab).getContainer() == upgradeContainer && !((UpgradeSettingsTab<?>) tab).isOpen()) {
+				((UpgradeSettingsTab<?>) tab).setOpen(true);
+			}
+		}
+	}
+
 	public void tick() {
 		children.forEach(Tab::tick);
 	}

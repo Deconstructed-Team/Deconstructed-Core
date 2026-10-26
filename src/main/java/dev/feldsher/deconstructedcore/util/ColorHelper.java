@@ -32,6 +32,11 @@ public final class ColorHelper {
 		return null;
 	}
 
+	/** The ore dictionary's name of the dye of this color, as "dyeRed". */
+	public static String getDyeOreName(EnumDyeColor color) {
+		return DYE_ORE_NAMES[color.getDyeDamage()];
+	}
+
 	public static int calculateColor(int baseColor, int defaultColor, List<EnumDyeColor> dyes) {
 		if (dyes.isEmpty()) {
 			return baseColor;
