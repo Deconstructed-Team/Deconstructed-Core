@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.settings.memory;
 
+import dev.feldsher.deconstructedcore.util.GhostStacks;
 import dev.feldsher.deconstructedcore.common.gui.SettingsContainerMenu;
 import dev.feldsher.deconstructedcore.settings.SettingsContainerBase;
 import net.minecraft.item.ItemStack;
@@ -36,7 +37,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		} else if (data.hasKey(IGNORE_NBT_TAG)) {
 			setIgnoreNbt(data.getBoolean(IGNORE_NBT_TAG));
 		} else if (data.hasKey(SET_FILTER_SLOT_TAG)) {
-			setFilter(data.getInteger(SET_FILTER_SLOT_TAG), new ItemStack(data.getCompoundTag(FILTER_TAG)));
+			setFilter(data.getInteger(SET_FILTER_SLOT_TAG), GhostStacks.fromClient(data.getCompoundTag(FILTER_TAG)));
 		}
 	}
 

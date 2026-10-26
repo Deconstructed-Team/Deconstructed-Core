@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.common.gui;
 
+import dev.feldsher.deconstructedcore.util.GhostStacks;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import dev.feldsher.deconstructedcore.upgrades.IUpgradeWrapper;
@@ -383,7 +384,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		} else if ("openSettings".equals(data.getString(ACTION_TAG))) {
 			openSettings();
 		} else if (data.hasKey(GHOST_SLOT_TAG)) {
-			setGhostSlot(data.getInteger(GHOST_SLOT_TAG), new ItemStack(data.getCompoundTag(GHOST_STACK_TAG)));
+			setGhostSlot(data.getInteger(GHOST_SLOT_TAG), GhostStacks.fromClient(data.getCompoundTag(GHOST_STACK_TAG)));
 		}
 	}
 
