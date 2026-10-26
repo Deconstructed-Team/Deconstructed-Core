@@ -70,6 +70,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private ToggleButton<SortBy> sortByButton = null;
 	private final Map<Integer, UpgradeInventoryPartBase<?>> inventoryParts = new LinkedHashMap<>();
 	private final Map<Integer, ToggleButton<Boolean>> upgradeSwitches = new LinkedHashMap<>();
+	/**
+	 * As the slots were laid out for. The storage's own count changes as soon as an upgrade that takes columns is put
+	 * in or taken out, a moment before the screen is opened again with slots for it: drawn by that count, the slots'
+	 * background would not match them for that moment.
+	 */
+	private final int columnsTaken;
 
 	protected StorageScreenBase(S menu, String title) {
 		super(menu);
@@ -77,6 +83,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		this.title = title;
 		visibleSlotsCount = menu.getNumberOfStorageInventorySlots();
 		numberOfUpgradeSlots = menu.getNumberOfUpgradeSlots();
+		columnsTaken = menu.getColumnsTaken();
 		updateDimensionsAndSlotPositions(new ScaledResolution(Minecraft.getMinecraft()).getScaledHeight());
 	}
 
@@ -118,7 +125,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	/** In the columns upgrades take, right of the slots and their scroll bar, side by side, two columns each. */
 	private void initUpgradeInventoryParts() {
 		inventoryParts.clear();
-		if (getMenu().getColumnsTaken() == 0) {
+		if (columnsTaken == 0) {
 			return;
 		}
 
@@ -178,7 +185,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void updateDimensionsAndSlotPositions(int height) {
 		numberOfVisibleRows = Math.max(1, Math.min((height - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows()));
-		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
+		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + columnsTaken * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		xSize = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
 		if (isScrolling()) {
@@ -224,7 +231,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	protected int getSlotsOnLine() {
-		return storageBackgroundProperties.getSlotsOnLine() - getMenu().getColumnsTaken();
+		return storageBackgroundProperties.getSlotsOnLine() - columnsTaken;
 	}
 
 	/** Slots in the visible rows go where they're drawn; those scrolled away go off screen, where they can't be clicked. */
