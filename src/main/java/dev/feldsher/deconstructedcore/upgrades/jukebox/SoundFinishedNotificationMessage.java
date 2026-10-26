@@ -35,7 +35,7 @@ public class SoundFinishedNotificationMessage implements IMessage {
 		@Override
 		public IMessage onMessage(SoundFinishedNotificationMessage message, MessageContext ctx) {
 			EntityPlayerMP player = ctx.getServerHandler().player;
-			player.getServerWorld().addScheduledTask(() -> ServerStorageSoundHandler.onSoundFinished(player.world, message.storageUuid));
+			player.getServerWorld().addScheduledTask(() -> ServerStorageSoundHandler.onSoundFinished(player, message.storageUuid));
 			return null;
 		}
 	}

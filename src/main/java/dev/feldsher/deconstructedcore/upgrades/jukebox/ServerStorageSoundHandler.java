@@ -3,6 +3,7 @@ package dev.feldsher.deconstructedcore.upgrades.jukebox;
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.network.PacketHandler;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
@@ -32,6 +33,8 @@ public final class ServerStorageSoundHandler {
 	private static final int KEEP_ALIVE_CHECK_INTERVAL = 10;
 	private static final int SOUND_RANGE = 128;
 	private static final Map<Integer, Long> lastWorldCheck = new HashMap<>();
+	// a record is heard up to 64 blocks away; some more for the client's view of where the storage is
+	private static final double HEARING_DISTANCE = 96;
 	private static final Map<Integer, Map<UUID, KeepAliveInfo>> worldStorageSoundKeepAlive = new HashMap<>();
 
 	private ServerStorageSoundHandler() {}
@@ -67,8 +70,14 @@ public final class ServerStorageSoundHandler {
 		worldStorageSoundKeepAlive.get(dim).get(storageUuid).update(world.getTotalWorldTime(), position);
 	}
 
-	public static void onSoundFinished(World world, UUID storageUuid) {
-		removeKeepAliveInfo(world, storageUuid, true);
+	/** Told by a player's client: only one near enough to hear the disc, so that nobody else stops or skips it. */
+	public static void onSoundFinished(EntityPlayer player, UUID storageUuid) {
+		Map<UUID, KeepAliveInfo> keepAlive = worldStorageSoundKeepAlive.get(player.world.provider.getDimension());
+		KeepAliveInfo info = keepAlive == null ? null : keepAlive.get(storageUuid);
+		if (info == null || info.getLastPosition().squareDistanceTo(player.posX, player.posY, player.posZ) > HEARING_DISTANCE * HEARING_DISTANCE) {
+			return;
+		}
+		removeKeepAliveInfo(player.world, storageUuid, true);
 	}
 
 	public static void startPlayingDisc(WorldServer world, BlockPos position, UUID storageUuid, ItemStack disc, Runnable onFinishedHandler) {
