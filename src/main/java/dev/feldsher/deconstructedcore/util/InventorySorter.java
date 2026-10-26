@@ -21,18 +21,18 @@ import java.util.Set;
 public class InventorySorter {
 	private InventorySorter() {}
 
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getDisplayName().toLowerCase());
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
-			Comparator.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> getRegistryName(o.getKey()).getNamespace())
+	public static final Comparator<Map.Entry<ItemStackKey, Long>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getDisplayName().toLowerCase());
+	public static final Comparator<Map.Entry<ItemStackKey, Long>> BY_MOD =
+			Comparator.<Map.Entry<ItemStackKey, Long>, String>comparing(o -> getRegistryName(o.getKey()).getNamespace())
 					.thenComparing(o -> o.getKey().getStack().getDisplayName());
 
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_COUNT = (first, second) -> {
+	public static final Comparator<Map.Entry<ItemStackKey, Long>> BY_COUNT = (first, second) -> {
 		int ret = second.getValue().compareTo(first.getValue());
 		return ret != 0 ? ret : getRegistryName(first.getKey()).toString().compareTo(getRegistryName(second.getKey()).toString());
 	};
 
 	/** 1.21 sorts by item tags; 1.12's counterpart is the ore dictionary: the stacks with more ore names first, then by the names. */
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_TAGS = (first, second) -> {
+	public static final Comparator<Map.Entry<ItemStackKey, Long>> BY_TAGS = (first, second) -> {
 		ItemStack firstStack = first.getKey().getStack();
 		ItemStack secondStack = second.getKey().getStack();
 		if (firstStack.getItem() == secondStack.getItem() && firstStack.getMetadata() == secondStack.getMetadata()) {
@@ -42,7 +42,7 @@ public class InventorySorter {
 		return ret != 0 ? ret : getRegistryName(first.getKey()).toString().compareTo(getRegistryName(second.getKey()).toString());
 	};
 
-	public static Comparator<Map.Entry<ItemStackKey, Integer>> getComparator(SortBy sortBy) {
+	public static Comparator<Map.Entry<ItemStackKey, Long>> getComparator(SortBy sortBy) {
 		switch (sortBy) {
 			case COUNT:
 				return BY_COUNT;
@@ -82,26 +82,26 @@ public class InventorySorter {
 		return Objects.requireNonNull(itemStackKey.getStack().getItem().getRegistryName());
 	}
 
-	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {
-		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, noSortSlots);
-		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
+	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Long>> comparator, Set<Integer> noSortSlots) {
+		Map<ItemStackKey, Long> compactedStacks = InventoryHelper.getCompactedStacks(handler, noSortSlots);
+		List<Map.Entry<ItemStackKey, Long>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(comparator);
 
 		sortIntoNoSortSlots(handler, noSortSlots, sortedList);
 		sortIntoOtherSlots(handler, noSortSlots, sortedList, handler.getSlots());
 	}
 
-	private static void sortIntoOtherSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList, int slots) {
-		Iterator<Map.Entry<ItemStackKey, Integer>> ite = sortedList.iterator();
+	private static void sortIntoOtherSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Long>> sortedList, int slots) {
+		Iterator<Map.Entry<ItemStackKey, Long>> ite = sortedList.iterator();
 		ItemStackKey current = null;
-		int count = 0;
+		long count = 0;
 
 		for (int slot = 0; slot < slots; slot++) {
 			if (noSortSlots.contains(slot)) {
 				continue;
 			}
 			if ((current == null || count <= 0) && ite.hasNext()) {
-				Map.Entry<ItemStackKey, Integer> entry = ite.next();
+				Map.Entry<ItemStackKey, Long> entry = ite.next();
 				current = entry.getKey();
 				count = entry.getValue();
 			}
@@ -114,15 +114,15 @@ public class InventorySorter {
 	}
 
 	/** What the slots left out of sorting already hold more of goes there first, up to their limit. */
-	private static void sortIntoNoSortSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList) {
+	private static void sortIntoNoSortSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Long>> sortedList) {
 		if (noSortSlots.isEmpty()) {
 			return;
 		}
-		Iterator<Map.Entry<ItemStackKey, Integer>> it = sortedList.iterator();
+		Iterator<Map.Entry<ItemStackKey, Long>> it = sortedList.iterator();
 		while (it.hasNext()) {
-			Map.Entry<ItemStackKey, Integer> entry = it.next();
+			Map.Entry<ItemStackKey, Long> entry = it.next();
 			ItemStackKey current = entry.getKey();
-			int count = entry.getValue();
+			long count = entry.getValue();
 
 			for (int slot : noSortSlots) {
 				if (current.matches(handler.getStackInSlot(slot))) {
@@ -147,7 +147,7 @@ public class InventorySorter {
 		}
 	}
 
-	private static int placeStack(IItemHandlerModifiable handler, ItemStackKey current, int count, int slot, boolean countWithCurrentStack) {
+	private static int placeStack(IItemHandlerModifiable handler, ItemStackKey current, long count, int slot, boolean countWithCurrentStack) {
 		ItemStack copy = current.getStack().copy();
 		int slotLimit = handler instanceof InventoryHandler ? ((InventoryHandler) handler).getStackLimit(slot, copy) : handler.getSlotLimit(slot);
 		ItemStack slotStack = handler instanceof InventoryHandler ? ((InventoryHandler) handler).getSlotStack(slot) : handler.getStackInSlot(slot);
@@ -155,7 +155,7 @@ public class InventorySorter {
 		if (countWithCurrentStack) {
 			count += existingCount;
 		}
-		int countPlaced = Math.min(count, slotLimit);
+		int countPlaced = (int) Math.min(count, slotLimit);
 		copy.setCount(countPlaced);
 		if (!ItemStack.areItemStacksEqual(slotStack, copy)) {
 			if (handler instanceof InventoryHandler) {

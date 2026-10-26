@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.util;
 
+import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.inventory.FilteredItemHandler;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
@@ -30,13 +31,14 @@ public class InventoryHelper {
 	private InventoryHelper() {}
 
 	/** The handler's stacks put together, each item with its whole count, but for the slots left out. */
-	public static Map<ItemStackKey, Integer> getCompactedStacks(IItemHandler handler, Set<Integer> ignoreSlots) {
-		Map<ItemStackKey, Integer> ret = new HashMap<>();
+	/** In longs: with stacks of up to Integer.MAX_VALUE in a slot, as the omega stack upgrade's, an int sum overflows. */
+	public static Map<ItemStackKey, Long> getCompactedStacks(IItemHandler handler, Set<Integer> ignoreSlots) {
+		Map<ItemStackKey, Long> ret = new HashMap<>();
 		iterate(handler, (slot, stack) -> {
 			if (stack.isEmpty() || ignoreSlots.contains(slot)) {
 				return;
 			}
-			ret.merge(ItemStackKey.of(stack), stack.getCount(), Integer::sum);
+			ret.merge(ItemStackKey.of(stack), (long) stack.getCount(), Long::sum);
 		});
 		return ret;
 	}
@@ -98,10 +100,12 @@ public class InventoryHelper {
 				continue;
 			}
 
+			// the slot's stack may shrink in place as it's extracted from
+			ItemStack template = slotStack.copy();
 			int countToTransfer = slotStack.getCount();
 			while (countToTransfer > 0) {
-				ItemStack toInsert = slotStack.copy();
-				toInsert.setCount(Math.min(slotStack.getMaxStackSize(), countToTransfer));
+				ItemStack toInsert = template.copy();
+				toInsert.setCount(Math.min(template.getMaxStackSize(), countToTransfer));
 				ItemStack remainingAfterInsert = insertIntoInventory(toInsert, handlerB, true);
 				if (remainingAfterInsert.getCount() == toInsert.getCount()) {
 					break;
@@ -113,14 +117,28 @@ public class InventoryHelper {
 					break;
 				}
 
-				insertIntoInventory(handlerA.extractItem(slot, extractedStack.getCount(), false), handlerB, false);
-
-				onInserted.accept(() -> {
-					ItemStack copiedStack = slotStack.copy();
-					copiedStack.setCount(extractedStack.getCount());
-					return copiedStack;
-				});
-				countToTransfer -= extractedStack.getCount();
+				ItemStack extracted = handlerA.extractItem(slot, extractedStack.getCount(), false);
+				int extractedCount = extracted.getCount();
+				// a handler may take less than it said it would: what it didn't goes back where it came from
+				ItemStack notInserted = insertIntoInventory(extracted, handlerB, false);
+				if (!notInserted.isEmpty()) {
+					notInserted = insertIntoInventory(handlerA.insertItem(slot, notInserted, false), handlerA, false);
+					if (!notInserted.isEmpty()) {
+						DeconstructedCore.LOGGER.error("Neither inventory took back {} of a transfer between them", notInserted);
+					}
+				}
+				int insertedCount = extractedCount - notInserted.getCount();
+				if (insertedCount > 0) {
+					onInserted.accept(() -> {
+						ItemStack copiedStack = template.copy();
+						copiedStack.setCount(insertedCount);
+						return copiedStack;
+					});
+				}
+				if (!notInserted.isEmpty() || insertedCount <= 0) {
+					break;
+				}
+				countToTransfer -= extractedCount;
 			}
 		}
 	}
