@@ -59,6 +59,16 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
+	public boolean isTyping() {
+		for (WidgetBase child : children) {
+			if (child.visible && child.isTyping()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public void onScreenClicked(double mouseX, double mouseY, int button) {
 		new ArrayList<>(children).forEach(child -> child.onScreenClicked(mouseX, mouseY, button));
 	}

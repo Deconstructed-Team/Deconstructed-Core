@@ -77,6 +77,11 @@ public abstract class WidgetBase {
 		return false;
 	}
 
+	/** Whether keys go to it now, as a focused text box's do: they shouldn't work as shortcuts meanwhile. */
+	public boolean isTyping() {
+		return false;
+	}
+
 	/** A click anywhere on the screen, before it goes to whatever is under it, as a text box loses its focus to it. */
 	public void onScreenClicked(double mouseX, double mouseY, int button) {
 		//noop

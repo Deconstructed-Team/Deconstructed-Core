@@ -108,6 +108,11 @@ public class TextBox extends WidgetBase {
 	}
 
 	@Override
+	public boolean isTyping() {
+		return visible && isFocused();
+	}
+
+	@Override
 	public void onScreenClicked(double mouseX, double mouseY, int button) {
 		if (!isMouseOver(mouseX, mouseY)) {
 			setFocused(false);
