@@ -97,6 +97,19 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				return stack;
 			}
 
+			/**
+			 * Only the result of what's in the grid now: another player's container on the same upgrade may have
+			 * changed the grid since this one's result was set.
+			 */
+			@Override
+			public boolean canTakeStack(EntityPlayer playerIn) {
+				if (playerIn.world.isRemote || isResultUpToDate(getStack())) {
+					return super.canTakeStack(playerIn);
+				}
+				updateCraftingResult();
+				return false;
+			}
+
 			@Override
 			public void onSlotChanged() {
 				super.onSlotChanged();
@@ -136,19 +149,22 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			return;
 		}
 		ItemStack result = ItemStack.EMPTY;
-		if (lastRecipe != null && lastRecipe.matches(craftMatrix, world)) {
+		if (lastRecipe != null && lastRecipe.matches(craftMatrix, world) && matchedCraftingRecipes.size() <= 1) {
 			result = lastRecipe.getCraftingResult(craftMatrix);
 		} else {
+			// with more than one recipe to pick from, their list is kept that of the grid, and the picked one stays picked
+			IRecipe previousRecipe = lastRecipe != null && lastRecipe.matches(craftMatrix, world) ? lastRecipe : null;
 			matchedCraftingRecipes = RecipeHelper.getCraftingRecipesFor(craftMatrix, world);
 			matchedCraftingResults.clear();
 			selectedCraftingResultIndex = 0;
 			lastRecipe = null;
 			if (!matchedCraftingRecipes.isEmpty()) {
-				IRecipe recipe = matchedCraftingRecipes.get(0);
-				// vanilla's workbench check: with limited crafting only unlocked recipes craft
-				if (recipe.isDynamic() || !world.getGameRules().getBoolean("doLimitedCrafting") || ((EntityPlayerMP) player).getRecipeBook().isUnlocked(recipe)) {
+				int index = Math.max(0, matchedCraftingRecipes.indexOf(previousRecipe));
+				IRecipe recipe = matchedCraftingRecipes.get(index);
+				if (canCraft(recipe)) {
 					craftResult.setRecipeUsed(recipe);
 					lastRecipe = recipe;
+					selectedCraftingResultIndex = index;
 					result = recipe.getCraftingResult(craftMatrix);
 				}
 				for (IRecipe matchedRecipe : matchedCraftingRecipes) {
@@ -157,6 +173,19 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			}
 		}
 		craftResult.setInventorySlotContents(0, result);
+	}
+
+	/** Vanilla's workbench check: with limited crafting only unlocked recipes craft. */
+	private boolean canCraft(IRecipe recipe) {
+		World world = player.world;
+		return recipe.isDynamic() || !world.getGameRules().getBoolean("doLimitedCrafting") || ((EntityPlayerMP) player).getRecipeBook().isUnlocked(recipe);
+	}
+
+	private boolean isResultUpToDate(ItemStack shownResult) {
+		if (shownResult.isEmpty()) {
+			return true;
+		}
+		return lastRecipe != null && lastRecipe.matches(craftMatrix, player.world) && ItemStack.areItemStacksEqual(shownResult, lastRecipe.getCraftingResult(craftMatrix));
 	}
 
 	public List<ItemStack> getMatchedCraftingResults() {
@@ -187,10 +216,17 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			});
 			return;
 		}
+		// the list the client picked from may be older than the grid: the recipe must match what's there now
+		IRecipe recipe = matchedCraftingRecipes.get(resultIndex);
+		if (!recipe.matches(craftMatrix, player.world) || !canCraft(recipe)) {
+			lastRecipe = null;
+			updateCraftingResult();
+			return;
+		}
 		selectedCraftingResultIndex = resultIndex;
-		lastRecipe = matchedCraftingRecipes.get(resultIndex);
-		craftResult.setRecipeUsed(lastRecipe);
-		craftResult.setInventorySlotContents(0, matchedCraftingResults.get(resultIndex).copy());
+		lastRecipe = recipe;
+		craftResult.setRecipeUsed(recipe);
+		craftResult.setInventorySlotContents(0, recipe.getCraftingResult(craftMatrix));
 	}
 
 	@Override
