@@ -25,8 +25,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
@@ -46,6 +48,8 @@ public final class StorageContentsManager {
 	private final String folder;
 	private final Map<UUID, StorageContents> serverContents = new HashMap<>();
 	private final Map<UUID, StorageContents> clientContents = new HashMap<>();
+	/** Those of the client's contents the server sent; the others it made up, empty, when asked for them. */
+	private final Set<UUID> clientContentsReceived = new HashSet<>();
 	@Nullable
 	private File storageDir;
 
@@ -82,12 +86,20 @@ public final class StorageContentsManager {
 	/** The client's copy of a storage's contents, as the server sent them: they replace what the client had, and its handlers. */
 	public void setClientContents(UUID uuid, NBTTagCompound nbt) {
 		clientContents.put(uuid, new StorageContents(nbt));
+		clientContentsReceived.add(uuid);
+	}
+
+	public boolean hasReceivedClientContents(UUID uuid) {
+		return clientContentsReceived.contains(uuid);
 	}
 
 	/** A storage that's gone: its contents, and on the server their file. */
 	public void remove(UUID uuid) {
 		Map<UUID, StorageContents> contents = contentsOnSide();
 		contents.remove(uuid);
+		if (contents == clientContents) {
+			clientContentsReceived.remove(uuid);
+		}
 		if (contents == serverContents && ensureStorageDir()) {
 			File file = getFile(uuid);
 			if (file.exists() && !file.delete()) {
@@ -202,6 +214,7 @@ public final class StorageContentsManager {
 			for (StorageContentsManager manager : MANAGERS) {
 				if (world.isRemote) {
 					manager.clientContents.clear();
+					manager.clientContentsReceived.clear();
 				} else if (world.provider.getDimension() == 0) {
 					manager.serverContents.clear();
 					manager.storageDir = manager.getStorageDir(world);

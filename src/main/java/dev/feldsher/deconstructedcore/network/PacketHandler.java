@@ -26,5 +26,6 @@ public class PacketHandler {
 		INSTANCE.registerMessage(StopDiscPlaybackMessage.Handler.class, StopDiscPlaybackMessage.class, id++, Side.CLIENT);
 		INSTANCE.registerMessage(SoundFinishedNotificationMessage.Handler.class, SoundFinishedNotificationMessage.class, id++, Side.SERVER);
 		INSTANCE.registerMessage(TankClickMessage.Handler.class, TankClickMessage.class, id++, Side.SERVER);
+		INSTANCE.registerMessage(StashMessage.Handler.class, StashMessage.class, id++, Side.SERVER);
 	}
 }
