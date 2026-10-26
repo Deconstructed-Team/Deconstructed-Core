@@ -1,5 +1,7 @@
 package dev.feldsher.deconstructedcore.upgrades.battery;
 
+import dev.feldsher.deconstructedcore.renderdata.BatteryRenderInfo;
+import dev.feldsher.deconstructedcore.upgrades.IRenderedBatteryUpgrade;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.IStackableContentsUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.ITickableUpgrade;
@@ -24,7 +26,7 @@ import java.util.function.Consumer;
  * charges the output one from itself, every tick.
  */
 public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrapper, BatteryUpgradeItem>
-		implements IEnergyStorage, ITickableUpgrade, IStackableContentsUpgrade {
+		implements IEnergyStorage, ITickableUpgrade, IStackableContentsUpgrade, IRenderedBatteryUpgrade {
 	public static final int INPUT_SLOT = 0;
 	public static final int OUTPUT_SLOT = 1;
 	private static final String ENERGY_STORED_TAG = "energyStored";
@@ -78,6 +80,11 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	private void serializeEnergyStored() {
 		StorageNbt.getOrCreateTag(upgrade).setInteger(ENERGY_STORED_TAG, energyStored);
 		save();
+	}
+
+	@Override
+	public BatteryRenderInfo getBatteryRenderInfo() {
+		return BatteryRenderInfo.of(energyStored, getMaxEnergyStored());
 	}
 
 	@Override

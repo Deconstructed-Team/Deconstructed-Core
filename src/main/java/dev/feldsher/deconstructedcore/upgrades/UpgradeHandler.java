@@ -1,5 +1,10 @@
 package dev.feldsher.deconstructedcore.upgrades;
 
+import java.util.EnumMap;
+import dev.feldsher.deconstructedcore.renderdata.TankRenderInfo;
+import dev.feldsher.deconstructedcore.renderdata.TankPosition;
+import dev.feldsher.deconstructedcore.renderdata.BatteryRenderInfo;
+import dev.feldsher.deconstructedcore.renderdata.RenderInfo;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.util.InventoryHelper;
 import net.minecraft.item.ItemStack;
@@ -250,6 +255,40 @@ public class UpgradeHandler extends ItemStackHandler {
 
 	public void copyTo(UpgradeHandler otherHandler) {
 		InventoryHelper.copyTo(this, otherHandler);
+	}
+
+	/**
+	 * The storage's render info with what its upgrades show: tanks left then right, or a single tank on the right when
+	 * it's in the second half of the upgrade slots, as in 1.21; the battery; what working upgrades show.
+	 */
+	public RenderInfo buildRenderInfo(RenderInfo.ItemDisplayRenderInfo itemDisplay) {
+		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+		List<IRenderedTankUpgrade> tanks = new ArrayList<>();
+		boolean singleTankRight = false;
+		BatteryRenderInfo battery = null;
+		Map<String, NBTTagCompound> upgradeRenderData = new HashMap<>();
+		for (Map.Entry<Integer, IUpgradeWrapper> entry : wrappers.entrySet()) {
+			IUpgradeWrapper wrapper = entry.getValue();
+			if (wrapper instanceof IRenderedTankUpgrade) {
+				tanks.add((IRenderedTankUpgrade) wrapper);
+				singleTankRight |= entry.getKey() >= getSlots() / 2;
+			}
+			if (wrapper instanceof IRenderedBatteryUpgrade && battery == null) {
+				battery = ((IRenderedBatteryUpgrade) wrapper).getBatteryRenderInfo();
+			}
+			if (wrapper instanceof IRenderDataUpgrade && wrapper.isEnabled()) {
+				((IRenderDataUpgrade) wrapper).addRenderData(upgradeRenderData);
+			}
+		}
+		Map<TankPosition, TankRenderInfo> tankRenderInfos = new EnumMap<>(TankPosition.class);
+		TankPosition position = tanks.size() == 1 && singleTankRight ? TankPosition.RIGHT : TankPosition.LEFT;
+		for (IRenderedTankUpgrade tank : tanks) {
+			if (!tankRenderInfos.containsKey(position)) {
+				tankRenderInfos.put(position, tank.getTankRenderInfo());
+			}
+			position = TankPosition.RIGHT;
+		}
+		return new RenderInfo(itemDisplay, tankRenderInfos, battery, upgradeRenderData);
 	}
 
 	public void refreshWrappersThatImplementAndTypeWrappers() {

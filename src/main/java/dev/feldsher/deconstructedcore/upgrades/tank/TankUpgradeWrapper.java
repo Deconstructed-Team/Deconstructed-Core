@@ -1,5 +1,7 @@
 package dev.feldsher.deconstructedcore.upgrades.tank;
 
+import dev.feldsher.deconstructedcore.renderdata.TankRenderInfo;
+import dev.feldsher.deconstructedcore.upgrades.IRenderedTankUpgrade;
 import dev.feldsher.deconstructedcore.api.IStorageFluidHandler;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.IStackableContentsUpgrade;
@@ -26,7 +28,7 @@ import java.util.function.Consumer;
  * Holds one fluid, in the upgrade's stack. Of the containers in its two slots it empties the input one into the
  * tank and fills the output one from it, a bucket's worth after each cooldown.
  */
-public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, TankUpgradeItem> implements ITickableUpgrade, IStackableContentsUpgrade {
+public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, TankUpgradeItem> implements ITickableUpgrade, IStackableContentsUpgrade, IRenderedTankUpgrade {
 	public static final int INPUT_SLOT = 0;
 	public static final int OUTPUT_SLOT = 1;
 	private static final String CONTENTS_TAG = "contents";
@@ -75,6 +77,11 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	}
 
 	@Nullable
+	@Override
+	public TankRenderInfo getTankRenderInfo() {
+		return TankRenderInfo.of(getContents(), getTankCapacity());
+	}
+
 	public FluidStack getContents() {
 		return contents;
 	}
