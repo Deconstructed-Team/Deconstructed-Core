@@ -18,13 +18,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.NONE;
 import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.THREE_BY_THREE;
@@ -39,9 +39,25 @@ import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.T
  */
 public class RecipeHelper {
 	private static final int MAX_FOLLOW_UP_COMPACTING_RECIPES = 30;
-	private static final Map<CompactedItem, CompactingResult> COMPACTING_RESULTS = new ConcurrentHashMap<>();
-	private static final Map<ItemStackKey, Set<CompactingShape>> ITEM_COMPACTING_SHAPES = new ConcurrentHashMap<>();
-	private static final Map<ItemStackKey, UncompactingResult> UNCOMPACTING_RESULTS = new ConcurrentHashMap<>();
+	// each new item looks through every recipe: the caches keep the last so many, not every item with a tag ever seen
+	private static final int MAX_CACHED = 4096;
+	private static final Map<CompactedItem, CompactingResult> COMPACTING_RESULTS = boundedCache();
+	private static final Map<ItemStackKey, Set<CompactingShape>> ITEM_COMPACTING_SHAPES = boundedCache();
+	private static final Map<ItemStackKey, UncompactingResult> UNCOMPACTING_RESULTS = boundedCache();
+	private static final Set<CompactingShape> NO_SHAPES = Collections.unmodifiableSet(EnumSet.of(NONE));
+
+	/**
+	 * Least recently used out first. Synchronized for the client's and the integrated server's threads; only ever
+	 * locked for a get or a put, so that building one value, which reads the others, holds no lock.
+	 */
+	private static <K, V> Map<K, V> boundedCache() {
+		return Collections.synchronizedMap(new LinkedHashMap<K, V>(16, 0.75F, true) {
+			@Override
+			protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+				return size() > MAX_CACHED;
+			}
+		});
+	}
 
 	private RecipeHelper() {}
 
@@ -65,15 +81,23 @@ public class RecipeHelper {
 		if (stack.isEmpty()) {
 			return Collections.emptySet();
 		}
-		return ITEM_COMPACTING_SHAPES.computeIfAbsent(ItemStackKey.of(stack), key -> {
-			Set<CompactingShape> compactingShapes = EnumSet.noneOf(CompactingShape.class);
-			getCompactingShape(key.getStack(), 2, 2, TWO_BY_TWO_UNCRAFTABLE, TWO_BY_TWO).ifPresent(compactingShapes::add);
-			getCompactingShape(key.getStack(), 3, 3, THREE_BY_THREE_UNCRAFTABLE, THREE_BY_THREE).ifPresent(compactingShapes::add);
-			if (compactingShapes.isEmpty()) {
-				compactingShapes.add(NONE);
-			}
-			return compactingShapes;
-		});
+		// what doesn't stack doesn't gather the 4 or 9 to compact, and each damaged tool would be another key
+		if (stack.getMaxStackSize() == 1) {
+			return NO_SHAPES;
+		}
+		ItemStackKey key = ItemStackKey.of(stack);
+		Set<CompactingShape> cached = ITEM_COMPACTING_SHAPES.get(key);
+		if (cached != null) {
+			return cached;
+		}
+		Set<CompactingShape> compactingShapes = EnumSet.noneOf(CompactingShape.class);
+		getCompactingShape(key.getStack(), 2, 2, TWO_BY_TWO_UNCRAFTABLE, TWO_BY_TWO).ifPresent(compactingShapes::add);
+		getCompactingShape(key.getStack(), 3, 3, THREE_BY_THREE_UNCRAFTABLE, THREE_BY_THREE).ifPresent(compactingShapes::add);
+		if (compactingShapes.isEmpty()) {
+			compactingShapes.add(NONE);
+		}
+		ITEM_COMPACTING_SHAPES.put(key, compactingShapes);
+		return compactingShapes;
 	}
 
 	private static java.util.Optional<CompactingShape> getCompactingShape(ItemStack stack, int width, int height, CompactingShape uncraftableShape, CompactingShape shape) {
@@ -130,18 +154,27 @@ public class RecipeHelper {
 
 	/** What the item uncrafts into, alone in the grid, when those compact back into it. */
 	public static UncompactingResult getUncompactingResult(ItemStack uncompactedItem) {
-		return UNCOMPACTING_RESULTS.computeIfAbsent(ItemStackKey.of(uncompactedItem), key -> {
-			for (ItemStack uncompactResultItem : getUncompactResultItems(key.getStack())) {
-				if (uncompactResultItem.getCount() == 9) {
-					if (isSameItem(getCompactingResult(uncompactResultItem, 3, 3).getResult(), key.getStack())) {
-						return new UncompactingResult(uncompactResultItem, THREE_BY_THREE_UNCRAFTABLE);
-					}
-				} else if (uncompactResultItem.getCount() == 4 && isSameItem(getCompactingResult(uncompactResultItem, 2, 2).getResult(), key.getStack())) {
-					return new UncompactingResult(uncompactResultItem, TWO_BY_TWO_UNCRAFTABLE);
+		ItemStackKey key = ItemStackKey.of(uncompactedItem);
+		UncompactingResult cached = UNCOMPACTING_RESULTS.get(key);
+		if (cached != null) {
+			return cached;
+		}
+		UncompactingResult result = findUncompactingResult(key.getStack());
+		UNCOMPACTING_RESULTS.put(key, result);
+		return result;
+	}
+
+	private static UncompactingResult findUncompactingResult(ItemStack uncompactedItem) {
+		for (ItemStack uncompactResultItem : getUncompactResultItems(uncompactedItem)) {
+			if (uncompactResultItem.getCount() == 9) {
+				if (isSameItem(getCompactingResult(uncompactResultItem, 3, 3).getResult(), uncompactedItem)) {
+					return new UncompactingResult(uncompactResultItem, THREE_BY_THREE_UNCRAFTABLE);
 				}
+			} else if (uncompactResultItem.getCount() == 4 && isSameItem(getCompactingResult(uncompactResultItem, 2, 2).getResult(), uncompactedItem)) {
+				return new UncompactingResult(uncompactResultItem, TWO_BY_TWO_UNCRAFTABLE);
 			}
-			return UncompactingResult.EMPTY;
-		});
+		}
+		return UncompactingResult.EMPTY;
 	}
 
 	private static List<ItemStack> getUncompactResultItems(ItemStack itemToUncompact) {
