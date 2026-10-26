@@ -76,15 +76,16 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 			lastHandActionTime = world.getTotalWorldTime();
 			return HAND_INTERACTION_COOLDOWN_TIME;
 		}
-		Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, world, pos);
+		Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, entity, world, pos);
 		if (newCooldown.isPresent()) {
 			return newCooldown.get();
 		}
 		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > world.getTotalWorldTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
 	}
 
-	private Optional<Integer> handleInWorldInteractions(IStorageFluidHandler storageFluidHandler, World world, BlockPos pos) {
-		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(world, pos, storageFluidHandler)) {
+	/** The hands of the players around only for a placed storage: one that's carried works with its wearer's alone. */
+	private Optional<Integer> handleInWorldInteractions(IStorageFluidHandler storageFluidHandler, @Nullable Entity entity, World world, BlockPos pos) {
+		if (entity == null && shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(world, pos, storageFluidHandler)) {
 			lastHandActionTime = world.getTotalWorldTime();
 			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
 		}
