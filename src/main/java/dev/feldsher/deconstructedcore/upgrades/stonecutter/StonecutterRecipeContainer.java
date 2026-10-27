@@ -2,7 +2,6 @@ package dev.feldsher.deconstructedcore.upgrades.stonecutter;
 
 import dev.feldsher.deconstructedcore.common.gui.IServerUpdater;
 import dev.feldsher.deconstructedcore.common.gui.SlotSuppliedHandler;
-import dev.feldsher.deconstructedcore.compat.futuremc.FutureMcStonecutterRecipes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.inventory.Slot;
@@ -69,7 +68,7 @@ public class StonecutterRecipeContainer {
 	}
 
 	private void updateAvailableRecipes(ItemStack stack) {
-		recipes = FutureMcStonecutterRecipes.getResults(stack);
+		recipes = upgradeContainer.getUpgradeWrapper().getCuttingResults().getResults(stack);
 		selectedRecipe = -1;
 		resultInventory.setInventorySlotContents(0, ItemStack.EMPTY);
 		ItemStack lastResult = upgradeContainer.getUpgradeWrapper().getRecipeResult();
@@ -151,18 +150,19 @@ public class StonecutterRecipeContainer {
 			return false;
 		}
 
-		/** Uses up one of the input, as the stonecutter does, carving with its sound once a tick. */
+		/** Uses up one of the input, as the stonecutter or chisel does, carving with its sound once a tick. */
 		@Nonnull
 		@Override
 		public ItemStack onTake(EntityPlayer thePlayer, @Nonnull ItemStack stack) {
 			stack.onCrafting(thePlayer.world, thePlayer, stack.getCount());
+			ItemStack input = inputSlot.getStack().copy();
 			ItemStack taken = inputSlot.decrStackSize(1);
 			if (!taken.isEmpty()) {
 				updateRecipeResultSlot();
 			}
 			if (!thePlayer.world.isRemote) {
 				long time = thePlayer.world.getTotalWorldTime();
-				SoundEvent sound = FutureMcStonecutterRecipes.getCarveSound();
+				SoundEvent sound = upgradeContainer.getUpgradeWrapper().getCuttingResults().getSound(input);
 				if (lastOnTake != time && sound != null) {
 					thePlayer.world.playSound(null, player.posX, player.posY, player.posZ, sound, SoundCategory.BLOCKS, 1.0F, 1.0F);
 					lastOnTake = time;

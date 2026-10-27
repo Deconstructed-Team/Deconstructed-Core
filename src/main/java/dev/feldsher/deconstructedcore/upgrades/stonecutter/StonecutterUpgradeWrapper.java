@@ -36,6 +36,14 @@ public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpg
 		}
 	}
 
+	public ICuttingResults getCuttingResults() {
+		return upgradeItem.getCuttingResults();
+	}
+
+	public String getTabName() {
+		return upgradeItem.getTabName();
+	}
+
 	public IItemHandlerModifiable getInputInventory() {
 		return inputInventory;
 	}

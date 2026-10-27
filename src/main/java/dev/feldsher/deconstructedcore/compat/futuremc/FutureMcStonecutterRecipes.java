@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.compat.futuremc;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
+import dev.feldsher.deconstructedcore.upgrades.stonecutter.ICuttingResults;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -30,6 +31,20 @@ public final class FutureMcStonecutterRecipes {
 	private static Method getRecipes = null;
 	@Nullable
 	private static Method getOutput = null;
+
+	/** As a cutting upgrade's results: the stonecutter's, with its carving sound. */
+	public static final ICuttingResults RESULTS = new ICuttingResults() {
+		@Override
+		public List<ItemStack> getResults(ItemStack input) {
+			return FutureMcStonecutterRecipes.getResults(input);
+		}
+
+		@Nullable
+		@Override
+		public SoundEvent getSound(ItemStack input) {
+			return getCarveSound();
+		}
+	};
 
 	private FutureMcStonecutterRecipes() {}
 

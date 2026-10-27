@@ -12,8 +12,8 @@ public class StonecutterUpgradeTab extends UpgradeSettingsTab<StonecutterUpgrade
 	private final StonecutterRecipeControl recipeControl;
 
 	public StonecutterUpgradeTab(StonecutterUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton) {
-		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("stonecutter"),
-				new TextComponentTranslation(TranslationHelper.INSTANCE.translUpgradeKey("stonecutter") + TranslationHelper.TOOLTIP_SUFFIX));
+		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade(upgradeContainer.getUpgradeWrapper().getTabName()),
+				new TextComponentTranslation(TranslationHelper.INSTANCE.translUpgradeKey(upgradeContainer.getUpgradeWrapper().getTabName()) + TranslationHelper.TOOLTIP_SUFFIX));
 		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton,
 				button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()), () -> getContainer().shouldShiftClickIntoStorage()));
 		recipeControl = addHideableChild(new StonecutterRecipeControl(screen, upgradeContainer.getRecipeContainer(), new Position(x + 3, y + 24)));
