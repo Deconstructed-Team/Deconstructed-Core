@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore.storage;
 
 import net.minecraft.nbt.NBTTagCompound;
 
+import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,9 +20,16 @@ public final class StorageContents {
 	private final Map<String, Object> shared = new HashMap<>();
 	private final Map<Object, WeakReference<Runnable>> slotChangeListeners = new WeakHashMap<>();
 	private boolean dirty;
+	// the manager keeps changed contents strongly till they're saved: it's told as they change
+	@Nullable
+	private Runnable onDirty = null;
 
 	StorageContents(NBTTagCompound nbt) {
 		this.nbt = nbt;
+	}
+
+	void setOnDirty(@Nullable Runnable onDirty) {
+		this.onDirty = onDirty;
 	}
 
 	public NBTTagCompound getNbt() {
@@ -68,7 +76,12 @@ public final class StorageContents {
 	}
 
 	public void markDirty() {
-		dirty = true;
+		if (!dirty) {
+			dirty = true;
+			if (onDirty != null) {
+				onDirty.run();
+			}
+		}
 	}
 
 	boolean isDirty() {

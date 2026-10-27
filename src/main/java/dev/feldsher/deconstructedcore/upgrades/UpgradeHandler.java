@@ -329,7 +329,11 @@ public class UpgradeHandler extends ItemStackHandler {
 		for (int slot = 0; slot < previousStacks.size(); slot++) {
 			stacks.set(slot, previousStacks.get(slot));
 		}
+		// the contents keep the new size, which the handler is built at when next loaded
 		saveInventory();
+		if (persistent) {
+			contentsSaveHandler.run();
+		}
 	}
 
 	@Override

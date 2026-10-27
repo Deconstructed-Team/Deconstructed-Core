@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +27,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +42,11 @@ import java.util.zip.GZIPOutputStream;
  * loaded when first asked for, written when the world saves if they changed, through a temporary file so that a
  * crash mid-write leaves the old one whole. A storage nobody uses is never read, and a change to one rewrites only it.
  * <p>
+ * Contents changed since they were saved are held here till they are. Saved, they're held only weakly: as long as
+ * anything uses them, as an open container, a pipe holding a handler, or a stack in a loaded inventory, through its
+ * wrapper, they stay the one live copy, and are found again by their UUID; once nothing does, as with the backpacks of
+ * players offline or in unloaded chunks, they go, and are read from their file when next asked for.
+ * <p>
  * The client has no files: it has the contents the server sent it, of the storages it opened.
  */
 @Mod.EventBusSubscriber(modid = DeconstructedCore.MOD_ID)
@@ -48,6 +55,7 @@ public final class StorageContentsManager {
 
 	private final String folder;
 	private final Map<UUID, StorageContents> serverContents = new HashMap<>();
+	private final Map<UUID, WeakReference<StorageContents>> savedServerContents = new HashMap<>();
 	private final Map<UUID, StorageContents> clientContents = new HashMap<>();
 	/** Those of the client's contents the server sent; the others it made up, empty, when asked for them. */
 	private final Set<UUID> clientContentsReceived = new HashSet<>();
@@ -72,16 +80,45 @@ public final class StorageContentsManager {
 	/** The storage's contents, loaded or new: never null. */
 	public StorageContents getOrCreate(UUID uuid) {
 		Map<UUID, StorageContents> contents = contentsOnSide();
-		StorageContents storageContents = contents.get(uuid);
-		if (storageContents == null) {
-			storageContents = contents == serverContents && ensureStorageDir() ? load(uuid) : null;
-			if (storageContents == null) {
-				storageContents = new StorageContents(new NBTTagCompound());
-				storageContents.markDirty();
-			}
-			contents.put(uuid, storageContents);
+		if (contents == clientContents) {
+			return clientContents.computeIfAbsent(uuid, id -> new StorageContents(new NBTTagCompound()));
 		}
+		StorageContents storageContents = getLoadedServerContents(uuid);
+		if (storageContents != null) {
+			return storageContents;
+		}
+		storageContents = ensureStorageDir() ? load(uuid) : null;
+		if (storageContents == null) {
+			storageContents = new StorageContents(new NBTTagCompound());
+			storageContents.markDirty();
+			serverContents.put(uuid, storageContents);
+		} else {
+			savedServerContents.put(uuid, new WeakReference<>(storageContents));
+		}
+		storageContents.setOnDirty(onDirty(uuid, storageContents));
 		return storageContents;
+	}
+
+	@Nullable
+	private StorageContents getLoadedServerContents(UUID uuid) {
+		StorageContents contents = serverContents.get(uuid);
+		if (contents == null) {
+			WeakReference<StorageContents> saved = savedServerContents.get(uuid);
+			contents = saved == null ? null : saved.get();
+		}
+		return contents;
+	}
+
+	/** Changed, they're held strongly till saved. The runnable holds them weakly, not to keep them itself. */
+	private Runnable onDirty(UUID uuid, StorageContents contents) {
+		WeakReference<StorageContents> contentsReference = new WeakReference<>(contents);
+		return () -> {
+			StorageContents changed = contentsReference.get();
+			if (changed != null && getLoadedServerContents(uuid) == changed) {
+				serverContents.put(uuid, changed);
+				savedServerContents.remove(uuid);
+			}
+		};
 	}
 
 	/** The client's copy of a storage's contents, as the server sent them: they replace what the client had, and its handlers. */
@@ -98,6 +135,9 @@ public final class StorageContentsManager {
 	public void remove(UUID uuid) {
 		Map<UUID, StorageContents> contents = contentsOnSide();
 		contents.remove(uuid);
+		if (contents == serverContents) {
+			savedServerContents.remove(uuid);
+		}
 		if (contents == clientContents) {
 			clientContentsReceived.remove(uuid);
 		}
@@ -117,6 +157,7 @@ public final class StorageContentsManager {
 	 */
 	public int removeMatching(BiPredicate<UUID, NBTTagCompound> shouldRemove) {
 		Set<UUID> uuids = new HashSet<>(serverContents.keySet());
+		uuids.addAll(savedServerContents.keySet());
 		File[] files = ensureStorageDir() ? storageDir.listFiles((dir, name) -> name.endsWith(".dat")) : null;
 		if (files != null) {
 			for (File file : files) {
@@ -130,7 +171,8 @@ public final class StorageContentsManager {
 
 		int removed = 0;
 		for (UUID uuid : uuids) {
-			StorageContents contents = serverContents.get(uuid);
+			// the live copy when there is one: one read from the file beside it would be a second
+			StorageContents contents = getLoadedServerContents(uuid);
 			if (contents == null) {
 				contents = load(uuid);
 			}
@@ -186,12 +228,18 @@ public final class StorageContentsManager {
 			DeconstructedCore.LOGGER.error("Failed to create storage contents folder {}", storageDir.getAbsolutePath());
 			return;
 		}
-		for (Map.Entry<UUID, StorageContents> entry : serverContents.entrySet()) {
+		Iterator<Map.Entry<UUID, StorageContents>> iterator = serverContents.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<UUID, StorageContents> entry = iterator.next();
 			StorageContents contents = entry.getValue();
-			if (contents.isDirty() && save(entry.getKey(), contents)) {
+			// held weakly only once on the disk: one that failed to save stays held, for the next try
+			if (!contents.isDirty() || save(entry.getKey(), contents)) {
 				contents.setDirty(false);
+				iterator.remove();
+				savedServerContents.put(entry.getKey(), new WeakReference<>(contents));
 			}
 		}
+		savedServerContents.values().removeIf(reference -> reference.get() == null);
 	}
 
 	private boolean save(UUID uuid, StorageContents contents) {
@@ -251,6 +299,7 @@ public final class StorageContentsManager {
 					manager.clientContentsReceived.clear();
 				} else if (world.provider.getDimension() == 0) {
 					manager.serverContents.clear();
+					manager.savedServerContents.clear();
 					manager.storageDir = manager.getStorageDir(world);
 				}
 			}
@@ -273,6 +322,7 @@ public final class StorageContentsManager {
 				for (StorageContentsManager manager : MANAGERS) {
 					manager.saveAll();
 					manager.serverContents.clear();
+					manager.savedServerContents.clear();
 					manager.storageDir = null;
 				}
 			}
