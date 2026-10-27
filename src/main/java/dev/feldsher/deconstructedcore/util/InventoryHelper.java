@@ -7,7 +7,9 @@ import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.inventory.ItemStackKey;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
@@ -69,6 +71,29 @@ public class InventoryHelper {
 	public static void copyTo(IItemHandler handler, net.minecraftforge.items.IItemHandlerModifiable otherHandler) {
 		for (int slot = 0; slot < handler.getSlots() && slot < otherHandler.getSlots(); slot++) {
 			otherHandler.setStackInSlot(slot, handler.getStackInSlot(slot).copy());
+		}
+	}
+
+	/**
+	 * Everything in the handler onto the ground at the position, taken out a stack of the item's own size at a time:
+	 * a slot with a stack upgrade's count drops as many stacks. Infinite slots, which give without running out, drop
+	 * nothing.
+	 */
+	public static void dropItems(IItemHandler handler, World world, BlockPos pos) {
+		for (int slot = 0; slot < handler.getSlots(); slot++) {
+			if (handler instanceof InventoryHandler && ((InventoryHandler) handler).isInfinite(slot)) {
+				continue;
+			}
+			ItemStack stack = handler.getStackInSlot(slot);
+			int remaining = stack.getCount();
+			while (remaining > 0) {
+				ItemStack extracted = handler.extractItem(slot, Math.min(stack.getMaxStackSize(), remaining), false);
+				if (extracted.isEmpty()) {
+					break;
+				}
+				remaining -= extracted.getCount();
+				net.minecraft.inventory.InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), extracted);
+			}
 		}
 	}
 
