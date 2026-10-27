@@ -563,8 +563,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	/**
-	 * Vanilla's merge, but up to the storage slots' limits, and never more than an item's stack size into other slots,
-	 * as a storage slot's stack may be bigger than that.
+	 * Vanilla's merge, but up to the storage slots' limits, never more than an item's stack size into other slots, as a
+	 * storage slot's stack may be bigger than that, and only into slots that take the stack.
 	 */
 	@Override
 	protected boolean mergeItemStack(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
@@ -577,7 +577,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			for (int i = first; i >= startIndex && i < endIndex && !stack.isEmpty(); i += step) {
 				Slot slot = inventorySlots.get(i);
 				ItemStack slotStack = slot.getStack();
-				if (!slotStack.isEmpty() && ItemHandlerHelper.canItemStacksStack(slotStack, stack) && (!intoStorage || slot.isItemValid(stack))) {
+				// vanilla tops up any slot with the same stack; not one that takes nothing, as a result slot
+				if (!slotStack.isEmpty() && ItemHandlerHelper.canItemStacksStack(slotStack, stack) && slot.isItemValid(stack)) {
 					int maxSize = getMergeLimit(slot, stack);
 					if (slotStack.getCount() < maxSize) {
 						int count = Math.min(maxSize - slotStack.getCount(), stack.getCount());
