@@ -59,6 +59,10 @@ public class InventoryHelper {
 		}
 	}
 
+	public static boolean isEmpty(IItemHandler handler) {
+		return !hasItem(handler, stack -> !stack.isEmpty());
+	}
+
 	public static boolean hasItem(IItemHandler handler, Predicate<ItemStack> matches) {
 		for (int slot = 0; slot < handler.getSlots(); slot++) {
 			if (matches.test(handler.getStackInSlot(slot))) {
