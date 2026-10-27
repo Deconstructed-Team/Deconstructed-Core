@@ -22,7 +22,12 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 		this.upgrade = upgrade;
 		//noinspection unchecked
 		upgradeItem = (T) upgrade.getItem();
-		this.upgradeSaveHandler = upgradeSaveHandler;
+		// what's built on the upgrade, as its filters and furnace, saves through this too: not once the wrapper is invalid
+		this.upgradeSaveHandler = stack -> {
+			if (valid) {
+				upgradeSaveHandler.accept(stack);
+			}
+		};
 	}
 
 	@Override
@@ -32,9 +37,7 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 
 	/** Not once invalid: the stack may be out of the storage by then, and saving would put it back. */
 	protected void save() {
-		if (valid) {
-			upgradeSaveHandler.accept(upgrade);
-		}
+		upgradeSaveHandler.accept(upgrade);
 	}
 
 	@Override

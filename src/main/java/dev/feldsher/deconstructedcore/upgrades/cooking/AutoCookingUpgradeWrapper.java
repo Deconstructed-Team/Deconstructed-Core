@@ -44,14 +44,14 @@ public class AutoCookingUpgradeWrapper extends UpgradeWrapperBase<AutoCookingUpg
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		cookingType = upgradeItem.getCookingType();
 		IAutoCookingUpgradeConfig config = upgradeItem.getAutoCookingUpgradeConfig();
-		inputFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, config.getInputFilterSlots(), cookingType::isInput, "input_filter_attributes");
-		fuelFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, config.getFuelFilterSlots(), s -> cookingType.getBurnTime(s) > 0, "fuel_filter_attributes");
+		inputFilterLogic = new FilterLogic(upgrade, this.upgradeSaveHandler, config.getInputFilterSlots(), cookingType::isInput, "input_filter_attributes");
+		fuelFilterLogic = new FilterLogic(upgrade, this.upgradeSaveHandler, config.getFuelFilterSlots(), s -> cookingType.getBurnTime(s) > 0, "fuel_filter_attributes");
 		fuelFilterLogic.setAllowByDefault(true);
 		fuelFilterLogic.setEmptyAllowListMatchesEverything();
 
 		isValidInput = s -> cookingType.isInput(s) && inputFilterLogic.matchesFilter(s);
 		isValidFuel = s -> cookingType.getBurnTime(s) > 0 && fuelFilterLogic.matchesFilter(s);
-		cookingLogic = new CookingLogic(upgrade, upgradeSaveHandler, isValidFuel, isValidInput, config, cookingType);
+		cookingLogic = new CookingLogic(upgrade, this.upgradeSaveHandler, isValidFuel, isValidInput, config, cookingType);
 	}
 
 	/** Its flames, while it burns. */

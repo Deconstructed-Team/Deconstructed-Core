@@ -59,7 +59,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	public PumpUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		pumpUpgradeConfig = upgradeItem.getPumpUpgradeConfig();
-		fluidFilterLogic = new FluidFilterLogic(pumpUpgradeConfig.getFilterSlots(), upgrade, upgradeSaveHandler);
+		fluidFilterLogic = new FluidFilterLogic(pumpUpgradeConfig.getFilterSlots(), upgrade, this.upgradeSaveHandler);
 	}
 
 	@Override

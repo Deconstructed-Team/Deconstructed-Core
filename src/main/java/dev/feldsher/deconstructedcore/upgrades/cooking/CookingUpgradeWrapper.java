@@ -22,7 +22,7 @@ public class CookingUpgradeWrapper extends UpgradeWrapperBase<CookingUpgradeWrap
 
 	public CookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		cookingLogic = new CookingLogic(upgrade, upgradeSaveHandler, upgradeItem.getCookingUpgradeConfig(), upgradeItem.getCookingType());
+		cookingLogic = new CookingLogic(upgrade, this.upgradeSaveHandler, upgradeItem.getCookingUpgradeConfig(), upgradeItem.getCookingType());
 	}
 
 	@Override

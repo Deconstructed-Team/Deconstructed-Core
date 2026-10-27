@@ -40,7 +40,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	public FeedingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), s -> s.getItem() instanceof ItemFood, "filter_attributes");
+		filterLogic = new FilterLogic(upgrade, this.upgradeSaveHandler, upgradeItem.getFilterSlotCount(), s -> s.getItem() instanceof ItemFood, "filter_attributes");
 	}
 
 	@Override
