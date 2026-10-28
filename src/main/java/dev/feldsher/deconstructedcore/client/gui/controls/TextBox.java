@@ -87,6 +87,13 @@ public class TextBox extends WidgetBase {
 	}
 
 	@Override
+	public void setPosition(Position position) {
+		super.setPosition(position);
+		textField.x = x;
+		textField.y = y;
+	}
+
+	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		textField.setVisible(visible);
