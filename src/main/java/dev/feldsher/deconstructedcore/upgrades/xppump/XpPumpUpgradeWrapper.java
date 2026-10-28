@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.upgrades.xppump;
 
+import dev.feldsher.deconstructedcore.Config;
 import dev.feldsher.deconstructedcore.api.IStorageFluidHandler;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.fluid.ExperienceFluids;
@@ -55,6 +56,9 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 		}
 
 		if (entity == null) {
+			if (!Config.placedUpgradesActOnNearbyPlayers) {
+				return;
+			}
 			AxisAlignedBB searchBox = new AxisAlignedBB(pos).grow(PLAYER_SEARCH_RANGE);
 			for (EntityPlayer player : world.playerEntities) {
 				if (searchBox.contains(player.getPositionVector())) {

@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.upgrades.pump;
 
+import dev.feldsher.deconstructedcore.Config;
 import dev.feldsher.deconstructedcore.api.IStorageFluidHandler;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.upgrades.ITickableUpgrade;
@@ -85,7 +86,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	/** The hands of the players around only for a placed storage: one that's carried works with its wearer's alone. */
 	private Optional<Integer> handleInWorldInteractions(IStorageFluidHandler storageFluidHandler, @Nullable Entity entity, World world, BlockPos pos) {
-		if (entity == null && shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(world, pos, storageFluidHandler)) {
+		if (entity == null && shouldInteractWithHand() && Config.placedUpgradesActOnNearbyPlayers && handleFluidContainersInHandsOfNearbyPlayers(world, pos, storageFluidHandler)) {
 			lastHandActionTime = world.getTotalWorldTime();
 			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
 		}

@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.upgrades.feeding;
 
+import dev.feldsher.deconstructedcore.Config;
 import dev.feldsher.deconstructedcore.inventory.IItemHandlerSimpleInserter;
 import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
@@ -51,6 +52,9 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 		boolean hungryPlayer = false;
 		if (!(entity instanceof EntityPlayer)) {
+			if (!Config.placedUpgradesActOnNearbyPlayers) {
+				return;
+			}
 			for (EntityPlayer player : world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(pos).grow(FEEDING_RANGE))) {
 				hungryPlayer |= feedPlayerAndGetHungry(player, world);
 			}

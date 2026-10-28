@@ -21,6 +21,11 @@ public class Config {
 			"Fluids of mods that aren't installed are skipped."})
 	public static String[] experienceFluids = {"xpjuice|20"};
 
+	@net.minecraftforge.common.config.Config.Comment({"Whether the upgrades of a placed storage or backpack act on the players near it, whoever they are:",
+			"the experience pump takes and gives their experience and mends their items, the pump fills and drains",
+			"the fluid containers in their hands, and feeding feeds them. Off, they act only for the player carrying them."})
+	public static boolean placedUpgradesActOnNearbyPlayers = true;
+
 	private Config() {}
 
 	@SubscribeEvent
