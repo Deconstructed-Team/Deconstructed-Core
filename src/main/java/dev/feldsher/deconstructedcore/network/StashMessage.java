@@ -4,12 +4,14 @@ import dev.feldsher.deconstructedcore.api.IStashStorageItem;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.items.SlotItemHandler;
 
 /**
  * A right click in an inventory screen that stashes: with a storage item held, the clicked slot's items go into it;
@@ -40,6 +42,16 @@ public class StashMessage implements IMessage {
 		buf.writeInt(slotNumber);
 	}
 
+	/**
+	 * Only slots that are what they look like: the player's own, a plain slot or item handler slot, and those of this
+	 * mod's screens. Stashing works on the slot itself, past the container's click handling, and a mod's own kind of
+	 * slot, as a ghost or a shop's one, often counts on that handling to keep its items where they are.
+	 */
+	public static boolean canStashIn(Container container, Slot slot) {
+		return slot.inventory instanceof InventoryPlayer || container instanceof StorageContainerMenuBase
+				|| slot.getClass() == Slot.class || slot.getClass() == SlotItemHandler.class;
+	}
+
 	public static class Handler implements IMessageHandler<StashMessage, IMessage> {
 		@Override
 		public IMessage onMessage(StashMessage message, MessageContext ctx) {
@@ -55,6 +67,9 @@ public class StashMessage implements IMessage {
 				return;
 			}
 			Slot slot = container.getSlot(message.slotNumber);
+			if (!canStashIn(container, slot)) {
+				return;
+			}
 			ItemStack held = player.inventory.getItemStack();
 			if (!held.isEmpty() && held.getCount() == 1 && held.getItem() instanceof IStashStorageItem) {
 				stashSlotIntoHeld(player, slot, held, (IStashStorageItem) held.getItem());

@@ -146,7 +146,7 @@ public final class StashHandler {
 		}
 		ItemStack inSlot = slot.getStack();
 		EntityPlayerSP player = Minecraft.getMinecraft().player;
-		if (held.isEmpty() || inSlot.isEmpty() || !slot.canTakeStack(player)) {
+		if (held.isEmpty() || inSlot.isEmpty() || !StashMessage.canStashIn(player.openContainer, slot) || !slot.canTakeStack(player)) {
 			return null;
 		}
 		IStashStorageItem.StashResult result = null;
