@@ -1,4 +1,4 @@
-itemGroup.deconstructedcore=Sophisticated Core
+itemGroup.deconstructedcore=Deconstructed Core
 item.deconstructedcore.xp_bucket=Bucket of Experience
 item.deconstructedcore.storage.tooltip.right_click_to_add_to_storage=Right Click To Add
 item.deconstructedcore.storage.tooltip.stack_multiplier=Stack Size Multiplier: %s
@@ -245,7 +245,7 @@ gui.deconstructedcore.error.add.battery_energy_high=Backpack can't support this 
 gui.deconstructedcore.error.add.battery_exists=There's already Battery Upgrade in another upgrade slot
 gui.deconstructedcore.error.add.upgrade_not_allowed=%s can't be used in %s
 gui.deconstructedcore.error.add.only_single_upgrade_allowed=Only single %s can be used in %s
-gui.deconstructedcore.error.add.only_x_upgrades_allowed=Only %dx %s can be used in %s
+gui.deconstructedcore.error.add.only_x_upgrades_allowed=Only %sx %s can be used in %s
 gui.deconstructedcore.error.add.any_upgrade_exists=All upgrade slots need to be empty
 gui.deconstructedcore.error.add.no_upgrade_can_be_added=No upgrade can be added
 gui.deconstructedcore.error.remove.infinity_upgrade_only_admin=Only admins can remove Infinity Upgrade

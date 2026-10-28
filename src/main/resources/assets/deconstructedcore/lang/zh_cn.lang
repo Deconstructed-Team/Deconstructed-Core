@@ -1,4 +1,4 @@
-itemGroup.deconstructedcore=精妙核心
+itemGroup.deconstructedcore=Deconstructed Core
 item.deconstructedcore.xp_bucket=经验桶
 item.deconstructedcore.storage.tooltip.right_click_to_add_to_storage=右击添加
 item.deconstructedcore.storage.tooltip.stack_multiplier=堆叠倍数：%s
@@ -236,7 +236,7 @@ gui.deconstructedcore.error.add.battery_energy_high=背包没有空间加装电�
 gui.deconstructedcore.error.add.battery_exists=已加装一个电池升级
 gui.deconstructedcore.error.add.upgrade_not_allowed=%s不能加装于%s
 gui.deconstructedcore.error.add.only_single_upgrade_allowed=仅可加装单个%s于%s
-gui.deconstructedcore.error.add.only_x_upgrades_allowed=仅可加装%d个%s于%s
+gui.deconstructedcore.error.add.only_x_upgrades_allowed=仅可加装%s个%s于%s
 gui.deconstructedcore.error.add.any_upgrade_exists=所有升级插槽必须为空
 gui.deconstructedcore.error.add.no_upgrade_can_be_added=无法加装升级
 gui.deconstructedcore.error.remove.infinity_upgrade_only_admin=只有管理员可移除无限升级
