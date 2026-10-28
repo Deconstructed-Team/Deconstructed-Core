@@ -235,6 +235,7 @@ gui.deconstructedcore.settings.message.export_template.empty_name=File name can'
 gui.deconstructedcore.settings.message.export_template.invalid_characters=File name contains invalid character(s): %s
 gui.deconstructedcore.settings.message.export_template.name_too_long=File name can't be longer than %s characters
 gui.deconstructedcore.settings.message.export_template.too_many=You can't export more than %s templates
+gui.deconstructedcore.settings.message.export_template.too_large=These settings are too big to export: over %s KB
 gui.deconstructedcore.settings.message.save_template.name_too_long=Slot name can't be longer than %s characters
 gui.deconstructedcore.settings.message.save_template.too_many=You can't have more than %s named slots
 gui.deconstructedcore.error.remove.stack_low_multiplier=There's at least one slot or upgrade that requires multiplier higher than %s

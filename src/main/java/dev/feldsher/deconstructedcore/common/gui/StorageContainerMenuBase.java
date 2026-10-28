@@ -430,11 +430,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			ItemStack cursorStack = player.inventory.getItemStack();
 			if (clickType == ClickType.PICKUP || clickType == ClickType.QUICK_MOVE) {
 				if (slot.isItemValid(cursorStack) || cursorStack.isEmpty()) {
-					ItemStack ghost = cursorStack.copy();
-					if (ghost.getCount() > 1) {
-						ghost.setCount(1);
-					}
-					slot.putStack(ghost);
+					slot.putStack(GhostStacks.asFilter(cursorStack));
 				}
 			}
 			return ItemStack.EMPTY;

@@ -19,19 +19,29 @@ public final class GhostStacks {
 	private GhostStacks() {}
 
 	public static ItemStack fromClient(NBTTagCompound stackNbt) {
-		ItemStack sent = new ItemStack(stackNbt);
-		if (sent.isEmpty()) {
+		return asFilter(new ItemStack(stackNbt));
+	}
+
+	/** The ghost of a stack, as a filter slot keeps it: one item, with its tag only when that's of a sane size. */
+	public static ItemStack asFilter(ItemStack stack) {
+		if (stack.isEmpty()) {
 			return ItemStack.EMPTY;
 		}
-		ItemStack ghost = new ItemStack(sent.getItem(), 1, sent.getMetadata());
-		NBTTagCompound tag = sent.getTagCompound();
-		if (tag != null && getSize(tag) <= MAX_TAG_BYTES) {
-			ghost.setTagCompound(tag);
+		ItemStack ghost = new ItemStack(stack.getItem(), 1, stack.getMetadata());
+		if (hasFilterSizedTag(stack) && stack.getTagCompound() != null) {
+			ghost.setTagCompound(stack.getTagCompound().copy());
 		}
 		return ghost;
 	}
 
-	private static int getSize(NBTTagCompound tag) {
+	/** Whether the stack's tag is of a size a filter keeps. */
+	public static boolean hasFilterSizedTag(ItemStack stack) {
+		NBTTagCompound tag = stack.getTagCompound();
+		return tag == null || getSize(tag) <= MAX_TAG_BYTES;
+	}
+
+	/** The tag's size as it's written: as it's sent, and saved. */
+	public static int getSize(NBTTagCompound tag) {
 		CountingStream counter = new CountingStream();
 		try (DataOutputStream output = new DataOutputStream(counter)) {
 			CompressedStreamTools.write(tag, output);

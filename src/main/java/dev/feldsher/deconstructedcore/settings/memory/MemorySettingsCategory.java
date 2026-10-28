@@ -3,6 +3,7 @@ package dev.feldsher.deconstructedcore.settings.memory;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.inventory.ItemStackKey;
 import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
+import dev.feldsher.deconstructedcore.util.GhostStacks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -131,8 +132,12 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 		selectSlots(slotNumber, slotNumber + 1);
 	}
 
+	/**
+	 * A stack whose tag is too big to keep, as a shulker box full of books, is remembered by its item alone: kept
+	 * whole, the settings would grow past what a packet holds, and be sent with every template and every opening.
+	 */
 	private void addSlot(int slot, ItemStack stack) {
-		if (ignoreNbt) {
+		if (ignoreNbt || !GhostStacks.hasFilterSizedTag(stack)) {
 			addSlotItem(slot, stack);
 		} else {
 			addSlotStack(slot, stack);

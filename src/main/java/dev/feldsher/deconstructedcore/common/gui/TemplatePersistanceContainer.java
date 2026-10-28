@@ -12,6 +12,7 @@ import dev.feldsher.deconstructedcore.settings.SettingsHandler;
 import dev.feldsher.deconstructedcore.settings.SettingsTemplateStorage;
 import dev.feldsher.deconstructedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
+import dev.feldsher.deconstructedcore.util.GhostStacks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -52,6 +53,8 @@ public class TemplatePersistanceContainer {
 	private static final int MAX_NAME_LENGTH = 32;
 	private static final int MAX_NAMED_SAVES = 16;
 	private static final int MAX_EXPORTS_PER_PLAYER = 16;
+	/** An export goes to its player with every settings screen opened, alongside the rest: kept well within a packet. */
+	private static final int MAX_EXPORT_BYTES = 64 * 1024;
 	private static final String ACTION_TAG = "action";
 	private static final String SAVE_SLOT_TAG = "saveSlot";
 	private static final String LOAD_SLOT_TAG = "loadSlot";
@@ -76,7 +79,7 @@ public class TemplatePersistanceContainer {
 	public static void sendTemplatesTo(EntityPlayerMP player) {
 		SettingsTemplateStorage settingsTemplateStorage = SettingsTemplateStorage.get(player.world);
 		PacketHandler.INSTANCE.sendTo(new SyncTemplateSettingsMessage(settingsTemplateStorage.getPlayerTemplates(player),
-				settingsTemplateStorage.getPlayerNamedTemplates(player), FileSettingsTemplates.get(false).getTemplates()), player);
+				settingsTemplateStorage.getPlayerNamedTemplates(player), FileSettingsTemplates.get(false).getTemplatesFor(player)), player);
 	}
 
 	public void setOnSlotsRefreshed(Runnable onSlotsRefreshed) {
@@ -101,7 +104,7 @@ public class TemplatePersistanceContainer {
 			loadSlots.add(new OrdinalPersistanceSlot(i + 1));
 		}
 		getNamedSaves().forEach(name -> loadSlots.add(new NamedPersistanceSlot(name)));
-		getFileTemplates().getTemplates().forEach((source, templates) -> templates.keySet().forEach(templateName -> loadSlots.add(new FileSlot(source, templateName))));
+		getFileTemplates().getTemplatesFor(getPlayer()).forEach((source, templates) -> templates.keySet().forEach(templateName -> loadSlots.add(new FileSlot(source, templateName))));
 
 		if (loadSlotIndex == -1 && !loadSlots.isEmpty()) {
 			loadSlotIndex = 0;
@@ -357,7 +360,7 @@ public class TemplatePersistanceContainer {
 			if (templatesDir == null) {
 				return;
 			}
-			String source = serverPlayer.getName().toLowerCase(Locale.ROOT);
+			String source = FileSettingsTemplates.getPlayerSource(serverPlayer);
 			Path sourceDir = templatesDir.resolve(source);
 			Path exportPath = sourceDir.resolve(finalFileName + FileSettingsTemplates.SUFFIX);
 			if (!Files.exists(exportPath) && countExports(sourceDir) >= MAX_EXPORTS_PER_PLAYER) {
@@ -365,6 +368,10 @@ public class TemplatePersistanceContainer {
 				return;
 			}
 			NBTTagCompound settingsNbt = getSettingsHandler().getNbt().copy();
+			if (GhostStacks.getSize(settingsNbt) > MAX_EXPORT_BYTES) {
+				serverPlayer.sendStatusMessage(new TextComponentTranslation(TranslationHelper.INSTANCE.translSettingsMessage("export_template.too_large"), MAX_EXPORT_BYTES / 1024), false);
+				return;
+			}
 			try {
 				Files.createDirectories(sourceDir);
 				Files.write(exportPath, settingsNbt.toString().getBytes(StandardCharsets.UTF_8));
@@ -373,7 +380,7 @@ public class TemplatePersistanceContainer {
 				return;
 			}
 
-			getFileTemplates().putTemplate(source, finalFileName, settingsNbt);
+			getFileTemplates().putPlayerTemplate(source, finalFileName, settingsNbt);
 			sendTemplatesTo(serverPlayer);
 			initSlots();
 

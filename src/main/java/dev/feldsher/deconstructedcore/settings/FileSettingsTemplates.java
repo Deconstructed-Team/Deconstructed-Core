@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.settings;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
@@ -14,9 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -33,6 +36,8 @@ public final class FileSettingsTemplates {
 
 	/** By source, then by template name, both sorted, so that the server and the client list them alike. */
 	private final Map<String, Map<String, NBTTagCompound>> templates = new TreeMap<>();
+	/** The sources that are players' exports, in the world: each player gets only their own of these. */
+	private final Set<String> playerSources = new HashSet<>();
 
 	private FileSettingsTemplates() {}
 
@@ -42,6 +47,31 @@ public final class FileSettingsTemplates {
 
 	public Map<String, Map<String, NBTTagCompound>> getTemplates() {
 		return templates;
+	}
+
+	/**
+	 * The pack's templates and the player's own exports, not other players': theirs would be sent to everyone with
+	 * every settings screen opened. The client's copy holds only what it was sent already.
+	 */
+	public Map<String, Map<String, NBTTagCompound>> getTemplatesFor(EntityPlayer player) {
+		String ownSource = getPlayerSource(player);
+		Map<String, Map<String, NBTTagCompound>> visible = new TreeMap<>();
+		templates.forEach((source, sourceTemplates) -> {
+			if (!playerSources.contains(source) || source.equals(ownSource)) {
+				visible.put(source, sourceTemplates);
+			}
+		});
+		return visible;
+	}
+
+	public static String getPlayerSource(EntityPlayer player) {
+		return player.getName().toLowerCase(Locale.ROOT);
+	}
+
+	/** A player's export, as it's written in the world. */
+	public void putPlayerTemplate(String source, String fileName, NBTTagCompound tag) {
+		playerSources.add(source);
+		putTemplate(source, fileName, tag);
 	}
 
 	public Optional<NBTTagCompound> getTemplateNbt(String source, String templateName) {
@@ -72,10 +102,11 @@ public final class FileSettingsTemplates {
 	/** On server start: the pack's templates, then the world's. */
 	public static void loadServerTemplates() {
 		SERVER.templates.clear();
-		SERVER.loadFrom(new File(Loader.instance().getConfigDir(), TEMPLATES_DIRECTORY).toPath());
+		SERVER.playerSources.clear();
+		SERVER.loadFrom(new File(Loader.instance().getConfigDir(), TEMPLATES_DIRECTORY).toPath(), false);
 		Path worldTemplatesDir = getWorldTemplatesDir();
 		if (worldTemplatesDir != null) {
-			SERVER.loadFrom(worldTemplatesDir);
+			SERVER.loadFrom(worldTemplatesDir, true);
 		}
 	}
 
@@ -85,13 +116,17 @@ public final class FileSettingsTemplates {
 		return worldDir == null ? null : new File(worldDir, TEMPLATES_DIRECTORY).toPath();
 	}
 
-	private void loadFrom(Path templatesDir) {
+	private void loadFrom(Path templatesDir, boolean playerExports) {
 		if (!Files.isDirectory(templatesDir)) {
 			return;
 		}
 		try (DirectoryStream<Path> sources = Files.newDirectoryStream(templatesDir, Files::isDirectory)) {
 			for (Path sourceDir : sources) {
-				loadSource(sourceDir.getFileName().toString(), sourceDir);
+				String source = sourceDir.getFileName().toString();
+				if (playerExports) {
+					playerSources.add(source);
+				}
+				loadSource(source, sourceDir);
 			}
 		} catch (IOException e) {
 			DeconstructedCore.LOGGER.error("Couldn't list settings templates in {}", templatesDir, e);

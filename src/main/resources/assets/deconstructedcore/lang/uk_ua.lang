@@ -235,6 +235,7 @@ gui.deconstructedcore.settings.message.export_template.empty_name=Назва ф�
 gui.deconstructedcore.settings.message.export_template.invalid_characters=Назва файлу містить недопустимі символи: %s
 gui.deconstructedcore.settings.message.export_template.name_too_long=Назва файлу не може бути довшою за %s символів
 gui.deconstructedcore.settings.message.export_template.too_many=Не можна експортувати більше ніж %s шаблонів
+gui.deconstructedcore.settings.message.export_template.too_large=Ці налаштування завеликі для експорту: понад %s КБ
 gui.deconstructedcore.settings.message.save_template.name_too_long=Назва слота не може бути довшою за %s символів
 gui.deconstructedcore.settings.message.save_template.too_many=Не можна мати більше ніж %s іменованих слотів
 gui.deconstructedcore.error.remove.stack_low_multiplier=Існує принаймні один слот або покращення, для якого потрібен множник, вищий за %s
