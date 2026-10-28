@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
+import net.minecraft.client.renderer.GlStateManager;
 
 /**
  * Picks a color: by saturation and brightness on a square of its hue, by hue on a rainbow beside it, by its hex code,
@@ -126,10 +127,10 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 
 	private static void fill(double x1, double y1, double x2, double y2, int color) {
 		// drawRect takes whole pixels; the markers are thinner than one, drawn scaled up
-		net.minecraft.client.renderer.GlStateManager.pushMatrix();
-		net.minecraft.client.renderer.GlStateManager.scale(0.1, 0.1, 1);
+		GlStateManager.pushMatrix();
+		GlStateManager.scale(0.1, 0.1, 1);
 		Gui.drawRect((int) Math.round(x1 * 10), (int) Math.round(y1 * 10), (int) Math.round(x2 * 10), (int) Math.round(y2 * 10), color);
-		net.minecraft.client.renderer.GlStateManager.popMatrix();
+		GlStateManager.popMatrix();
 	}
 
 	private static class ColorGradientArea extends WidgetBase {

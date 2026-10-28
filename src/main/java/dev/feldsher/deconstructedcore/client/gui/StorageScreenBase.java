@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
+import java.util.function.Consumer;
+import net.minecraft.util.text.TextFormatting;
 
 /**
  * A storage's screen: as wide as 9 or 12 slots a line, as tall as its rows, or as the screen lets it be:
@@ -117,7 +120,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 	}
 
-	private void forEachShownUpgradeSwitch(java.util.function.Consumer<ToggleButton<Boolean>> action) {
+	private void forEachShownUpgradeSwitch(Consumer<ToggleButton<Boolean>> action) {
 		upgradeSwitches.forEach((slot, upgradeSwitch) -> {
 			if (getMenu().canDisableUpgrade(slot)) {
 				action.accept(upgradeSwitch);
@@ -136,7 +139,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int x = SLOTS_X_OFFSET + getSlotsOnLine() * 18 + scrollBarOffset;
 		int height = numberOfVisibleRows * 18;
 		for (Map.Entry<Integer, UpgradeContainerBase<?, ?>> entry : getMenu().getUpgradeContainers().entrySet()) {
-			java.util.Optional<? extends UpgradeInventoryPartBase<?>> part = UpgradeGuiManager.getInventoryPart(entry.getKey(), entry.getValue(), new Position(x, SLOTS_Y_OFFSET), height, this);
+			Optional<? extends UpgradeInventoryPartBase<?>> part = UpgradeGuiManager.getInventoryPart(entry.getKey(), entry.getValue(), new Position(x, SLOTS_Y_OFFSET), height, this);
 			if (part.isPresent()) {
 				inventoryParts.put(entry.getKey(), part.get());
 				x += 36;
@@ -302,7 +305,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		getMenu().getErrorUpgradeSlotChangeResult().ifPresent(result -> {
 			renderErrorOverlays(result);
 			result.getErrorMessage().ifPresent(message ->
-					drawHoveringText(java.util.Collections.singletonList(net.minecraft.util.text.TextFormatting.RED + message.getFormattedText()), mouseX, mouseY));
+					drawHoveringText(Collections.singletonList(TextFormatting.RED + message.getFormattedText()), mouseX, mouseY));
 		});
 	}
 
@@ -620,7 +623,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (!showsSlotColors()) {
 			return;
 		}
-		java.util.List<ISlotColorCategory> categories = getMenu().getStorageWrapper().getSettingsHandler().getCategoriesThatImplement(ISlotColorCategory.class);
+		List<ISlotColorCategory> categories = getMenu().getStorageWrapper().getSettingsHandler().getCategoriesThatImplement(ISlotColorCategory.class);
 		GlStateManager.disableLighting();
 		GlStateManager.disableDepth();
 		for (int slotIndex = 0; slotIndex < getMenu().getNumberOfStorageInventorySlots(); slotIndex++) {

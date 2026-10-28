@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.IntPredicate;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * A storage's settings: its inventory, to look at and pick slots in, and a container per settings category. Clicks on
@@ -204,7 +206,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 		}
 
 		@Nullable
-		@net.minecraftforge.fml.relauncher.SideOnly(net.minecraftforge.fml.relauncher.Side.CLIENT)
+		@SideOnly(Side.CLIENT)
 		@Override
 		public String getSlotTexture() {
 			return StorageInventorySlot.getSlotTexture(storageWrapper, getSlotIndex());

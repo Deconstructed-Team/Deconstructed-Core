@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A storage's container: its inventory slots, then the player's 27 + 9, then the upgrade slots, then the slots of
@@ -355,7 +356,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return slotWrappers.containsKey(upgradeSlot) && slotWrappers.get(upgradeSlot).canBeDisabled();
 	}
 
-	private void sendToServer(String key, java.util.function.Consumer<NBTTagCompound> fill) {
+	private void sendToServer(String key, Consumer<NBTTagCompound> fill) {
 		NBTTagCompound data = new NBTTagCompound();
 		fill.accept(data);
 		PacketHandler.INSTANCE.sendToServer(new SyncContainerClientDataMessage(data));

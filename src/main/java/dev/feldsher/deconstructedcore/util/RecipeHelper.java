@@ -31,6 +31,9 @@ import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.T
 import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE;
 import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.TWO_BY_TWO;
 import static dev.feldsher.deconstructedcore.util.RecipeHelper.CompactingShape.TWO_BY_TWO_UNCRAFTABLE;
+import java.util.Optional;
+import net.minecraft.client.Minecraft;
+import net.minecraft.inventory.IInventory;
 
 /**
  * What an item compacts into in a 2x2 or 3x3 grid of itself, and whether that uncrafts back into the same items, as
@@ -100,13 +103,13 @@ public class RecipeHelper {
 		return compactingShapes;
 	}
 
-	private static java.util.Optional<CompactingShape> getCompactingShape(ItemStack stack, int width, int height, CompactingShape uncraftableShape, CompactingShape shape) {
+	private static Optional<CompactingShape> getCompactingShape(ItemStack stack, int width, int height, CompactingShape uncraftableShape, CompactingShape shape) {
 		CompactingResult compactingResult = getCompactingResult(stack, width, height);
 		if (compactingResult.getResult().isEmpty() || isSameItem(stack, compactingResult.getResult())
 				|| isPartOfCompactingLoop(stack, compactingResult.getResult())) {
-			return java.util.Optional.empty();
+			return Optional.empty();
 		}
-		return java.util.Optional.of(uncompactMatchesItem(compactingResult.getResult(), stack, width * height) ? uncraftableShape : shape);
+		return Optional.of(uncompactMatchesItem(compactingResult.getResult(), stack, width * height) ? uncraftableShape : shape);
 	}
 
 	private static boolean isSameItem(ItemStack a, ItemStack b) {
@@ -261,7 +264,7 @@ public class RecipeHelper {
 			}
 
 			@Override
-			public void onCraftMatrixChanged(net.minecraft.inventory.IInventory inventory) {
+			public void onCraftMatrixChanged(IInventory inventory) {
 				//noop
 			}
 		}, width, height);
@@ -369,7 +372,7 @@ public class RecipeHelper {
 
 		@Nullable
 		static World get() {
-			return net.minecraft.client.Minecraft.getMinecraft().world;
+			return Minecraft.getMinecraft().world;
 		}
 	}
 }

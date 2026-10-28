@@ -28,6 +28,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 
 public class InventoryHelper {
 	private InventoryHelper() {}
@@ -72,7 +75,7 @@ public class InventoryHelper {
 		return false;
 	}
 
-	public static void copyTo(IItemHandler handler, net.minecraftforge.items.IItemHandlerModifiable otherHandler) {
+	public static void copyTo(IItemHandler handler, IItemHandlerModifiable otherHandler) {
 		for (int slot = 0; slot < handler.getSlots() && slot < otherHandler.getSlots(); slot++) {
 			otherHandler.setStackInSlot(slot, handler.getStackInSlot(slot).copy());
 		}
@@ -279,5 +282,22 @@ public class InventoryHelper {
 
 		stacks.addAll(splittable);
 		Collections.shuffle(stacks, rand);
+	}
+
+	/** The player's inventory, and the inventories of what in it holds items, as a backpack: what decorating takes from. */
+	public static List<IItemHandler> getItemHandlersFromPlayerIncludingContainers(EntityPlayer player) {
+		List<IItemHandler> itemHandlers = new ArrayList<>();
+		IItemHandler playerInventory = new PlayerMainInvWrapper(player.inventory);
+		itemHandlers.add(playerInventory);
+		for (int slot = 0; slot < playerInventory.getSlots(); slot++) {
+			ItemStack slotStack = playerInventory.getStackInSlot(slot);
+			if (!slotStack.isEmpty() && slotStack.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
+				IItemHandler containerHandler = slotStack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+				if (containerHandler != null) {
+					itemHandlers.add(containerHandler);
+				}
+			}
+		}
+		return itemHandlers;
 	}
 }

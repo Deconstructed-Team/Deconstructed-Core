@@ -9,6 +9,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
+import net.minecraft.inventory.IInventory;
 
 /**
  * The 3x3 crafting grid as recipes see it, over the upgrade's own slots, which are read each time as the wrapper
@@ -22,7 +23,7 @@ public class CraftingItemHandler extends InventoryCrafting {
 		}
 
 		@Override
-		public void onCraftMatrixChanged(net.minecraft.inventory.IInventory inventory) {
+		public void onCraftMatrixChanged(IInventory inventory) {
 			//noop
 		}
 	};

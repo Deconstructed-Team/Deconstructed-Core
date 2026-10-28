@@ -9,6 +9,8 @@ import net.minecraft.util.text.TextFormatting;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import net.minecraft.util.text.translation.I18n;
 
 /** The translation keys of a mod, by kind, as 1.21 names them. */
 public class TranslationHelper {
@@ -118,12 +120,12 @@ public class TranslationHelper {
 
 	@SuppressWarnings("deprecation") // the translator both sides have; tooltips are built on the client anyway
 	public String translate(String translateKey, Object... parameters) {
-		return net.minecraft.util.text.translation.I18n.translateToLocalFormatted(translateKey, parameters);
+		return I18n.translateToLocalFormatted(translateKey, parameters);
 	}
 
 	@SuppressWarnings("deprecation")
 	public boolean hasTranslation(String translateKey) {
-		return net.minecraft.util.text.translation.I18n.canTranslate(translateKey);
+		return I18n.canTranslate(translateKey);
 	}
 
 	/** A translation's lines, each formatted; none when the key has no translation. */
@@ -141,7 +143,7 @@ public class TranslationHelper {
 		for (TextFormatting formatting : textFormattings) {
 			prefix.append(formatting);
 		}
-		for (String line : translate(translateKey, parameters).split(java.util.regex.Pattern.quote(LINE_BREAK))) {
+		for (String line : translate(translateKey, parameters).split(Pattern.quote(LINE_BREAK))) {
 			ret.add(prefix + line);
 		}
 		return ret;
