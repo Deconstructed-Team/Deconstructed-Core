@@ -29,7 +29,8 @@ import java.util.function.Consumer;
 /**
  * Crafts what's put in into its compacted form, 2x2 or, advanced, 3x3, as nuggets into ingots and ingots into blocks.
  * By default only what uncrafts back into the same items; set to, anything that compacts. Working in the GUI, it also
- * compacts what the player puts in by hand.
+ * compacts what the player puts in by hand. Its settings changed, it goes over all that's there, which 1.21 leaves
+ * until something's put in.
  */
 public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgradeWrapper, CompactingUpgradeItem>
 		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade {
@@ -37,11 +38,15 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	private static final String SHOULD_WORK_IN_GUI_TAG = "should_work_in_gui";
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToCompact = new HashSet<>();
+	private boolean compactAllSlots = false;
 
 	public CompactingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
-		filterLogic = new FilterLogic(upgrade, this.upgradeSaveHandler, upgradeItem.getFilterSlotCount(),
+		filterLogic = new FilterLogic(upgrade, stack -> {
+			this.upgradeSaveHandler.accept(stack);
+			compactAllSlots = true;
+		}, upgradeItem.getFilterSlotCount(),
 				stack -> RecipeHelper.getItemCompactingShapes(stack).stream().anyMatch(shape -> shape != CompactingShape.NONE),
 				"filter_attributes");
 	}
@@ -117,6 +122,7 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	public void setCompactNonUncraftable(boolean shouldCompactNonUncraftable) {
 		StorageNbt.getOrCreateTag(upgrade).setBoolean(COMPACT_NON_UNCRAFTABLE_TAG, shouldCompactNonUncraftable);
 		save();
+		compactAllSlots = true;
 	}
 
 	@Override
@@ -138,11 +144,17 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 	@Override
 	public void tick(@Nullable Entity entity, World world, BlockPos pos) {
+		if (compactAllSlots) {
+			compactAllSlots = false;
+			for (int slot = 0; slot < storageWrapper.getInventoryHandler().getSlots(); slot++) {
+				slotsToCompact.add(slot);
+			}
+		}
 		if (slotsToCompact.isEmpty()) {
 			return;
 		}
 
-		for (int slot : slotsToCompact) {
+		for (int slot : new ArrayList<>(slotsToCompact)) {
 			compactSlot(storageWrapper.getInventoryHandler(), slot);
 		}
 
