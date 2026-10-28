@@ -30,6 +30,8 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	private static final String DATA_REMOVE_TAG_NAME = "removeTagName";
 	private static final String DATA_MATCH_ANY_TAG = "matchAnyTag";
 	private static final String DATA_ATTRIBUTES_KEY = "parentTagKey";
+	/** More than any item has, or the screen lists: the client is held to it, not to fill the upgrade's NBT. */
+	private static final int MAX_TAGS = 64;
 
 	protected final List<S> filterSlots = new ArrayList<>();
 	protected final IServerUpdater serverUpdater;
@@ -222,7 +224,11 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 					setPrimaryMatch(PrimaryMatch.fromName(data.getString(DATA_PRIMARY_MATCH)));
 					return true;
 				case DATA_ADD_TAG_NAME:
-					filterLogic.get().addTag(data.getString(DATA_ADD_TAG_NAME));
+					// only one the item put in to pick from has, as the screen offers them
+					String tagName = data.getString(DATA_ADD_TAG_NAME);
+					if (FilterLogic.getStackTags(tagSelectionSlot.getStack()).contains(tagName) && filterLogic.get().getTagKeys().size() < MAX_TAGS) {
+						filterLogic.get().addTag(tagName);
+					}
 					return true;
 				case DATA_REMOVE_TAG_NAME:
 					filterLogic.get().removeTagName(data.getString(DATA_REMOVE_TAG_NAME));

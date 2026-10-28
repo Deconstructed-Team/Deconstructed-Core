@@ -52,7 +52,10 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 			return;
 		}
 		if (isServer()) {
-			getCategory().selectSlot(slotNumber);
+			// one of the storage's own slots, which the client is held to
+			if (slotNumber >= 0 && slotNumber < getSettingsContainer().getStorageWrapper().getInventoryHandler().getSlots()) {
+				getCategory().selectSlot(slotNumber);
+			}
 		} else {
 			sendIntToServer(SELECT_SLOT_TAG, slotNumber);
 		}
