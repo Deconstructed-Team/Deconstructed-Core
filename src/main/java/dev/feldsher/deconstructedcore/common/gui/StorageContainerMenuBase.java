@@ -260,6 +260,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	/** Opens the storage's settings screen in place of this one: the client asks, the server opens it. */
 	public void openSettings() {
+		if (!canOpenSettings()) {
+			return;
+		}
 		if (player.world.isRemote) {
 			sendToServer(ACTION_TAG, tag -> tag.setString(ACTION_TAG, "openSettings"));
 			return;
@@ -268,6 +271,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected abstract void openSettingsScreen();
+
+	/** Whether the player may change the storage's settings from here, as not those of another player's backpack. */
+	public boolean canOpenSettings() {
+		return true;
+	}
 
 	/** Where the storage is placed, for what it does from there, as playing a disc; empty when it's carried. */
 	public Optional<BlockPos> getBlockPosition() {

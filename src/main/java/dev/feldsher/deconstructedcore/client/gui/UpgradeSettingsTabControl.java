@@ -12,7 +12,9 @@ import java.util.Map;
 public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenBase<?>, UpgradeSettingsTab<?>> {
 	public UpgradeSettingsTabControl(Position position, StorageScreenBase<?> screen, String storageSettingsTabTooltip) {
 		super(position);
-		addChild(new StorageSettingsTab(new Position(x, getTopY()), screen, storageSettingsTabTooltip));
+		if (screen.getMenu().canOpenSettings()) {
+			addChild(new StorageSettingsTab(new Position(x, getTopY()), screen, storageSettingsTabTooltip));
+		}
 		for (Map.Entry<Integer, UpgradeContainerBase<?, ?>> entry : screen.getMenu().getUpgradeContainers().entrySet()) {
 			addSettingsTab(() -> screen.getMenu().setOpenTabId(entry.getKey()), () -> screen.getMenu().removeOpenTabId(),
 					UpgradeGuiManager.getTab(entry.getValue(), new Position(x, getTopY()), screen))
