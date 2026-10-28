@@ -52,7 +52,7 @@ public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wra
 
 	@Override
 	public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide, EntityPlayer player) {
-		if (player.canUseCommand(getPermissionLevel(), "")) {
+		if (hasPermission(player, getPermissionLevel())) {
 			return super.canRemoveUpgradeFrom(storageWrapper, isClientSide, player);
 		}
 		return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.infinity_upgrade_only_admin"),
@@ -61,6 +61,11 @@ public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wra
 
 	public int getPermissionLevel() {
 		return admin ? 2 : 0;
+	}
+
+	/** Level 0 is everyone's: 1.12 gives a player who isn't an op no command level at all. */
+	public static boolean hasPermission(EntityPlayer player, int permissionLevel) {
+		return permissionLevel <= 0 || player.canUseCommand(permissionLevel, "");
 	}
 
 	public IInventoryPartHandler createInventoryPartHandler(InventoryHandler parent, SlotRange slotRange) {

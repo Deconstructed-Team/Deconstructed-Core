@@ -42,7 +42,7 @@ public abstract class InfinityInventoryPart implements IInventoryPartHandler {
 
 	@Override
 	public boolean isItemValid(int slot, ItemStack stack, @Nullable EntityPlayer player, BiPredicate<Integer, ItemStack> isItemValidSuper) {
-		return player != null && player.canUseCommand(permissionLevel, "") && parent.getSlotStack(slot).isEmpty() && isItemValidSuper.test(slot, stack);
+		return player != null && InfinityUpgradeItem.hasPermission(player, permissionLevel) && parent.getSlotStack(slot).isEmpty() && isItemValidSuper.test(slot, stack);
 	}
 
 	@Override
