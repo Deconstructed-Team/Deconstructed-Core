@@ -20,7 +20,7 @@ import java.util.Optional;
  * contents and their settings, so that every stack with the same contents shows the same.
  * <p>
  * It has the items displayed, the tanks and the battery, and what working upgrades show, by their type. The upgrade
- * items, which only placed storages show, come with them.
+ * items, which only placed storages show, a placed storage's render info has along, one per upgrade slot.
  */
 public final class RenderInfo {
 	public static final String RENDER_INFO_TAG = "renderInfo";
@@ -30,6 +30,7 @@ public final class RenderInfo {
 	private static final String TANK_INFO_TAG = "info";
 	private static final String BATTERY_TAG = "battery";
 	private static final String UPGRADES_TAG = "upgrades";
+	private static final String UPGRADE_ITEMS_TAG = "upgradeItems";
 	public static final RenderInfo EMPTY = new RenderInfo(ItemDisplayRenderInfo.EMPTY);
 
 	private final ItemDisplayRenderInfo itemDisplayRenderInfo;
@@ -37,6 +38,7 @@ public final class RenderInfo {
 	@Nullable
 	private final BatteryRenderInfo batteryRenderInfo;
 	private final Map<String, NBTTagCompound> upgradeRenderData;
+	private final List<ItemStack> upgradeItems;
 
 	public RenderInfo(ItemDisplayRenderInfo itemDisplayRenderInfo) {
 		this(itemDisplayRenderInfo, Collections.emptyMap(), null, Collections.emptyMap());
@@ -44,10 +46,25 @@ public final class RenderInfo {
 
 	public RenderInfo(ItemDisplayRenderInfo itemDisplayRenderInfo, Map<TankPosition, TankRenderInfo> tankRenderInfos, @Nullable BatteryRenderInfo batteryRenderInfo,
 			Map<String, NBTTagCompound> upgradeRenderData) {
+		this(itemDisplayRenderInfo, tankRenderInfos, batteryRenderInfo, upgradeRenderData, Collections.emptyList());
+	}
+
+	private RenderInfo(ItemDisplayRenderInfo itemDisplayRenderInfo, Map<TankPosition, TankRenderInfo> tankRenderInfos, @Nullable BatteryRenderInfo batteryRenderInfo,
+			Map<String, NBTTagCompound> upgradeRenderData, List<ItemStack> upgradeItems) {
 		this.itemDisplayRenderInfo = itemDisplayRenderInfo;
 		this.tankRenderInfos = tankRenderInfos;
 		this.batteryRenderInfo = batteryRenderInfo;
 		this.upgradeRenderData = upgradeRenderData;
+		this.upgradeItems = upgradeItems;
+	}
+
+	/** This with the upgrade items, single, empty for an empty upgrade slot. */
+	public RenderInfo withUpgradeItems(List<ItemStack> upgradeItems) {
+		return new RenderInfo(itemDisplayRenderInfo, tankRenderInfos, batteryRenderInfo, upgradeRenderData, upgradeItems);
+	}
+
+	public List<ItemStack> getUpgradeItems() {
+		return upgradeItems;
 	}
 
 	public ItemDisplayRenderInfo getItemDisplayRenderInfo() {
@@ -89,6 +106,13 @@ public final class RenderInfo {
 			upgradeRenderData.forEach(upgrades::setTag);
 			tag.setTag(UPGRADES_TAG, upgrades);
 		}
+		if (!upgradeItems.isEmpty()) {
+			NBTTagList upgradeItemsTag = new NBTTagList();
+			for (ItemStack upgradeItem : upgradeItems) {
+				upgradeItemsTag.appendTag(upgradeItem.isEmpty() ? new NBTTagCompound() : upgradeItem.writeToNBT(new NBTTagCompound()));
+			}
+			tag.setTag(UPGRADE_ITEMS_TAG, upgradeItemsTag);
+		}
 		return tag;
 	}
 
@@ -109,7 +133,13 @@ public final class RenderInfo {
 		for (String type : upgradesTag.getKeySet()) {
 			upgrades.put(type, upgradesTag.getCompoundTag(type));
 		}
-		return new RenderInfo(itemDisplay, tanks, battery, upgrades);
+		List<ItemStack> upgradeItems = new ArrayList<>();
+		NBTTagList upgradeItemsTag = tag.getTagList(UPGRADE_ITEMS_TAG, Constants.NBT.TAG_COMPOUND);
+		for (int i = 0; i < upgradeItemsTag.tagCount(); i++) {
+			NBTTagCompound upgradeItemTag = upgradeItemsTag.getCompoundTagAt(i);
+			upgradeItems.add(upgradeItemTag.isEmpty() ? ItemStack.EMPTY : new ItemStack(upgradeItemTag));
+		}
+		return new RenderInfo(itemDisplay, tanks, battery, upgrades, upgradeItems);
 	}
 
 	/** The items the storage shows. The slot counts and fill ratios come with the storages that show them. */
