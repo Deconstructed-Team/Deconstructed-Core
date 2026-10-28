@@ -28,13 +28,20 @@ after. So this port:
 
 The jar to install is `build/libs/deconstructedcore-<version>.jar` (not `-dev` or `-sources`).
 
-Another mod can be built against this one through JitPack:
+Another mod can be built against this one, from its GitHub releases:
 
 ```groovy
 repositories {
-    maven { url 'https://jitpack.io' }
+    ivy {
+        url = 'https://github.com/Deconstructed-Team/'
+        patternLayout {
+            artifact '[organisation]/releases/download/v[revision]/[module]-[revision](-[classifier]).[ext]'
+        }
+        metadataSources { artifact() }
+        content { includeGroup 'Deconstructed-Core' }
+    }
 }
 dependencies {
-    implementation rfg.deobf('com.github.Deconstructed-Team:Deconstructed-Core:v1.0.0')
+    implementation rfg.deobf('Deconstructed-Core:deconstructedcore:1.0.0')
 }
 ```

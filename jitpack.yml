@@ -1,6 +1,0 @@
-# JitPack builds a pushed tag or commit on request, so another mod can be built against this one without a release:
-# com.github.Deconstructed-Team:Deconstructed-Core:<tag or commit>, deobfuscated with rfg.deobf.
-jdk:
-  - openjdk21
-install:
-  - ARTIFACT_GROUP_ID=$GROUP ARTIFACT_ID=$ARTIFACT RELEASE_VERSION=$VERSION ./gradlew publishToMavenLocal -x test

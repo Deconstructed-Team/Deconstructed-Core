@@ -1,6 +1,6 @@
 /**
  * The mod's build: ForgeDevEnv's build.gradle, applied by build.gradle, which puts the plugins on the classpath
- * and holds IDEA's project settings. Published only as JitPack installs it, for other mods to build against.
+ * and holds IDEA's project settings. Other mods build against its jar from this repository's GitHub releases.
  */
 apply plugin: 'java'
 apply plugin: 'java-library'
@@ -131,12 +131,19 @@ repositories {
             includeGroup 'maven.modrinth'
         }
     }
-    maven {
-        // The other Deconstructed mods, built by JitPack from their repositories' tags
-        name 'JitPack'
-        url 'https://jitpack.io'
+    // The other Deconstructed mods, from their repositories' GitHub releases: '<repository>:<mod id>:<version>',
+    // as 'Deconstructed-Core:deconstructedcore:1.0.0' for the jar of release v1.0.0 of Deconstructed-Core
+    ivy {
+        name = 'Deconstructed GitHub releases'
+        url = 'https://github.com/Deconstructed-Team/'
+        patternLayout {
+            artifact '[organisation]/releases/download/v[revision]/[module]-[revision](-[classifier]).[ext]'
+        }
+        metadataSources { artifact() }
         content {
-            includeGroup 'com.github.Deconstructed-Team'
+            includeGroup 'Deconstructed-Core'
+            includeGroup 'Deconstructed-Backpacks'
+            includeGroup 'Deconstructed-Storage'
         }
     }
     mavenLocal() // Must be last for caching to work
@@ -394,14 +401,14 @@ tasks.register('prioritizeCoremods') {
     }
 }
 
-// What JitPack installs, under the coordinates it gives (group, repository, tag); a local publish gets the mod's own version
+// A local publish, under the coordinates other mods take the released jar by: to build them against this one as it is here
 publishing {
     publications {
         create('maven', MavenPublication) {
             from components.java
-            groupId = System.getenv('ARTIFACT_GROUP_ID') ?: 'com.github.Deconstructed-Team'
-            artifactId = System.getenv('ARTIFACT_ID') ?: rootProject.name
-            version = System.getenv('RELEASE_VERSION') ?: project.version
+            groupId = rootProject.name
+            artifactId = propertyString('mod_id')
+            version = project.version
         }
     }
 }
