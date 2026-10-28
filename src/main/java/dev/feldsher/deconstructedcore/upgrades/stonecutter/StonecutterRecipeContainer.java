@@ -150,6 +150,34 @@ public class StonecutterRecipeContainer {
 			return false;
 		}
 
+		/**
+		 * Only a result the input makes now: another player's screen of the same upgrade can have taken the input, and
+		 * this one's result, worked out from it, would come of nothing. Then it's worked out again, and not taken.
+		 */
+		@Override
+		public boolean canTakeStack(EntityPlayer thePlayer) {
+			if (thePlayer.world.isRemote || isResultUpToDate()) {
+				return super.canTakeStack(thePlayer);
+			}
+			inputItem = inputSlot.getStack().copy();
+			updateAvailableRecipes(inputItem);
+			inventoryUpdateListener.run();
+			return false;
+		}
+
+		private boolean isResultUpToDate() {
+			ItemStack shown = getStack();
+			if (shown.isEmpty()) {
+				return true;
+			}
+			ItemStack input = inputSlot.getStack();
+			if (input.isEmpty() || !isIndexInRecipeBounds(selectedRecipe)) {
+				return false;
+			}
+			List<ItemStack> results = upgradeContainer.getUpgradeWrapper().getCuttingResults().getResults(input);
+			return selectedRecipe < results.size() && ItemStack.areItemStacksEqual(results.get(selectedRecipe), shown);
+		}
+
 		/** Uses up one of the input, as the stonecutter or chisel does, carving with its sound once a tick. */
 		@Nonnull
 		@Override
