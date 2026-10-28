@@ -14,6 +14,8 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
+import static net.minecraft.inventory.InventoryHelper.spawnItemStack;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,7 +101,7 @@ public class InventoryHelper {
 					break;
 				}
 				remaining -= extracted.getCount();
-				net.minecraft.inventory.InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), extracted);
+				spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), extracted);
 			}
 		}
 	}
