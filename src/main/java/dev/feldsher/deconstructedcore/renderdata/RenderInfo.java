@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore.renderdata;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagFloat;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants;
 
@@ -85,7 +86,7 @@ public final class RenderInfo {
 
 	public NBTTagCompound serialize() {
 		NBTTagCompound tag = new NBTTagCompound();
-		if (!itemDisplayRenderInfo.getDisplayItems().isEmpty()) {
+		if (!itemDisplayRenderInfo.isEmpty()) {
 			tag.setTag(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
 		}
 		if (!tankRenderInfos.isEmpty()) {
@@ -142,14 +143,38 @@ public final class RenderInfo {
 		return new RenderInfo(itemDisplay, tanks, battery, upgrades, upgradeItems);
 	}
 
-	/** The items the storage shows. The slot counts and fill ratios come with the storages that show them. */
+	/**
+	 * The items the storage shows, and which of the slots it shows are inaccessible. The storages that show how full
+	 * their slots are, as limited barrels, have every slot's count and fill ratio too, and which slots are infinite.
+	 */
 	public static final class ItemDisplayRenderInfo {
 		private static final String ITEMS_TAG = "items";
+		private static final String INACCESSIBLE_SLOTS_TAG = "inaccessibleSlots";
+		private static final String INFINITE_SLOTS_TAG = "infiniteSlots";
+		private static final String SLOT_COUNTS_TAG = "slotCounts";
+		private static final String SLOT_FILL_RATIOS_TAG = "slotFillRatios";
 		public static final ItemDisplayRenderInfo EMPTY = new ItemDisplayRenderInfo(Collections.emptyList());
 		private final List<DisplayItem> displayItems;
+		private final List<Integer> inaccessibleSlots;
+		private final List<Integer> infiniteSlots;
+		private final List<Integer> slotCounts;
+		private final List<Float> slotFillRatios;
 
 		public ItemDisplayRenderInfo(List<DisplayItem> displayItems) {
+			this(displayItems, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+		}
+
+		public ItemDisplayRenderInfo(List<DisplayItem> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots, List<Integer> slotCounts,
+				List<Float> slotFillRatios) {
 			this.displayItems = displayItems;
+			this.inaccessibleSlots = inaccessibleSlots;
+			this.infiniteSlots = infiniteSlots;
+			this.slotCounts = slotCounts;
+			this.slotFillRatios = slotFillRatios;
+		}
+
+		private boolean isEmpty() {
+			return displayItems.isEmpty() && inaccessibleSlots.isEmpty() && slotCounts.isEmpty();
 		}
 
 		/** One item is kept flat, as 1.21 does, more in a list. */
@@ -157,10 +182,32 @@ public final class RenderInfo {
 			NBTTagCompound ret = new NBTTagCompound();
 			if (displayItems.size() == 1) {
 				displayItems.get(0).serialize(ret);
-			} else {
+			} else if (displayItems.size() > 1) {
 				NBTTagList items = new NBTTagList();
 				displayItems.forEach(displayItem -> items.appendTag(displayItem.serialize(new NBTTagCompound())));
 				ret.setTag(ITEMS_TAG, items);
+			}
+			putInts(ret, INACCESSIBLE_SLOTS_TAG, inaccessibleSlots);
+			putInts(ret, INFINITE_SLOTS_TAG, infiniteSlots);
+			putInts(ret, SLOT_COUNTS_TAG, slotCounts);
+			if (!slotFillRatios.isEmpty()) {
+				NBTTagList fillRatios = new NBTTagList();
+				slotFillRatios.forEach(ratio -> fillRatios.appendTag(new NBTTagFloat(ratio)));
+				ret.setTag(SLOT_FILL_RATIOS_TAG, fillRatios);
+			}
+			return ret;
+		}
+
+		private static void putInts(NBTTagCompound tag, String key, List<Integer> values) {
+			if (!values.isEmpty()) {
+				tag.setIntArray(key, values.stream().mapToInt(Integer::intValue).toArray());
+			}
+		}
+
+		private static List<Integer> getInts(NBTTagCompound tag, String key) {
+			List<Integer> ret = new ArrayList<>();
+			for (int value : tag.getIntArray(key)) {
+				ret.add(value);
 			}
 			return ret;
 		}
@@ -175,7 +222,30 @@ public final class RenderInfo {
 					items.add(DisplayItem.deserialize(itemsTag.getCompoundTagAt(i)));
 				}
 			}
-			return new ItemDisplayRenderInfo(items);
+			List<Float> slotFillRatios = new ArrayList<>();
+			NBTTagList fillRatiosTag = tag.getTagList(SLOT_FILL_RATIOS_TAG, Constants.NBT.TAG_FLOAT);
+			for (int i = 0; i < fillRatiosTag.tagCount(); i++) {
+				slotFillRatios.add(fillRatiosTag.getFloatAt(i));
+			}
+			return new ItemDisplayRenderInfo(items, getInts(tag, INACCESSIBLE_SLOTS_TAG), getInts(tag, INFINITE_SLOTS_TAG), getInts(tag, SLOT_COUNTS_TAG), slotFillRatios);
+		}
+
+		public List<Integer> getInaccessibleSlots() {
+			return inaccessibleSlots;
+		}
+
+		public List<Integer> getInfiniteSlots() {
+			return infiniteSlots;
+		}
+
+		/** Every slot's count, in slot order; empty for a storage that doesn't show them. */
+		public List<Integer> getSlotCounts() {
+			return slotCounts;
+		}
+
+		/** How full each slot is, of what it can hold, in slot order; empty for a storage that doesn't show it. */
+		public List<Float> getSlotFillRatios() {
+			return slotFillRatios;
 		}
 
 		public Optional<DisplayItem> getDisplayItem() {

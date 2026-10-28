@@ -74,11 +74,34 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	/** What the selected slots show: their item, or for an empty slot what it remembers, one of it. */
 	public RenderInfo.ItemDisplayRenderInfo buildItemDisplayRenderInfo() {
+		return buildItemDisplayRenderInfo(false);
+	}
+
+	/** With every slot's count and fill ratio, for a storage that shows them, as a limited barrel does. */
+	public RenderInfo.ItemDisplayRenderInfo buildItemDisplayRenderInfo(boolean withCountsAndFillRatios) {
 		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
+		List<Integer> inaccessibleSlots = new ArrayList<>();
+		InventoryHandler inventoryHandler = inventoryHandlerSupplier.get();
 		for (int slotIndex : slotIndexes) {
 			getSlotItemCopy(slotIndex).ifPresent(item -> displayItems.add(new RenderInfo.DisplayItem(item, getRotation(slotIndex), slotIndex, displaySide)));
+			if (slotIndex < inventoryHandler.getSlots() && !inventoryHandler.isSlotAccessible(slotIndex)) {
+				inaccessibleSlots.add(slotIndex);
+			}
 		}
-		return new RenderInfo.ItemDisplayRenderInfo(displayItems);
+		List<Integer> infiniteSlots = new ArrayList<>();
+		List<Integer> slotCounts = new ArrayList<>();
+		List<Float> slotFillRatios = new ArrayList<>();
+		if (withCountsAndFillRatios) {
+			for (int slotIndex = 0; slotIndex < inventoryHandler.getSlots(); slotIndex++) {
+				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
+				slotCounts.add(stack.getCount());
+				slotFillRatios.add(stack.isEmpty() ? 0 : (float) stack.getCount() / inventoryHandler.getStackLimit(slotIndex, stack));
+				if (inventoryHandler.isInfinite(slotIndex)) {
+					infiniteSlots.add(slotIndex);
+				}
+			}
+		}
+		return new RenderInfo.ItemDisplayRenderInfo(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
 	}
 
 	private Optional<ItemStack> getSlotItemCopy(int slotIndex) {

@@ -610,8 +610,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		renderSlotColors();
 	}
 
+	/** Whether the slots show the colors their settings mark them with; a storage that sets them all alike may not. */
+	protected boolean showsSlotColors() {
+		return true;
+	}
+
 	/** The colors settings categories mark slots with, such as the no-sort slots', translucent over the slots. */
 	private void renderSlotColors() {
+		if (!showsSlotColors()) {
+			return;
+		}
 		java.util.List<ISlotColorCategory> categories = getMenu().getStorageWrapper().getSettingsHandler().getCategoriesThatImplement(ISlotColorCategory.class);
 		GlStateManager.disableLighting();
 		GlStateManager.disableDepth();

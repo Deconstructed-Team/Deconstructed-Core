@@ -97,7 +97,7 @@ public abstract class SettingsScreen extends GuiContainer {
 		xSize = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
 		firstVisibleRow = Math.min(firstVisibleRow, getMaxFirstVisibleRow());
 		updateStorageSlotsPositions();
-		ySize = HEIGHT_WITHOUT_STORAGE_SLOTS + numberOfVisibleRows * 18;
+		ySize = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(numberOfVisibleRows);
 		inventoryLabelY = ySize - 94;
 		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
 	}
@@ -110,7 +110,11 @@ public abstract class SettingsScreen extends GuiContainer {
 		return storageBackgroundProperties.getSlotsOnLine() - menu.getColumnsTaken();
 	}
 
-	private void updateStorageSlotsPositions() {
+	protected int getStorageInventoryHeight(int displayableNumberOfRows) {
+		return displayableNumberOfRows * 18;
+	}
+
+	protected void updateStorageSlotsPositions() {
 		visibleSlotsCount = 0;
 		for (int slotIndex = 0; slotIndex < menu.getNumberOfStorageInventorySlots(); slotIndex++) {
 			Slot slot = menu.getSlot(slotIndex);
@@ -150,14 +154,18 @@ public abstract class SettingsScreen extends GuiContainer {
 		int x = (width - xSize) / 2;
 		int y = (height - ySize) / 2;
 		StorageGuiHelper.renderStorageBackground(x, y, storageBackgroundProperties.getTextureName(), xSize, ySize - HEIGHT_WITHOUT_STORAGE_SLOTS);
-		int slotsOnLine = getSlotsOnLine();
-		GuiHelper.renderSlotsBackground(x + SLOTS_X_OFFSET, y + SLOTS_Y_OFFSET, slotsOnLine, visibleSlotsCount / slotsOnLine, visibleSlotsCount % slotsOnLine);
+		drawSlotBg(x, y);
 		if (settingsTabControl != null) {
 			settingsTabControl.render(mouseX, mouseY, partialTicks);
 		}
 		if (templatePersistanceControl != null) {
 			templatePersistanceControl.render(mouseX, mouseY, partialTicks);
 		}
+	}
+
+	protected void drawSlotBg(int x, int y) {
+		int slotsOnLine = getSlotsOnLine();
+		GuiHelper.renderSlotsBackground(x + SLOTS_X_OFFSET, y + SLOTS_Y_OFFSET, slotsOnLine, visibleSlotsCount / slotsOnLine, visibleSlotsCount % slotsOnLine);
 	}
 
 	/** Over the slots vanilla drew: what empty slots show for their settings, and the tabs' marks. */
