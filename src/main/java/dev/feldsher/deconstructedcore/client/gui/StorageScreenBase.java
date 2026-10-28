@@ -1,5 +1,8 @@
 package dev.feldsher.deconstructedcore.client.gui;
 
+import java.util.Optional;
+import net.minecraft.item.Item;
+import net.minecraft.init.Items;
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
@@ -361,16 +364,24 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		renderMemorizedStacks(x, y);
 	}
 
-	/** Empty memorized slots show what they remember, under a translucent cover, where vanilla then draws nothing. */
+	/**
+	 * Empty memorized slots show what they remember, under a translucent cover, where vanilla then draws nothing; so
+	 * do the empty slots a part of the inventory set for an item, as compression.
+	 */
 	private void renderMemorizedStacks(int x, int y) {
 		for (int slotIndex = 0; slotIndex < getMenu().getNumberOfStorageInventorySlots(); slotIndex++) {
 			Slot slot = getMenu().getSlot(slotIndex);
 			if (slot.xPos == DISABLED_SLOT_X_POS || slot.getHasStack()) {
 				continue;
 			}
-			getMenu().getMemorizedStackInSlot(slotIndex).ifPresent(memorizedStack -> {
+			Optional<ItemStack> ghostStack = getMenu().getMemorizedStackInSlot(slotIndex);
+			if (!ghostStack.isPresent()) {
+				Item filterItem = getMenu().getStorageWrapper().getInventoryHandler().getFilterItem(slotIndex);
+				ghostStack = filterItem == Items.AIR ? Optional.empty() : Optional.of(new ItemStack(filterItem));
+			}
+			ghostStack.ifPresent(stack -> {
 				RenderHelper.enableGUIStandardItemLighting();
-				itemRender.renderItemAndEffectIntoGUI(mc.player, memorizedStack, x + slot.xPos, y + slot.yPos);
+				itemRender.renderItemAndEffectIntoGUI(mc.player, stack, x + slot.xPos, y + slot.yPos);
 				RenderHelper.disableStandardItemLighting();
 				MemorySettingsTab.drawMemorizedStackOverlay(x + slot.xPos, y + slot.yPos);
 			});

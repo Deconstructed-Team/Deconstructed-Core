@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.client;
 
+import dev.feldsher.deconstructedcore.api.IStorageWrapper;
 import dev.feldsher.deconstructedcore.common.gui.SettingsContainerMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,7 +24,10 @@ public final class ClientContainerSync {
 	public static void setSettings(int windowId, NBTTagCompound settings) {
 		EntityPlayer player = Minecraft.getMinecraft().player;
 		if (player != null && player.openContainer.windowId == windowId && player.openContainer instanceof SettingsContainerMenu) {
-			((SettingsContainerMenu<?>) player.openContainer).getStorageWrapper().getSettingsHandler().reloadSettings(settings);
+			IStorageWrapper storageWrapper = ((SettingsContainerMenu<?>) player.openContainer).getStorageWrapper();
+			storageWrapper.getSettingsHandler().reloadSettings(settings);
+			// the parts that go by what slots remember, as compression, work them out again as the server did
+			storageWrapper.getInventoryHandler().onSlotFiltersChanged();
 		}
 	}
 

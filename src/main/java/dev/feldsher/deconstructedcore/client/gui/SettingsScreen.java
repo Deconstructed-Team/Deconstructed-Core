@@ -1,5 +1,6 @@
 package dev.feldsher.deconstructedcore.client.gui;
 
+import net.minecraft.init.Items;
 import dev.feldsher.deconstructedcore.client.gui.utils.GuiHelper;
 import dev.feldsher.deconstructedcore.client.gui.utils.Position;
 import dev.feldsher.deconstructedcore.client.gui.utils.Rect2i;
@@ -177,6 +178,9 @@ public abstract class SettingsScreen extends GuiContainer {
 				renderRotatedItem(slot.slotNumber, slot.xPos, slot.yPos, rotation, templateLoadHovered);
 			} else if (!slot.getHasStack()) {
 				ItemStack displayOverride = settingsTabControl.getSlotStackDisplayOverride(slot.slotNumber, templateLoadHovered);
+				if (displayOverride.isEmpty() && menu.getStorageWrapper().getInventoryHandler().getFilterItem(slot.slotNumber) != Items.AIR) {
+					displayOverride = new ItemStack(menu.getStorageWrapper().getInventoryHandler().getFilterItem(slot.slotNumber));
+				}
 				if (!displayOverride.isEmpty()) {
 					RenderHelper.enableGUIStandardItemLighting();
 					itemRender.renderItemAndEffectIntoGUI(mc.player, displayOverride, slot.xPos, slot.yPos);

@@ -79,7 +79,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 	private void addStorageInventorySlots() {
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
 		for (int slotIndex = 0; slotIndex < inventoryHandler.getSlots(); slotIndex++) {
-			storageInventorySlots.add(addSlotToContainer(new ViewOnlyStorageInventorySlot(inventoryHandler, slotIndex)));
+			storageInventorySlots.add(addSlotToContainer(new ViewOnlyStorageInventorySlot(storageWrapper, inventoryHandler, slotIndex)));
 		}
 	}
 
@@ -196,8 +196,18 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends L
 		@Nullable
 		private static IntPredicate hiddenSlots = null;
 
-		ViewOnlyStorageInventorySlot(InventoryHandler inventoryHandler, int slotIndex) {
+		private final IStorageWrapper storageWrapper;
+
+		ViewOnlyStorageInventorySlot(IStorageWrapper storageWrapper, InventoryHandler inventoryHandler, int slotIndex) {
 			super(inventoryHandler, slotIndex, 0, 0);
+			this.storageWrapper = storageWrapper;
+		}
+
+		@Nullable
+		@net.minecraftforge.fml.relauncher.SideOnly(net.minecraftforge.fml.relauncher.Side.CLIENT)
+		@Override
+		public String getSlotTexture() {
+			return StorageInventorySlot.getSlotTexture(storageWrapper, getSlotIndex());
 		}
 
 		@Override

@@ -9,6 +9,7 @@ import dev.feldsher.deconstructedcore.upgrades.IOverflowResponseUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.ISlotLimitUpgrade;
 import dev.feldsher.deconstructedcore.upgrades.stack.StackUpgradeConfig;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,9 +22,12 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 /**
@@ -32,7 +36,8 @@ import java.util.function.IntConsumer;
  * <p>
  * Memorized slots take only what they remember, and are filled with it before empty slots that remember nothing.
  * Runs of slots can be handled by parts other than the plain one, as the infinity upgrade's, through its
- * {@link InventoryPartitioner}, kept under {@link #PARTITIONER_TAG}. The slot tracker comes with the stage that ports it.
+ * {@link InventoryPartitioner}, kept under {@link #PARTITIONER_TAG}. A part may set slots for items, as compression
+ * does: those items go into those slots when empty before other empty slots.
  */
 public abstract class InventoryHandler extends ItemStackHandler implements IItemHandlerSimpleInserter {
 	public static final String INVENTORY_TAG = "inventory";
@@ -48,6 +53,9 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 	private int baseSlotLimit;
 	private final StackUpgradeConfig stackUpgradeConfig;
 	private InventoryPartitioner inventoryPartitioner;
+	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
+	private Consumer<Set<Item>> filterItemsChangeListener = s -> {
+	};
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, NBTTagCompound contentsNbt, Runnable saveHandler, int baseSlotLimit,
 			StackUpgradeConfig stackUpgradeConfig) {
@@ -60,6 +68,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompoundTag(PARTITIONER_TAG), this, this::getMemorySettings);
 		deserializeNBT(contentsNbt.getCompoundTag(INVENTORY_TAG));
 		initStackNbts();
+		// the parts work out what they hold from the slots, which are only read now
+		inventoryPartitioner.onInit();
 	}
 
 	@Override
@@ -213,6 +223,17 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 				remaining = insertItemInternal(slot, remaining, simulate);
 			}
 		}
+		Set<Integer> filterSlots = filterItemSlots.get(remaining.getItem());
+		if (filterSlots != null) {
+			for (int slot : new ArrayList<>(filterSlots)) {
+				if (remaining.isEmpty()) {
+					break;
+				}
+				if (getStackInSlot(slot).isEmpty()) {
+					remaining = insertItemInternal(slot, remaining, simulate);
+				}
+			}
+		}
 		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
 			if (getStackInSlot(slot).isEmpty() && !memory.isSlotSelected(slot)) {
 				remaining = insertItemInternal(slot, remaining, simulate);
@@ -302,6 +323,64 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 		return inventoryPartitioner.isInfinite(slot);
 	}
 
+	public Item getFilterItem(int slot) {
+		return getPart(slot).getFilterItem(slot);
+	}
+
+	public boolean isFilterItem(Item item) {
+		return inventoryPartitioner.isFilterItem(item);
+	}
+
+	@Nullable
+	public String getNoItemIcon(int slot) {
+		return inventoryPartitioner.getNoItemIcon(slot);
+	}
+
+	/** What a slot remembers changed: a part that goes by it works out its slots again. */
+	public void onSlotFilterChanged(int slot) {
+		getPart(slot).onSlotFilterChanged(slot);
+	}
+
+	/** What many slots remember changed at once, as all of them cleared. */
+	public void onSlotFiltersChanged() {
+		for (int slot = 0; slot < getSlots(); slot++) {
+			onSlotFilterChanged(slot);
+		}
+	}
+
+	public void registerFilterItemsChangeListener(Consumer<Set<Item>> listener) {
+		filterItemsChangeListener = listener;
+	}
+
+	public void unregisterFilterItemsChangeListener() {
+		filterItemsChangeListener = s -> {
+		};
+	}
+
+	public void initFilterItems() {
+		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
+	}
+
+	public void onFilterItemsChanged() {
+		if (inventoryPartitioner == null) {
+			return;
+		}
+		filterItemSlots.clear();
+		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
+		filterItemsChangeListener.accept(filterItemSlots.keySet());
+	}
+
+	public Set<Item> getFilterItems() {
+		return filterItemSlots.keySet();
+	}
+
+	/** On opening: the parts work out again what they hold. */
+	public void onInit() {
+		if (inventoryPartitioner != null) {
+			inventoryPartitioner.onInit();
+		}
+	}
+
 	public ItemStack getSlotStack(int slot) {
 		return stacks.get(slot);
 	}
@@ -374,6 +453,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 		initStackNbts();
 		// its last part runs to the end of the inventory: read again, with the new end
 		inventoryPartitioner = new InventoryPartitioner(inventoryPartitioner.serializeNBT(), this, this::getMemorySettings);
+		inventoryPartitioner.onInit();
 		saveInventory();
 	}
 }

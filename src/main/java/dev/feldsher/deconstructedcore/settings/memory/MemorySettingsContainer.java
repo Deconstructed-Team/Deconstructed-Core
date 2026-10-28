@@ -2,11 +2,15 @@ package dev.feldsher.deconstructedcore.settings.memory;
 
 import dev.feldsher.deconstructedcore.util.GhostStacks;
 import dev.feldsher.deconstructedcore.common.gui.SettingsContainerMenu;
+import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.settings.SettingsContainerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-/** The client asks, the server changes what the slots remember, and the settings come back to the client changed. */
+/**
+ * The client asks, the server changes what the slots remember, and the settings come back to the client changed. The
+ * inventory's parts that go by what slots remember, as compression, are told.
+ */
 public class MemorySettingsContainer extends SettingsContainerBase<MemorySettingsCategory> {
 	private static final String ACTION_TAG = "action";
 	private static final String SELECT_ALL_ACTION = "selectAll";
@@ -47,6 +51,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		}
 		if (isServer()) {
 			getCategory().unselectSlot(slotNumber);
+			getInventoryHandler().onSlotFilterChanged(slotNumber);
 		} else {
 			sendIntToServer(UNSELECT_SLOT_TAG, slotNumber);
 		}
@@ -58,6 +63,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		}
 		if (isServer()) {
 			getCategory().selectSlot(slotNumber);
+			getInventoryHandler().onSlotFilterChanged(slotNumber);
 		} else {
 			sendIntToServer(SELECT_SLOT_TAG, slotNumber);
 		}
@@ -66,6 +72,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	public void unselectAllSlots() {
 		if (isServer()) {
 			getCategory().unselectAllSlots();
+			getInventoryHandler().onSlotFiltersChanged();
 		} else {
 			sendStringToServer(ACTION_TAG, UNSELECT_ALL_ACTION);
 		}
@@ -74,6 +81,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	public void selectAllSlots() {
 		if (isServer()) {
 			getCategory().selectSlots(0, getSettingsContainer().getNumberOfStorageInventorySlots());
+			getInventoryHandler().onSlotFiltersChanged();
 		} else {
 			sendStringToServer(ACTION_TAG, SELECT_ALL_ACTION);
 		}
@@ -83,6 +91,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	public void setFilter(int slotNumber, ItemStack filter) {
 		if (isServer()) {
 			getCategory().setFilter(slotNumber, filter);
+			getInventoryHandler().onSlotFilterChanged(slotNumber);
 		} else {
 			sendDataToServer(() -> {
 				NBTTagCompound data = new NBTTagCompound();
@@ -91,6 +100,10 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 				return data;
 			});
 		}
+	}
+
+	private InventoryHandler getInventoryHandler() {
+		return getSettingsContainer().getStorageWrapper().getInventoryHandler();
 	}
 
 	public boolean isSlotSelected(int slotNumber) {
@@ -104,6 +117,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	public void setIgnoreNbt(boolean ignoreNbt) {
 		if (isServer()) {
 			getCategory().setIgnoreNbt(ignoreNbt);
+			getInventoryHandler().onSlotFiltersChanged();
 		} else {
 			sendBooleanToServer(IGNORE_NBT_TAG, ignoreNbt);
 		}

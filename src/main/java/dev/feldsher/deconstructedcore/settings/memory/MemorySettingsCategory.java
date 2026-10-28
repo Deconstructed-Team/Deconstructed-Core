@@ -3,6 +3,7 @@ package dev.feldsher.deconstructedcore.settings.memory;
 import dev.feldsher.deconstructedcore.inventory.InventoryHandler;
 import dev.feldsher.deconstructedcore.inventory.ItemStackKey;
 import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -107,7 +108,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	/**
-	 * Slots remember what they hold; empty ones have nothing to remember.
+	 * Slots remember what they hold; empty ones what a part of the inventory has set them for, as compression, if
+	 * anything.
 	 *
 	 * @param minSlot inclusive
 	 * @param maxSlot exclusive
@@ -118,6 +120,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 			ItemStack stackInSlot = inventoryHandler.getStackInSlot(slot);
 			if (!stackInSlot.isEmpty()) {
 				addSlot(slot, stackInSlot);
+			} else if (inventoryHandler.getFilterItem(slot) != Items.AIR) {
+				addSlot(slot, new ItemStack(inventoryHandler.getFilterItem(slot)));
 			}
 		}
 		serializeFilterItems();

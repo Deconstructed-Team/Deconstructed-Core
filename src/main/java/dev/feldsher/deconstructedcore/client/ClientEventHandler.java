@@ -2,6 +2,7 @@ package dev.feldsher.deconstructedcore.client;
 
 import dev.feldsher.deconstructedcore.DeconstructedCore;
 import dev.feldsher.deconstructedcore.common.gui.StorageContainerMenuBase;
+import dev.feldsher.deconstructedcore.common.gui.StorageInventorySlot;
 import dev.feldsher.deconstructedcore.fluid.ExperienceFluids;
 import dev.feldsher.deconstructedcore.upgrades.battery.BatteryUpgradeContainer;
 import dev.feldsher.deconstructedcore.upgrades.tank.TankUpgradeContainer;
@@ -19,6 +20,7 @@ public final class ClientEventHandler {
 	@SubscribeEvent
 	public static void onTextureStitch(TextureStitchEvent.Pre event) {
 		event.getMap().registerSprite(new ResourceLocation(StorageContainerMenuBase.EMPTY_UPGRADE_SLOT_BACKGROUND));
+		event.getMap().registerSprite(new ResourceLocation(StorageInventorySlot.INACCESSIBLE_SLOT_BACKGROUND));
 		event.getMap().registerSprite(new ResourceLocation(TankUpgradeContainer.EMPTY_TANK_INPUT_SLOT_BACKGROUND));
 		event.getMap().registerSprite(new ResourceLocation(TankUpgradeContainer.EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
 		event.getMap().registerSprite(new ResourceLocation(BatteryUpgradeContainer.EMPTY_BATTERY_INPUT_SLOT_BACKGROUND));

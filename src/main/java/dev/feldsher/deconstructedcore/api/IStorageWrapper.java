@@ -121,7 +121,7 @@ public interface IStorageWrapper {
 	}
 
 	default void onInit() {
-		//noop
+		getInventoryHandler().onInit();
 	}
 
 	/** What stack upgrades multiply; above 1 for storages that hold more than a stack per slot without upgrades. */

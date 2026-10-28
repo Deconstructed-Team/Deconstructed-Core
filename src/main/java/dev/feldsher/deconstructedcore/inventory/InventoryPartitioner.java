@@ -1,6 +1,7 @@
 package dev.feldsher.deconstructedcore.inventory;
 
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -8,11 +9,14 @@ import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /**
  * Splits an inventory into runs of slots, each handled by its own {@link IInventoryPartHandler}: by default one plain
@@ -54,6 +58,30 @@ public class InventoryPartitioner {
 			return IInventoryPartHandler.EMPTY;
 		}
 		return inventoryPartHandlers[index];
+	}
+
+	@Nullable
+	public String getNoItemIcon(int slot) {
+		return getPartBySlot(slot).getNoItemIcon(slot);
+	}
+
+	public boolean isFilterItem(Item item) {
+		for (IInventoryPartHandler inventoryPartHandler : inventoryPartHandlers) {
+			if (inventoryPartHandler.isFilterItem(item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Map<Item, Set<Integer>> getFilterItems() {
+		Map<Item, Set<Integer>> filterItems = new HashMap<>();
+		for (IInventoryPartHandler inventoryPartHandler : inventoryPartHandlers) {
+			for (Map.Entry<Item, Set<Integer>> entry : inventoryPartHandler.getFilterItems().entrySet()) {
+				filterItems.computeIfAbsent(entry.getKey(), k -> new HashSet<>()).addAll(entry.getValue());
+			}
+		}
+		return filterItems;
 	}
 
 	public void onSlotLimitChange() {
@@ -121,6 +149,7 @@ public class InventoryPartitioner {
 		updatePartsAndIndexesFromLists(newParts, newBaseIndexes);
 
 		inventoryPartHandler.onInit();
+		parent.onFilterItemsChanged();
 	}
 
 	/** The part beginning at that slot gives way to a plain one, joined with the plain ones around it. */
@@ -133,6 +162,7 @@ public class InventoryPartitioner {
 
 		if (inventoryPartHandlers.length == 1) {
 			updatePartsAndIndexesFromLists(Collections.singletonList(new IInventoryPartHandler.Default(parent, parent.getSlots())), Collections.singletonList(0));
+			parent.onFilterItemsChanged();
 			return;
 		}
 
@@ -175,6 +205,8 @@ public class InventoryPartitioner {
 		}
 
 		updatePartsAndIndexesFromLists(newParts, newBaseIndexes);
+
+		parent.onFilterItemsChanged();
 	}
 
 	private void updatePartsAndIndexesFromLists(List<IInventoryPartHandler> newParts, List<Integer> newBaseIndexes) {

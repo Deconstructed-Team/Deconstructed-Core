@@ -2,10 +2,13 @@ package dev.feldsher.deconstructedcore.inventory;
 
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -62,12 +65,35 @@ public interface IInventoryPartHandler {
 
 	String getName();
 
+	/** The sprite, on the blocks atlas, an empty slot of this part shows; null for none. */
+	@Nullable
+	default String getNoItemIcon(int slot) {
+		return null;
+	}
+
+	/** The item this part has set the slot for, which it then shows when empty and takes alone; air for none. */
+	default Item getFilterItem(int slot) {
+		return Items.AIR;
+	}
+
 	default void onSlotLimitChange() {
 		//noop
 	}
 
 	default Set<Integer> getNoSortSlots() {
 		return Collections.emptySet();
+	}
+
+	default void onSlotFilterChanged(int slot) {
+		//noop
+	}
+
+	default boolean isFilterItem(Item item) {
+		return false;
+	}
+
+	default Map<Item, Set<Integer>> getFilterItems() {
+		return Collections.emptyMap();
 	}
 
 	default void onInit() {

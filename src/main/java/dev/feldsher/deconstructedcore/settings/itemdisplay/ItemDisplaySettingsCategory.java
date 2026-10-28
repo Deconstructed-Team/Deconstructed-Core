@@ -7,6 +7,7 @@ import dev.feldsher.deconstructedcore.settings.ISettingsCategory;
 import dev.feldsher.deconstructedcore.settings.ISlotColorCategory;
 import dev.feldsher.deconstructedcore.settings.memory.MemorySettingsCategory;
 import net.minecraft.item.EnumDyeColor;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -87,6 +88,9 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		}
 		ItemStack slotStack = inventoryHandler.getStackInSlot(slotIndex);
 		if (slotStack.isEmpty()) {
+			if (inventoryHandler.getFilterItem(slotIndex) != Items.AIR) {
+				return Optional.of(new ItemStack(inventoryHandler.getFilterItem(slotIndex)));
+			}
 			return getMemorySettings.get().getSlotFilterStack(slotIndex, true);
 		}
 		ItemStack stackCopy = slotStack.copy();
