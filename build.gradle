@@ -1,4 +1,17 @@
-apply from: rootProject.file('gradle/scripts/mod.gradle')
+/**
+ * Deconstructed Core's build: ForgeDevEnv's, in gradle/scripts/mod.gradle, with the plugins it needs and the IDEA settings.
+ */
+import org.jetbrains.gradle.ext.Gradle
+
+plugins {
+    id 'idea'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.4.1'
+    id 'com.gtnewhorizons.retrofuturagradle' version '2.0.3'
+    id 'com.gradleup.shadow' version '9.6.+'
+    id 'maven-publish'
+}
+
+apply from: 'gradle/scripts/mod.gradle'
 
 dependencies {
     // HEI (JEI's continuation for 1.12): only to build the plugin against, the game doesn't need it
@@ -6,4 +19,25 @@ dependencies {
     // Sorting mods, whose sorting and shortcuts are kept off storage slots: only built against as well
     compileOnly rfg.deobf('maven.modrinth:inventory-bogosorter:1.6.4')
     compileOnly 'curse.maven:inventory-tweaks-api-223094:2923461'
+}
+
+idea {
+    project {
+        settings {
+            runConfigurations {
+                "1. Run Client"(Gradle) {
+                    taskNames = ['runClient']
+                }
+                "2. Run Server"(Gradle) {
+                    taskNames = ['runServer']
+                }
+            }
+            compiler.javac {
+                javacAdditionalOptions = '-encoding utf8'
+            }
+            taskTriggers {
+                afterSync('cleanroomAfterSync')
+            }
+        }
+    }
 }

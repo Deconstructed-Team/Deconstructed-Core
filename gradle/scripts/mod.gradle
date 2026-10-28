@@ -1,7 +1,6 @@
 /**
- * One mod's build: ForgeDevEnv's build.gradle, shared by every mod subproject.
- * The plugins are put on the classpath by the root build.gradle; IDEA's project settings live there too.
- * Publishing to CurseForge/Modrinth/Maven and the changelog are left out until there is something to publish.
+ * The mod's build: ForgeDevEnv's build.gradle, applied by build.gradle, which puts the plugins on the classpath
+ * and holds IDEA's project settings. Published only as JitPack installs it, for other mods to build against.
  */
 apply plugin: 'java'
 apply plugin: 'java-library'
@@ -130,6 +129,14 @@ repositories {
         }
         filter {
             includeGroup 'maven.modrinth'
+        }
+    }
+    maven {
+        // The other Deconstructed mods, built by JitPack from their repositories' tags
+        name 'JitPack'
+        url 'https://jitpack.io'
+        content {
+            includeGroup 'com.github.Deconstructed-Team'
         }
     }
     mavenLocal() // Must be last for caching to work
@@ -383,6 +390,18 @@ tasks.register('prioritizeCoremods') {
             if (it.isFile() && it.name =~ '(mixinbooter|configanytime)(-)([0-9])+\\.+([0-9])+(.jar)') {
                 it.renameTo(new File(it.parentFile, "!${it.name}"))
             }
+        }
+    }
+}
+
+// What JitPack installs, under the coordinates it gives (group, repository, tag); a local publish gets the mod's own version
+publishing {
+    publications {
+        create('maven', MavenPublication) {
+            from components.java
+            groupId = System.getenv('ARTIFACT_GROUP_ID') ?: 'com.github.Deconstructed-Team'
+            artifactId = System.getenv('ARTIFACT_ID') ?: rootProject.name
+            version = System.getenv('RELEASE_VERSION') ?: project.version
         }
     }
 }
