@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,6 +213,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 			return stack;
 		}
 		boolean hasFullStack = false;
+		Set<IInventoryPartHandler> simulatedSharedParts = new HashSet<>();
 		ItemStack remaining = stack;
 		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
 			ItemStack slotStack = getStackInSlot(slot);
@@ -219,14 +221,14 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 				if (slotStack.getCount() >= getStackLimit(slot, slotStack)) {
 					hasFullStack = true;
 				} else {
-					remaining = insertItemInternal(slot, remaining, simulate);
+					remaining = insertItemOnce(slot, remaining, simulate, simulatedSharedParts);
 				}
 			}
 		}
 		MemorySettingsCategory memory = getMemorySettings();
 		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
 			if (getStackInSlot(slot).isEmpty() && memory.isSlotSelected(slot) && memory.matchesFilter(slot, remaining)) {
-				remaining = insertItemInternal(slot, remaining, simulate);
+				remaining = insertItemOnce(slot, remaining, simulate, simulatedSharedParts);
 			}
 		}
 		Set<Integer> filterSlots = filterItemSlots.get(remaining.getItem());
@@ -236,19 +238,28 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 					break;
 				}
 				if (getStackInSlot(slot).isEmpty()) {
-					remaining = insertItemInternal(slot, remaining, simulate);
+					remaining = insertItemOnce(slot, remaining, simulate, simulatedSharedParts);
 				}
 			}
 		}
 		for (int slot = 0; slot < getSlots() && !remaining.isEmpty(); slot++) {
 			if (getStackInSlot(slot).isEmpty() && !memory.isSlotSelected(slot)) {
-				remaining = insertItemInternal(slot, remaining, simulate);
+				remaining = insertItemOnce(slot, remaining, simulate, simulatedSharedParts);
 			}
 		}
 		if (!remaining.isEmpty() && (hasFullStack || remaining.getCount() < stack.getCount())) {
 			remaining = triggerOverflowUpgrades(remaining);
 		}
 		return remaining;
+	}
+
+	/** A part whose slots share their room is simulated into once: the next of its slots has no more room than the first. */
+	private ItemStack insertItemOnce(int slot, ItemStack stack, boolean simulate, Set<IInventoryPartHandler> simulatedSharedParts) {
+		IInventoryPartHandler part = getPart(slot);
+		if (simulate && part.sharesCapacityAcrossSlots() && !simulatedSharedParts.add(part)) {
+			return stack;
+		}
+		return insertItemInternal(slot, stack, simulate);
 	}
 
 	private ItemStack insertItemInternal(int slot, ItemStack stack, boolean simulate) {

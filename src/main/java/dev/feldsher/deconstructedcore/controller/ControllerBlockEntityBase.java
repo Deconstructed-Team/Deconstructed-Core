@@ -410,38 +410,41 @@ public abstract class ControllerBlockEntityBase extends TileEntity implements II
 		if (stack.isEmpty() || world == null) {
 			return stack;
 		}
-		ItemStack remaining = insertIntoStorages(storagePositions, stack, simulate, (storage, inventory) -> inventory.hasStack(stack));
+		// a storage takes all it can the first time it's offered: offered again, a simulation would count its room twice
+		Set<BlockPos> offered = new HashSet<>();
+		ItemStack remaining = insertIntoStorages(storagePositions, stack, simulate, offered, (storage, inventory) -> inventory.hasStack(stack));
 		if (remaining.isEmpty()) {
 			return remaining;
 		}
-		remaining = insertIntoStorages(storagePositions, remaining, simulate,
+		remaining = insertIntoStorages(storagePositions, remaining, simulate, offered,
 				(storage, inventory) -> inventory.hasItem(stack.getItem()) && inventory.hasEmptySlots() && storage.emptySlotsAcceptItems());
 		if (remaining.isEmpty()) {
 			return remaining;
 		}
-		remaining = insertIntoStorages(storagePositions, remaining, simulate, (storage, inventory) -> getMemorySettings(storage).matchesFilter(stack));
+		remaining = insertIntoStorages(storagePositions, remaining, simulate, offered, (storage, inventory) -> getMemorySettings(storage).matchesFilter(stack));
 		if (remaining.isEmpty()) {
 			return remaining;
 		}
-		remaining = insertIntoStorages(storagePositions, remaining, simulate, (storage, inventory) -> inventory.isFilterItem(stack.getItem()));
+		remaining = insertIntoStorages(storagePositions, remaining, simulate, offered, (storage, inventory) -> inventory.isFilterItem(stack.getItem()));
 		if (remaining.isEmpty() || !insertIntoAnyEmpty) {
 			return remaining;
 		}
-		return insertIntoStorages(getStoragePositionsByDistance(), remaining, simulate, (storage, inventory) -> inventory.hasEmptySlots() && storage.emptySlotsAcceptItems());
+		return insertIntoStorages(getStoragePositionsByDistance(), remaining, simulate, offered, (storage, inventory) -> inventory.hasEmptySlots() && storage.emptySlotsAcceptItems());
 	}
 
 	private interface StorageMatcher {
 		boolean matches(IControllableStorage storage, InventoryHandler inventory);
 	}
 
-	private ItemStack insertIntoStorages(Collection<BlockPos> positions, ItemStack stack, boolean simulate, StorageMatcher matcher) {
+	private ItemStack insertIntoStorages(Collection<BlockPos> positions, ItemStack stack, boolean simulate, Set<BlockPos> offered, StorageMatcher matcher) {
 		ItemStack remaining = stack;
 		// copied: putting items away can change the network, as a void upgrade's storage
 		for (BlockPos storagePos : new ArrayList<>(positions)) {
 			Optional<IControllableStorage> storage = getLoadedTileEntity(world, storagePos, IControllableStorage.class);
-			if (!storage.isPresent() || !matcher.matches(storage.get(), storage.get().getStorageWrapper().getInventoryHandler())) {
+			if (offered.contains(storagePos) || !storage.isPresent() || !matcher.matches(storage.get(), storage.get().getStorageWrapper().getInventoryHandler())) {
 				continue;
 			}
+			offered.add(storagePos);
 			remaining = storage.get().getControllerInventory().insertItem(remaining, simulate);
 			if (remaining.isEmpty()) {
 				return ItemStack.EMPTY;

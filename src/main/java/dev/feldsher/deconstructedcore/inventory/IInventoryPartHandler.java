@@ -96,6 +96,14 @@ public interface IInventoryPartHandler {
 		return Collections.emptyMap();
 	}
 
+	/**
+	 * Whether its slots hold one pool between them, as compression's: what goes into one is what the part takes, and
+	 * a simulated insert into each of them would count the same room again.
+	 */
+	default boolean sharesCapacityAcrossSlots() {
+		return false;
+	}
+
 	default void onInit() {
 		//noop
 	}
