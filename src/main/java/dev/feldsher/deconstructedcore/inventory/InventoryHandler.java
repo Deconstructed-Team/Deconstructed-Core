@@ -53,6 +53,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 	private int baseSlotLimit;
 	private final StackUpgradeConfig stackUpgradeConfig;
 	private InventoryPartitioner inventoryPartitioner;
+	@Nullable
+	private ContentsTracker contentsTracker = null;
 	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
 	private Consumer<Set<Item>> filterItemsChangeListener = s -> {
 	};
@@ -91,6 +93,9 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 	@Override
 	public void onContentsChanged(int slot) {
 		super.onContentsChanged(slot);
+		if (contentsTracker != null) {
+			contentsTracker.onSlotChanged(slot, getSlotStack(slot));
+		}
 		if (persistent && updateSlotNbt(slot)) {
 			saveInventory();
 			triggerOnChangeListeners(slot);
@@ -134,6 +139,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 
 	@Override
 	public void deserializeNBT(NBTTagCompound nbt) {
+		contentsTracker = null;
 		setSize(nbt.hasKey("Size", Constants.NBT.TAG_INT) ? nbt.getInteger("Size") : stacks.size());
 		NBTTagList tagList = nbt.getTagList("Items", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < tagList.tagCount(); i++) {
@@ -381,6 +387,27 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 		}
 	}
 
+	private ContentsTracker getContentsTracker() {
+		if (contentsTracker == null) {
+			contentsTracker = new ContentsTracker(getSlots(), this::getSlotStack);
+		}
+		return contentsTracker;
+	}
+
+	/** Whether a slot holds this stack, the same item with the same NBT. */
+	public boolean hasStack(ItemStack stack) {
+		return !stack.isEmpty() && getContentsTracker().hasStack(stack);
+	}
+
+	/** Whether a slot holds this item, with any NBT. */
+	public boolean hasItem(Item item) {
+		return getContentsTracker().hasItem(item);
+	}
+
+	public boolean hasEmptySlots() {
+		return getContentsTracker().hasEmptySlots();
+	}
+
 	public ItemStack getSlotStack(int slot) {
 		return stacks.get(slot);
 	}
@@ -451,6 +478,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 			stacks.set(slot, previousStacks.get(slot));
 		}
 		initStackNbts();
+		contentsTracker = null;
 		// its last part runs to the end of the inventory: read again, with the new end
 		inventoryPartitioner = new InventoryPartitioner(inventoryPartitioner.serializeNBT(), this, this::getMemorySettings);
 		inventoryPartitioner.onInit();
