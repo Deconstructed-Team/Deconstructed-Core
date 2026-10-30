@@ -18,15 +18,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
-
-      # The jars are named after mod_version in gradle.properties, not after the tag, so the two must agree.
-      - name: Check Version
-        run: |
-          version=$(grep -E '^mod_version *=' gradle.properties | sed -E 's/^mod_version *= *//; s/ *$//')
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME doesn't match mod_version $version in gradle.properties"
-            exit 1
-          fi
+        with:
+          fetch-depth: 0 # the mod version comes from `git describe`, which needs the tags
 
       - name: Setup Java
         uses: actions/setup-java@v6

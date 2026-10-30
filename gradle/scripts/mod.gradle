@@ -10,6 +10,10 @@ apply plugin: 'com.gradleup.shadow'
 
 apply from: rootProject.file('gradle/scripts/helpers.gradle')
 
+// The version comes from the latest git tag, as `git describe` gives it: 1.2.3 on the commit tagged v1.2.3,
+// 1.2.3-4-gabcdef1 four commits past it, with .dirty for uncommitted changes. mod_version, when set, overrides it.
+setDefaultProperty 'mod_version', false, gitVersion()
+
 // Early Assertions
 assertProperty 'mod_version'
 assertProperty 'root_package'
@@ -411,4 +415,21 @@ publishing {
             version = project.version
         }
     }
+}
+
+String gitVersion() {
+    def describe = providers.exec {
+        commandLine 'git', 'describe', '--tags', '--match', 'v[0-9]*', '--dirty=.dirty'
+        workingDir projectDir
+        ignoreExitValue = true
+    }
+    try {
+        if (describe.result.get().exitValue == 0) {
+            return describe.standardOutput.asText.get().trim() - ~/^v/
+        }
+    } catch (Exception ignored) {
+        // no git on the path
+    }
+    project.logger.warn('No version: mod_version is not set, and git found no v* tag to take one from')
+    return 'NO-GIT-TAG'
 }
